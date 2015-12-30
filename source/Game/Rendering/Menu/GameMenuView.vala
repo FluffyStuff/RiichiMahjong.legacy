@@ -180,6 +180,9 @@ public class GameMenuView : View2D
 
     public void set_timer(bool enabled)
     {
+        if (timer.visible && enabled)
+            return;
+
         start_time = 0;
         timer.visible = enabled;
     }
