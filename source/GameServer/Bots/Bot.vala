@@ -151,7 +151,7 @@ public abstract class Bot : Object
 
     public void draw(int[] tenpai_indices)
     {
-        RoundFinishResult result = new RoundFinishResult.draw(tenpai_indices, round_state.game_draw_type);
+        RoundFinishResult result = new RoundFinishResult.draw(tenpai_indices, round_state.get_nagashi_indices(), round_state.game_draw_type);
         game_state.round_finished(result);
     }
 

@@ -366,6 +366,20 @@ public class RoundState : Object
         return wall.get_tile(tile_ID);
     }
 
+    public int[] get_nagashi_indices()
+    {
+        ArrayList<int> indices = new ArrayList<int>();
+
+        if (game_over && game_draw_type == GameDrawType.EMPTY_WALL)
+        {
+            foreach (RoundStatePlayer player in players)
+                if (player.has_nagashi_mangan())
+                    indices.add(player.index);
+        }
+
+        return indices.to_array();
+    }
+
     public ArrayList<RoundStatePlayer> get_tenpai_players()
     {
         ArrayList<RoundStatePlayer> players = new ArrayList<RoundStatePlayer>();
@@ -803,6 +817,11 @@ public class RoundStatePlayer
     {
         ArrayList<Tile> tiles = get_discard_tiles();
         return tiles[tiles.size - 1];
+    }
+
+    public bool has_nagashi_mangan()
+    {
+        return !tiles_called_on && calls.size == 0 && TileRules.is_nagashi_mangan(pond);
     }
 
     public bool in_tenpai()

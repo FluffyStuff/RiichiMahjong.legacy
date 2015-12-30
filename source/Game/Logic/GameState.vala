@@ -131,6 +131,22 @@ public class GameState : Object
         {
             if (result.draw_type == GameDrawType.EMPTY_WALL)
             {
+                for (int i = 0; i < result.nagashi_indices.length; i++)
+                {
+                    int n = result.nagashi_indices[i];
+                    bool dealer = n == dealer_index;
+                    players[n].transfer += dealer ? 12000 : 8000;
+
+                    for (int j = 0; j < (players.length - 1); j++)
+                    {
+                        int a = (n + j + 1) % players.length;
+                        if (dealer || a == dealer_index)
+                            players[a].transfer -= 4000;
+                        else
+                            players[a].transfer -= 2000;
+                    }
+                }
+
                 int tenpai_count = result.tenpai_indices.length;
 
                 bool[] marked = new bool[players.length];
@@ -401,10 +417,11 @@ public class RoundFinishResult
         this.winner_index = winner_index;
     }
 
-    public RoundFinishResult.draw(int[] tenpai_indices, GameDrawType draw_type)
+    public RoundFinishResult.draw(int[] tenpai_indices, int[] nagashi_indices, GameDrawType draw_type)
     {
         result = RoundResultEnum.DRAW;
         this.tenpai_indices = tenpai_indices;
+        this.nagashi_indices = nagashi_indices;
         this.draw_type = draw_type;
     }
 
@@ -415,6 +432,7 @@ public class RoundFinishResult
     public int loser_index { get; private set; }
     public int discard_tile { get; private set; }
     public int[] tenpai_indices { get; private set; }
+    public int[] nagashi_indices { get; private set; }
 
     public enum RoundResultEnum
     {

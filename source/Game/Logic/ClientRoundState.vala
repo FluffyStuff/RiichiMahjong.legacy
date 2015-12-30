@@ -488,7 +488,8 @@ public class ClientRoundState : Object
             state.calls_finished();
 
         int[] tenpai = draw.get_tenpai_indices();
-        result = new RoundFinishResult.draw(tenpai, state.game_draw_type);
+        int[] nagashi = state.get_nagashi_indices();
+        result = new RoundFinishResult.draw(tenpai, nagashi, state.game_draw_type);
         finished = true;
         game_finished(result);
     }

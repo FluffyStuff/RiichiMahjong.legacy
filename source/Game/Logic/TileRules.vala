@@ -641,6 +641,14 @@ public class TileRules
         return readings;
     }
 
+    public static bool is_nagashi_mangan(ArrayList<Tile> pond)
+    {
+        foreach (Tile tile in pond)
+            if (!tile.is_honor_tile() || !tile.is_terminal_tile())
+                return false;
+        return true;
+    }
+
     public static ArrayList<Tile> tenpai_tiles(ArrayList<Tile> hand)
     {
         ArrayList<Tile> tenpai_tiles = new ArrayList<Tile>();
@@ -1301,22 +1309,7 @@ public class Yaku : Object
 
         bool closed_hand = player.calls.size == 0;
 
-        // TODO: Fix Chankan / Nagashi mangan
-
-        // Nagashi mangan (Should we do this here?)
-        /*{
-            bool nagashi = true;
-            foreach (Tile tile in player.pond)
-                if (!tile.is_honour_tile() || !tile.is_terminal_tile())
-                {
-                    nagashi = false;
-                    break;
-                }
-
-            if (nagashi)
-                yaku.add(new Yaku(YakuType.NAGAGSHI_MANGAN, 5, 0));
-            return yaku;
-        }*/
+        // TODO: Fix Chankan / Renhou
 
         // Tenhou / Chiihou / Renhou
         if (round.first_turn)

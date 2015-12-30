@@ -339,7 +339,7 @@ namespace GameServer
                 pl.server_player.send_message(message);
         }
 
-        public void game_draw(int[] tenpai_indices, GameDrawType draw_type, ArrayList<Tile> all_tenpai_tiles)
+        public void game_draw(int[] tenpai_indices, int[] nagashi_indices, GameDrawType draw_type, ArrayList<Tile> all_tenpai_tiles)
         {
             foreach (Tile t in all_tenpai_tiles)
                 game_reveal_tile(t);
@@ -350,7 +350,7 @@ namespace GameServer
                 pl.server_player.send_message(message);
 
             finished = true;
-            result = new RoundFinishResult.draw(tenpai_indices, draw_type);
+            result = new RoundFinishResult.draw(tenpai_indices, nagashi_indices, draw_type);
         }
 
         //////////////////////

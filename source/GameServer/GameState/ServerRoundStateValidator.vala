@@ -33,6 +33,11 @@ namespace GameServer
             return state.tile_discard(tile_ID);
         }
 
+        public int[] get_nagashi_indices()
+        {
+            return state.get_nagashi_indices();
+        }
+
         public ArrayList<ServerRoundStatePlayer> get_tenpai_players()
         {
             ArrayList<ServerRoundStatePlayer> players = new ArrayList<ServerRoundStatePlayer>();

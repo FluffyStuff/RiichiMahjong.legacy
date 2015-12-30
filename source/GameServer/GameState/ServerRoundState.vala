@@ -22,7 +22,7 @@ namespace GameServer
 
         public signal void game_get_call_decision(int receiver);
         public signal void game_get_turn_decision(int player_index);
-        public signal void game_draw(int[] tenpai_indices, GameDrawType draw_type, ArrayList<Tile> all_tiles);
+        public signal void game_draw(int[] tenpai_indices, int[] nagashi_indices, GameDrawType draw_type, ArrayList<Tile> all_tiles);
 
         private ServerRoundStateValidator validator;
         private int decision_time;
@@ -384,7 +384,9 @@ namespace GameServer
                 tiles.add_all(tenpai_players[i].hand);
             }
 
-            game_draw(tenpai_indices, validator.game_draw_type, tiles);
+            int[] nagashi_indices = validator.get_nagashi_indices();
+
+            game_draw(tenpai_indices, nagashi_indices, validator.game_draw_type, tiles);
             game_over();
         }
 
