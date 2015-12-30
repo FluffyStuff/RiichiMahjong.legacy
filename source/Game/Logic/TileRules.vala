@@ -723,8 +723,7 @@ public class RoundStateContext : Object
         bool last_tile,
         bool rinshan,
         bool chankan,
-        bool flow_interrupted,
-        bool first_turn
+        bool flow_interrupted
     )
     {
         this.round_wind = round_wind;
@@ -736,7 +735,6 @@ public class RoundStateContext : Object
         this.rinshan = rinshan;
         this.chankan = chankan;
         this.flow_interrupted = flow_interrupted;
-        this.first_turn = first_turn;
     }
 
     public string to_string()
@@ -748,8 +746,7 @@ public class RoundStateContext : Object
         "last_tile: " + last_tile.to_string() + "\n" +
         "rinshan: " + rinshan.to_string() + "\n" +
         "chankan: " + chankan.to_string() + "\n" +
-        "flow_interrupted: " + flow_interrupted.to_string() + "\n" +
-        "first_turn: " + first_turn.to_string() + "\n";
+        "flow_interrupted: " + flow_interrupted.to_string() + "\n";
 
         str += "dora: \n";
         foreach (Tile t in dora)
@@ -771,7 +768,6 @@ public class RoundStateContext : Object
     public bool rinshan { get; private set; }
     public bool chankan { get; private set; }
     public bool flow_interrupted { get; private set; }
-    public bool first_turn { get; private set; }
 }
 
 public class PlayerStateContext : Object
@@ -786,7 +782,8 @@ public class PlayerStateContext : Object
         bool in_riichi,
         bool double_riichi,
         bool ippatsu,
-        bool tiles_called_on
+        bool tiles_called_on,
+        bool first_turn
     )
     {
         this.hand = hand;
@@ -798,6 +795,7 @@ public class PlayerStateContext : Object
         this.double_riichi = double_riichi;
         this.ippatsu = ippatsu;
         this.tiles_called_on = tiles_called_on;
+        this.first_turn = first_turn;
     }
 
     public string to_string()
@@ -808,7 +806,8 @@ public class PlayerStateContext : Object
         "in_riichi: " + in_riichi.to_string() + "\n" +
         "double_riichi: " + double_riichi.to_string() + "\n" +
         "ippatsu: " + ippatsu.to_string() + "\n" +
-        "tiles_called_on: " + tiles_called_on.to_string() + "\n";
+        "tiles_called_on: " + tiles_called_on.to_string() + "\n" +
+        "first_turn: " + first_turn.to_string() + "\n";
 
         str += "hand: \n";
         foreach (Tile t in hand)
@@ -830,6 +829,7 @@ public class PlayerStateContext : Object
     public bool double_riichi { get; private set; }
     public bool ippatsu { get; private set; }
     public bool tiles_called_on { get; private set; }
+    public bool first_turn { get; private set; }
 }
 
 public class HandReading : Object
@@ -1309,10 +1309,10 @@ public class Yaku : Object
 
         bool closed_hand = player.calls.size == 0;
 
-        // TODO: Fix Chankan / Renhou
+        // TODO: Fix Chankan
 
         // Tenhou / Chiihou / Renhou
-        if (round.first_turn)
+        if (!round.flow_interrupted && player.first_turn)
         {
             if (player.dealer)
                 yaku.add(new Yaku(YakuType.TENHOU, 0, 1));

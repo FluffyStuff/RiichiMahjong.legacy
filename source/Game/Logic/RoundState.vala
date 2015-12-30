@@ -422,8 +422,7 @@ public class RoundState : Object
             last_tile,
             rinshan && !ron,
             chankan,
-            flow_interrupted,
-            turn_counter <= players.length && !flow_interrupted
+            flow_interrupted
         );
     }
 
@@ -441,7 +440,7 @@ public class RoundState : Object
 
 public class RoundStatePlayer
 {
-    private bool double_riichi = true;
+    private bool double_riichi = false;
     private bool do_riichi_discard = false;
     private bool do_chii_discard = false;
     private bool do_pon_discard = false;
@@ -462,6 +461,7 @@ public class RoundStatePlayer
         pond = new ArrayList<Tile>();
         calls = new ArrayList<RoundStateCall>();
         in_riichi = false;
+        first_turn = true;
     }
 
     public bool has_tile(Tile tile)
@@ -493,14 +493,12 @@ public class RoundStatePlayer
         hand.remove(tile);
         pond.add(tile);
 
-        if (!in_riichi)
-            double_riichi = false;
-
         if (do_riichi_discard)
             do_riichi_discard = false;
         else
             ippatsu = false;
 
+        first_turn = false;
         do_chii_discard = false;
         do_pon_discard = false;
         return true;
@@ -524,9 +522,8 @@ public class RoundStatePlayer
 
     public void flow_interrupted()
     {
-        if (!in_riichi)
-            double_riichi = false;
         ippatsu = false;
+        first_turn = false;
     }
 
     public void do_riichi()
@@ -534,6 +531,9 @@ public class RoundStatePlayer
         in_riichi = true;
         ippatsu = true;
         do_riichi_discard = true;
+
+        if (first_turn)
+            double_riichi = true;
     }
 
     public ArrayList<Tile>? do_late_kan(Tile tile)
@@ -846,7 +846,8 @@ public class RoundStatePlayer
             in_riichi,
             double_riichi,
             ippatsu,
-            tiles_called_on
+            tiles_called_on,
+            first_turn
         );
     }
 
@@ -856,6 +857,7 @@ public class RoundStatePlayer
     public ArrayList<Tile> pond { get; private set; }
     public ArrayList<RoundStateCall> calls { get; private set; }
     public bool in_riichi { get; private set; }
+    public bool first_turn { get; private set; }
     public Tile newest_tile { owned get { return hand[hand.size - 1]; } }
     public RoundStateCall newest_call { owned get { return calls[calls.size - 1]; } }
 }
