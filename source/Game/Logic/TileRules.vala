@@ -644,7 +644,7 @@ public class TileRules
     public static bool is_nagashi_mangan(ArrayList<Tile> pond)
     {
         foreach (Tile tile in pond)
-            if (!tile.is_honor_tile() || !tile.is_terminal_tile())
+            if (!tile.is_honor_tile() && !tile.is_terminal_tile())
                 return false;
         return true;
     }
