@@ -149,8 +149,13 @@ public abstract class Bot : Object
         round_state.chii(player_index, tile_1_ID, tile_2_ID);
     }
 
-    public void draw(int[] tenpai_indices)
+    public void draw(int[] tenpai_indices, bool void_hand)
     {
+        if (void_hand)
+            round_state.void_hand();
+        else
+            round_state.calls_finished();
+
         RoundFinishResult result = new RoundFinishResult.draw(tenpai_indices, round_state.get_nagashi_indices(), round_state.game_draw_type);
         game_state.round_finished(result);
     }
