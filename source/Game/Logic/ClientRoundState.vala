@@ -503,7 +503,7 @@ public class ClientRoundState : Object
         int discard_index = state.current_player.index;
         state.ron(ron.player_index);
         Scoring score = state.get_ron_score();
-        result = new RoundFinishResult.ron(score, ron.player_index, discard_index, state.discard_tile.ID);
+        result = new RoundFinishResult.ron(score, ron.player_index, discard_index, state.discard_tile.ID, state.riichi_return_index);
         finished = true;
         game_finished(result);
     }

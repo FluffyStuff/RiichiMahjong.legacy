@@ -137,6 +137,11 @@ public class RenderPlayer
         in_riichi = true;
     }
 
+    public void return_riichi()
+    {
+        render_riichi.animate_return();
+    }
+
     public void late_kan(RenderTile tile)
     {
         RenderCalls.RenderCallPon pon = calls.get_pon(tile.tile_type.tile_type);
@@ -914,6 +919,7 @@ class RenderRiichi
     private RenderObject3D stick;
     private bool visible = false;
 
+    private bool return_animation;
     private bool animation_started = false;
     private bool animation_set_time = false;
     private float animation_time = 0.15f;
@@ -952,14 +958,26 @@ class RenderRiichi
 
         if (args.time >= animation_end_time)
         {
-            stick.position = animation_end_position;
-            stick.diffuse_color = Color.with_alpha(1);
+            if (return_animation)
+            {
+                stick.position = animation_start_position;
+                stick.diffuse_color = Color.with_alpha(0);
+            }
+            else
+            {
+                stick.position = animation_end_position;
+                stick.diffuse_color = Color.with_alpha(1);
+            }
+
             return;
         }
 
         float duration = animation_end_time - animation_start_time;
         float current = args.time - animation_start_time;
         float lerp = current / duration;
+
+        if (return_animation)
+            lerp = 1 - lerp;
 
         Vec3 pos = Vec3.lerp(animation_start_position, animation_end_position, lerp);
 
@@ -975,9 +993,14 @@ class RenderRiichi
 
     public void animate()
     {
-        if (animation_started)
-            return;
+        return_animation = false;
+        animation_set_time = true;
+        animation_started = true;
+    }
 
+    public void animate_return()
+    {
+        return_animation = true;
         animation_set_time = true;
         animation_started = true;
     }

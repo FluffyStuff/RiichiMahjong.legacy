@@ -36,6 +36,7 @@ public class RoundState : Object
             players[i] = new RoundStatePlayer(i, i == dealer, (Wind)((i - dealer + 4) % 4), can_riichi[i]);
 
         game_draw_type = GameDrawType.NONE;
+        riichi_return_index = -1;
     }
 
     public void start()
@@ -76,6 +77,8 @@ public class RoundState : Object
 
     public void calls_finished()
     {
+        riichi_return_index = -1;
+
         if (wall.empty)
         {
             game_over = true;
@@ -196,6 +199,7 @@ public class RoundState : Object
         if (!can_riichi())
             return false;
 
+        riichi_return_index = current_player.index;
         current_player.do_riichi();
         return true;
     }
@@ -396,6 +400,7 @@ public class RoundState : Object
         foreach (RoundStatePlayer player in players)
             player.flow_interrupted();
         flow_interrupted = true;
+        riichi_return_index = -1;
     }
 
     private void kan()
@@ -436,6 +441,7 @@ public class RoundState : Object
     public Tile newest_dora { get { return wall.newest_dora; } }
     public ArrayList<Tile> ura_dora { get { return wall.ura_dora; } }
     public bool tiles_empty { get { return wall.empty; } }
+    public int riichi_return_index { get; private set; }
 }
 
 public class RoundStatePlayer

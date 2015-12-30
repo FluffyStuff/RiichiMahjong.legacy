@@ -263,7 +263,15 @@ namespace GameServer
                         use = true;
 
                     if (use)
-                        result = new CallResult(player, get_player(state.current_player.index), state.discard_tile, player.call_decision.tiles, player.call_decision.call_type);
+                        result = new CallResult
+                        (
+                            player,
+                            get_player(state.current_player.index),
+                            state.discard_tile,
+                            player.call_decision.tiles,
+                            player.call_decision.call_type,
+                            state.riichi_return_index
+                        );
                 }
 
                 player.call_decision = null;
@@ -330,13 +338,14 @@ namespace GameServer
 
     class CallResult
     {
-        public CallResult(ServerRoundStatePlayer caller, ServerRoundStatePlayer discarder, Tile discard_tile, ArrayList<Tile>? tiles, CallDecisionType call_type)
+        public CallResult(ServerRoundStatePlayer caller, ServerRoundStatePlayer discarder, Tile discard_tile, ArrayList<Tile>? tiles, CallDecisionType call_type, int riichi_return_index)
         {
             this.caller = caller;
             this.discarder = discarder;
             this.discard_tile = discard_tile;
             this.tiles = tiles;
             this.call_type = call_type;
+            this.riichi_return_index = riichi_return_index;
         }
 
         public ServerRoundStatePlayer caller { get; private set; }
@@ -344,5 +353,6 @@ namespace GameServer
         public Tile discard_tile { get; private set; }
         public ArrayList<Tile>? tiles { get; private set; }
         public CallDecisionType call_type { get; private set; }
+        public int riichi_return_index { get; private set; }
     }
 }

@@ -177,6 +177,8 @@ class RenderSceneManager : Object
             action_tsumo(action as RenderActionTsumo);
         else if (action is RenderActionRiichi)
             action_riichi(action as RenderActionRiichi);
+        else if (action is RenderActionReturnRiichi)
+            action_return_riichi(action as RenderActionReturnRiichi);
         else if (action is RenderActionLateKan)
             action_late_kan(action as RenderActionLateKan);
         else if (action is RenderActionClosedKan)
@@ -242,6 +244,9 @@ class RenderSceneManager : Object
         action.player.ron(action.tile);
         add_action(new RenderActionHandReveal(action.player));
 
+        if (action.return_riichi_player != null)
+            add_action(new RenderActionReturnRiichi(action.return_riichi_player));
+
         if (action.player.in_riichi)
             add_action(new RenderActionFlipUraDora());
     }
@@ -260,6 +265,11 @@ class RenderSceneManager : Object
     {
         riichi_sound.play();
         action.player.riichi();
+    }
+
+    private void action_return_riichi(RenderActionReturnRiichi action)
+    {
+        action.player.return_riichi();
     }
 
     private void action_late_kan(RenderActionLateKan action)

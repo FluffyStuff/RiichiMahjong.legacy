@@ -97,7 +97,7 @@ public abstract class Bot : Object
         int discarder_index = round_state.current_player.index;
         round_state.ron(player_index);
         Scoring score = round_state.get_ron_score();
-        RoundFinishResult result = new RoundFinishResult.ron(score, player_index, discarder_index, round_state.discard_tile.ID);
+        RoundFinishResult result = new RoundFinishResult.ron(score, player_index, discarder_index, round_state.discard_tile.ID, round_state.riichi_return_index);
         game_state.round_finished(result);
     }
 
