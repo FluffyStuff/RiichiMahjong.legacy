@@ -45,6 +45,8 @@ namespace GameServer
                 foreach (var player in state.get_tenpai_players())
                     players.add(this.players[player.index]);
             }
+            else if (state.game_draw_type == GameDrawType.VOID_HAND)
+                players.add(get_current_player());
 
             return players;
         }
@@ -112,6 +114,17 @@ namespace GameServer
 
             discard_tile(tile.ID);
             return tile;
+        }
+
+        public bool void_hand()
+        {
+            if (!state.can_void_hand())
+                return false;
+
+            state.void_hand();
+            action_state = ActionState.FINISHED;
+
+            return true;
         }
 
         public bool can_call(int player_index)
@@ -298,6 +311,7 @@ namespace GameServer
 
         public bool game_over { get { return state.game_over; } }
         public bool game_draw { get { return state.game_draw_type != GameDrawType.NONE; } }
+        public GameDrawType game_draw_type { get { return state.game_draw_type; } }
         public bool tiles_empty { get { return state.tiles_empty; } }
 
         private enum ActionState

@@ -18,6 +18,7 @@ public class GameMenuView : View2D
     private MenuTextButton tsumo;
     private MenuTextButton ron;
     private MenuTextButton conti;
+    private MenuTextButton void_hand;
 
     public signal void chii_pressed();
     public signal void pon_pressed();
@@ -26,6 +27,7 @@ public class GameMenuView : View2D
     public signal void tsumo_pressed();
     public signal void ron_pressed();
     public signal void continue_pressed();
+    public signal void void_hand_pressed();
     public signal void quit();
 
     private void press_chii() { chii_pressed(); }
@@ -35,6 +37,7 @@ public class GameMenuView : View2D
     private void press_tsumo() { tsumo_pressed(); }
     private void press_ron() { ron_pressed(); }
     private void press_continue() { continue_pressed(); }
+    private void press_void_hand() { void_hand_pressed(); }
 
     public GameMenuView(int decision_time)
     {
@@ -61,6 +64,7 @@ public class GameMenuView : View2D
         tsumo = new MenuTextButton("MenuButtonSmall", "Tsumo");
         ron = new MenuTextButton("MenuButtonSmall", "Ron");
         conti = new MenuTextButton("MenuButtonSmall", "Continue");
+        void_hand = new MenuTextButton("MenuButtonSmall", "Void Hand");
 
         chii.clicked.connect(press_chii);
         pon.clicked.connect(press_pon);
@@ -69,6 +73,7 @@ public class GameMenuView : View2D
         tsumo.clicked.connect(press_tsumo);
         ron.clicked.connect(press_ron);
         conti.clicked.connect(press_continue);
+        void_hand.clicked.connect(press_void_hand);
 
         buttons.add(chii);
         buttons.add(pon);
@@ -77,9 +82,7 @@ public class GameMenuView : View2D
         buttons.add(tsumo);
         buttons.add(ron);
         buttons.add(conti);
-
-        float scale = 1;
-        float width = 0;
+        buttons.add(void_hand);
 
         foreach (var button in buttons)
         {
@@ -88,16 +91,28 @@ public class GameMenuView : View2D
             button.inner_anchor = Vec2(0.5f, 0);
             button.outer_anchor = Vec2(0.5f, 0);
             button.font_size = 24;
-            //button.size = Size2(scale, scale);
-
-            width += button.size.width / 2 * scale;
         }
 
+        void_hand.visible = false;
+        position_buttons();
+    }
+
+    private void position_buttons()
+    {
         float p = 0;
+        float width = 0;
+
+        foreach (var button in buttons)
+            if (button.visible)
+                width += button.size.width / 2;
+
         foreach (var button in buttons)
         {
-            button.position = Vec2(button.size.width / 2 * scale - width + p, 0);
-            p += button.size.width * scale;
+            if (!button.visible)
+                continue;
+
+            button.position = Vec2(button.size.width / 2 - width + p, 0);
+            p += button.size.width;
         }
     }
 
@@ -110,9 +125,9 @@ public class GameMenuView : View2D
 
         switch (key.key)
         {
-        case 'r':
+        /*case 'r':
             quit();
-            break;
+            break;*/
         default:
             key.handled = false;
             break;
@@ -154,6 +169,13 @@ public class GameMenuView : View2D
         if (enabled)
             hint_sound.play();
         conti.enabled = enabled;
+    }
+
+    public void set_void_hand(bool enabled)
+    {
+        void_hand.visible = enabled;
+        void_hand.enabled = enabled;
+        position_buttons();
     }
 
     public void set_timer(bool enabled)

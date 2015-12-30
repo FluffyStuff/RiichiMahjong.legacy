@@ -11,7 +11,7 @@ namespace GameServer
         public signal void game_flip_dora(Tile tile);
         public signal void game_flip_ura_dora(ArrayList<Tile> tiles);
 
-        public signal void game_ron(int player_index, ArrayList<Tile> hand, int discard_player_index, Scoring score);
+        public signal void game_ron(int player_index, ArrayList<Tile> hand, int discard_player_index, Tile discard_tile, Scoring score);
         public signal void game_tsumo(int player_index, ArrayList<Tile> hand, Scoring score);
         public signal void game_riichi(int player_index);
         public signal void game_late_kan(Tile tile);
@@ -22,7 +22,7 @@ namespace GameServer
 
         public signal void game_get_call_decision(int receiver);
         public signal void game_get_turn_decision(int player_index);
-        public signal void game_draw(int[] tenpai_indices, ArrayList<Tile> all_tiles);
+        public signal void game_draw(int[] tenpai_indices, GameDrawType draw_type, ArrayList<Tile> all_tiles);
 
         private ServerRoundStateValidator validator;
         private int decision_time;
@@ -54,6 +54,24 @@ namespace GameServer
             initial_draw();
             game_flip_dora(validator.newest_dora);
             next_turn();
+        }
+
+        public bool client_void_hand(int player_index)
+        {
+            if (!validator.is_players_turn(player_index))
+            {
+                print("client_tsumo: Not players turn\n");
+                return false;
+            }
+
+            if (!validator.void_hand())
+            {
+                print("client_void_hand: Player trying to do invalid void hand\n");
+                return false;
+            }
+
+            draw_situation();
+            return true;
         }
 
         public bool client_tile_discard(int player_index, int tile_ID)
@@ -270,6 +288,7 @@ namespace GameServer
 
             ServerRoundStatePlayer discarder = result.discarder;
             ServerRoundStatePlayer caller = result.caller;
+            Tile discard_tile = result.discard_tile;
 
             if (result.call_type == CallDecisionType.CHII)
             {
@@ -289,7 +308,7 @@ namespace GameServer
                 // Game over
                 if (caller.in_riichi)
                     game_flip_ura_dora(validator.ura_dora);
-                game_ron(caller.index, caller.hand, discarder.index, validator.get_ron_score());
+                game_ron(caller.index, caller.hand, discarder.index, discard_tile, validator.get_ron_score());
                 game_over();
                 return;
             }
@@ -351,7 +370,6 @@ namespace GameServer
             ServerRoundStatePlayer player = validator.get_current_player();
             game_draw_tile(player.index, tile);
             turn_decision(player.index);
-
         }
 
         private void draw_situation()
@@ -366,7 +384,7 @@ namespace GameServer
                 tiles.add_all(tenpai_players[i].hand);
             }
 
-            game_draw(tenpai_indices, tiles);
+            game_draw(tenpai_indices, validator.game_draw_type, tiles);
             game_over();
         }
 

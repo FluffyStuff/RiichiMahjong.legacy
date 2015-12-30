@@ -96,7 +96,7 @@ public abstract class Bot : Object
         int discarder_index = round_state.current_player.index;
         round_state.ron(player_index);
         Scoring score = round_state.get_ron_score();
-        RoundFinishResult result = new RoundFinishResult.ron(score, player_index, discarder_index);
+        RoundFinishResult result = new RoundFinishResult.ron(score, player_index, discarder_index, round_state.discard_tile.ID);
         game_state.round_finished(result);
     }
 
@@ -151,7 +151,7 @@ public abstract class Bot : Object
 
     public void draw(int[] tenpai_indices)
     {
-        RoundFinishResult result = new RoundFinishResult.draw(tenpai_indices);
+        RoundFinishResult result = new RoundFinishResult.draw(tenpai_indices, round_state.game_draw_type);
         game_state.round_finished(result);
     }
 
@@ -161,6 +161,7 @@ public abstract class Bot : Object
 
     public signal void do_discard(Tile tile);
     public signal void do_tsumo();
+    public signal void do_void_hand();
     public signal void do_riichi();
     public signal void do_late_kan(Tile tile);
     public signal void do_closed_kan(TileType type);

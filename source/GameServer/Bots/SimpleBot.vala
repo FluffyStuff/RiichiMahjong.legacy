@@ -12,6 +12,10 @@ class SimpleBot : Bot
         {
             do_tsumo();
         }
+        else if (round_state.can_void_hand())
+        {
+            do_void_hand();
+        }
         else if(round_state.can_riichi())
         {
             do_riichi();

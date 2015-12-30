@@ -82,23 +82,22 @@ public class GameController : Object
         round.set_ron_state.connect(menu.set_ron);
         round.set_timer_state.connect(menu.set_timer);
         round.set_continue_state.connect(menu.set_continue);
+        round.set_void_hand_state.connect(menu.set_void_hand);
         round.set_tile_select_state.connect(renderer.set_active);
         round.set_tile_select_groups.connect(renderer.set_tile_select_groups);
         round.game_riichi.connect(game.declare_riichi);
 
+        round.game_finished.connect(renderer.game_finished);
         round.game_tile_assignment.connect(renderer.tile_assignment);
         round.game_tile_draw.connect(renderer.tile_draw);
         round.game_tile_discard.connect(renderer.tile_discard);
         round.game_flip_dora.connect(renderer.flip_dora);
-        round.game_ron.connect(renderer.ron);
-        round.game_tsumo.connect(renderer.tsumo);
         round.game_riichi.connect(renderer.riichi);
         round.game_late_kan.connect(renderer.late_kan);
         round.game_closed_kan.connect(renderer.closed_kan);
         round.game_open_kan.connect(renderer.open_kan);
         round.game_pon.connect(renderer.pon);
         round.game_chii.connect(renderer.chii);
-        round.game_draw.connect(renderer.draw);
 
         renderer.tile_selected.connect(round.client_tile_selected);
 
@@ -111,6 +110,7 @@ public class GameController : Object
             menu.tsumo_pressed.connect(round.client_tsumo);
             menu.ron_pressed.connect(round.client_ron);
             menu.continue_pressed.connect(round.client_continue);
+            menu.void_hand_pressed.connect(round.client_void_hand);
         }
     }
 
@@ -119,20 +119,7 @@ public class GameController : Object
         if (renderer != null)
             parent_view.remove_child(renderer);
         if (menu != null)
-        {
-            /*if (round != null)
-            {
-                menu.chii_pressed.disconnect(round.client_chii);
-                menu.pon_pressed.disconnect(round.client_pon);
-                menu.kan_pressed.disconnect(round.client_kan);
-                menu.riichi_pressed.disconnect(round.client_riichi);
-                menu.tsumo_pressed.disconnect(round.client_tsumo);
-                menu.ron_pressed.disconnect(round.client_ron);
-                menu.continue_pressed.disconnect(round.client_continue);
-            }*/
-
             parent_view.remove_child(menu);
-        }
 
         game.start_round(info);
         menu = new GameMenuView(start_info.decision_time);

@@ -309,7 +309,7 @@ class RenderSceneManager : Object
         {
             if (action.players.contains(player))
                 player.open_hand();
-            else if (player != observer)
+            else if (player != observer && action.draw_type != GameDrawType.VOID_HAND)
                 player.close_hand();
         }
     }

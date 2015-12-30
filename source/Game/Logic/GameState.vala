@@ -129,25 +129,30 @@ public class GameState : Object
         }
         else if (result.result == RoundFinishResult.RoundResultEnum.DRAW)
         {
-            int tenpai_count = result.tenpai_indices.length;
-
-            bool[] marked = new bool[players.length];
-            for (int i = 0; i < result.tenpai_indices.length; i++)
-                marked[result.tenpai_indices[i]] = true;
-
-            if (tenpai_count != 0 && tenpai_count != players.length)
+            if (result.draw_type == GameDrawType.EMPTY_WALL)
             {
-                for (int i = 0; i < players.length; i++)
-                {
-                    if (marked[i])
-                        players[i].transfer += 3000 / tenpai_count;
-                    else
-                        players[i].transfer -= 3000 / (players.length - tenpai_count);
-                }
-            }
+                int tenpai_count = result.tenpai_indices.length;
 
-            if (marked[dealer_index])
-                do_renchan = true;
+                bool[] marked = new bool[players.length];
+                for (int i = 0; i < result.tenpai_indices.length; i++)
+                    marked[result.tenpai_indices[i]] = true;
+
+                if (tenpai_count != 0 && tenpai_count != players.length)
+                {
+                    for (int i = 0; i < players.length; i++)
+                    {
+                        if (marked[i])
+                            players[i].transfer += 3000 / tenpai_count;
+                        else
+                            players[i].transfer -= 3000 / (players.length - tenpai_count);
+                    }
+                }
+
+                if (marked[dealer_index])
+                    do_renchan = true;
+            }
+            else
+                do_renchan = true; // Abortive draw is always renchan
         }
         else
             return null; // Shouldn't happen
@@ -380,12 +385,13 @@ public class RoundFinishResult
         result = RoundResultEnum.NONE;
     }
 
-    public RoundFinishResult.ron(Scoring score, int winner_index, int loser_index)
+    public RoundFinishResult.ron(Scoring score, int winner_index, int loser_index, int discard_tile)
     {
         result = RoundResultEnum.RON;
         this.score = score;
         this.winner_index = winner_index;
         this.loser_index = loser_index;
+        this.discard_tile = discard_tile;
     }
 
     public RoundFinishResult.tsumo(Scoring score, int winner_index)
@@ -395,16 +401,19 @@ public class RoundFinishResult
         this.winner_index = winner_index;
     }
 
-    public RoundFinishResult.draw(int[] tenpai_indices)
+    public RoundFinishResult.draw(int[] tenpai_indices, GameDrawType draw_type)
     {
         result = RoundResultEnum.DRAW;
         this.tenpai_indices = tenpai_indices;
+        this.draw_type = draw_type;
     }
 
     public RoundResultEnum result { get; private set; }
     public Scoring score { get; private set; }
+    public GameDrawType draw_type { get; private set; }
     public int winner_index { get; private set; }
     public int loser_index { get; private set; }
+    public int discard_tile { get; private set; }
     public int[] tenpai_indices { get; private set; }
 
     public enum RoundResultEnum

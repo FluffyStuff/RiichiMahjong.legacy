@@ -329,6 +329,23 @@ public class TileRules
         return false;
     }
 
+    public static bool can_void_hand(ArrayList<Tile> hand_in)
+    {
+        ArrayList<Tile> hand = sort_tiles(hand_in);
+
+        int count = 0;
+        for (int i = 0; i < hand.size; i++)
+        {
+            Tile tile = hand[i];
+            if (i != 0 && hand[i - 1].tile_type == tile.tile_type)
+                continue;
+            if (tile.is_terminal_tile() || tile.is_honor_tile())
+                count++;
+        }
+
+        return count >= 9;
+    }
+
     public static bool in_tenpai(ArrayList<Tile> hand)
     {
         return hand_readings(hand, true, true).size > 0;

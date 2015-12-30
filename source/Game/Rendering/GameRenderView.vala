@@ -70,6 +70,53 @@ public class GameRenderView : View3D, IGameRenderer
         scene.render(state);
     }
 
+    private void game_finished(RoundFinishResult results)
+    {
+        switch (results.result)
+        {
+        case RoundFinishResult.RoundResultEnum.DRAW:
+            draw(results.tenpai_indices, results.draw_type);
+            break;
+        case RoundFinishResult.RoundResultEnum.RON:
+            ron(results.winner_index, results.loser_index, results.discard_tile);
+            break;
+        case RoundFinishResult.RoundResultEnum.TSUMO:
+            tsumo(results.winner_index);
+            break;
+        }
+    }
+
+    private void ron(int player_index, int discard_player_index, int tile_ID)
+    {
+        RenderPlayer player = players[player_index];
+        RenderPlayer discard_player = players[discard_player_index];
+
+        RenderTile tile = tiles[tile_ID];
+        discard_player.rob_tile(tile);
+
+        buffer_action(new RenderActionRon(player, discard_player, tile));
+    }
+
+    private void tsumo(int player_index)
+    {
+        RenderPlayer player = players[player_index];
+        buffer_action(new RenderActionTsumo(player));
+    }
+
+    private void draw(int[] tenpai_indices, GameDrawType draw_type)
+    {
+        if (draw_type == GameDrawType.EMPTY_WALL ||
+            draw_type == GameDrawType.FOUR_RIICHI ||
+            draw_type == GameDrawType.VOID_HAND)
+        {
+            ArrayList<RenderPlayer> tenpai_players = new ArrayList<RenderPlayer>();
+            foreach (int i in tenpai_indices)
+                tenpai_players.add(players[i]);
+
+            buffer_action(new RenderActionGameDraw(tenpai_players, draw_type));
+        }
+    }
+
     private void tile_assignment(Tile tile)
     {
         tiles[tile.ID].assign_type(tile, store);
@@ -102,23 +149,6 @@ public class GameRenderView : View3D, IGameRenderer
     {
         scene.wall.dead_tile_add();
     }*/
-
-    private void ron(int player_index, int discard_player_index, int tile_ID)
-    {
-        RenderPlayer player = players[player_index];
-        RenderPlayer discard_player = players[discard_player_index];
-
-        RenderTile tile = tiles[tile_ID];
-        discard_player.rob_tile(tile);
-
-        buffer_action(new RenderActionRon(player, discard_player, tile));
-    }
-
-    private void tsumo(int player_index)
-    {
-        RenderPlayer player = players[player_index];
-        buffer_action(new RenderActionTsumo(player));
-    }
 
     private void riichi(int player_index)
     {
@@ -174,15 +204,6 @@ public class GameRenderView : View3D, IGameRenderer
         RenderTile tile_2 = tiles[tile_2_ID];
 
         buffer_action(new RenderActionChii(player, discard_player, tile, tile_1, tile_2));
-    }
-
-    private void draw(int[] tenpai_indices)
-    {
-        ArrayList<RenderPlayer> tenpai_players = new ArrayList<RenderPlayer>();
-        foreach (int i in tenpai_indices)
-            tenpai_players.add(players[i]);
-
-        buffer_action(new RenderActionGameDraw(tenpai_players));
     }
 
     public void set_active(bool active)

@@ -210,14 +210,16 @@ public class RenderActionChii : RenderAction
 
 public class RenderActionGameDraw : RenderAction
 {
-    public RenderActionGameDraw(ArrayList<RenderPlayer> players)
+    public RenderActionGameDraw(ArrayList<RenderPlayer> players, GameDrawType draw_type)
     {
         base(0.5f);
 
         this.players = players;
+        this.draw_type = draw_type;
     }
 
     public ArrayList<RenderPlayer> players { get; private set; }
+    public GameDrawType draw_type { get; private set; }
 }
 
 public class RenderActionSetActive : RenderAction

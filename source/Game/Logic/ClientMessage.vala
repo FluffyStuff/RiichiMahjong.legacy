@@ -179,3 +179,5 @@ public class ClientMessageRiichi : ClientMessage {}
 public class ClientMessageTsumo : ClientMessage {}
 
 public class ClientMessageRon : ClientMessage {}
+
+public class ClientMessageVoidHand : ClientMessage {}

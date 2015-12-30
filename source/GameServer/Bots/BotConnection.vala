@@ -28,6 +28,7 @@ class BotConnection : Object
 
         bot.poll.connect(poll);
         bot.do_discard.connect(bot_do_discard);
+        bot.do_void_hand.connect(bot_do_void_hand);
         bot.do_tsumo.connect(bot_do_tsumo);
         bot.do_riichi.connect(bot_do_riichi);
         bot.do_late_kan.connect(bot_late_kan);
@@ -176,6 +177,12 @@ class BotConnection : Object
     private void bot_do_tsumo()
     {
         ClientMessageTsumo message = new ClientMessageTsumo();
+        connection.send_message(message);
+    }
+
+    private void bot_do_void_hand()
+    {
+        ClientMessageVoidHand message = new ClientMessageVoidHand();
         connection.send_message(message);
     }
 

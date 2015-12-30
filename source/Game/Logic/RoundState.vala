@@ -133,6 +133,13 @@ public class RoundState : Object
         }
     }
 
+    public void void_hand()
+    {
+        game_over = true;
+        game_draw_type = GameDrawType.VOID_HAND;
+        return;
+    }
+
     public Tile tile_draw()
     {
         if (discard_tile != null)
@@ -276,6 +283,11 @@ public class RoundState : Object
     {
         RoundStatePlayer player = current_player;
         return player.get_tsumo_score(create_context(false, player.newest_tile));
+    }
+
+    public bool can_void_hand()
+    {
+        return !flow_interrupted && turn_counter <= 4 && TileRules.can_void_hand(current_player.hand);
     }
 
     public bool can_ron(RoundStatePlayer player)

@@ -19,6 +19,7 @@ namespace GameServer
         {
             this.info = info;
 
+            parser.connect(client_void_hand, typeof(ClientMessageVoidHand));
             parser.connect(client_tile_discard, typeof(ClientMessageTileDiscard));
             parser.connect(client_no_call, typeof(ClientMessageNoCall));
             parser.connect(client_ron, typeof(ClientMessageRon));
@@ -87,6 +88,12 @@ namespace GameServer
         }
 
         ///////////////////////
+
+        private void client_void_hand(ServerPlayer player, ClientMessage message)
+        {
+            GameRoundServerPlayer p = get_game_player(players, player);
+            round.client_void_hand(p.index);
+        }
 
         private void client_tile_discard(ServerPlayer player, ClientMessage message)
         {
@@ -241,7 +248,7 @@ namespace GameServer
             get_server_player(players, player_index).server_player.send_message(message);
         }
 
-        private void game_ron(int player_index, ArrayList<Tile> hand, int discard_player_index, Scoring score)
+        private void game_ron(int player_index, ArrayList<Tile> hand, int discard_player_index, Tile discard_tile, Scoring score)
         {
             foreach (Tile t in hand)
                 game_reveal_tile(t);
@@ -252,7 +259,7 @@ namespace GameServer
                 pl.server_player.send_message(message);
 
             finished = true;
-            result = new RoundFinishResult.ron(score, player_index, discard_player_index);
+            result = new RoundFinishResult.ron(score, player_index, discard_player_index, discard_tile.ID);
         }
 
         private void game_tsumo(int player_index, ArrayList<Tile> hand, Scoring score)
@@ -332,18 +339,18 @@ namespace GameServer
                 pl.server_player.send_message(message);
         }
 
-        public void game_draw(int[] tenpai_indices, ArrayList<Tile> all_tenpai_tiles)
+        public void game_draw(int[] tenpai_indices, GameDrawType draw_type, ArrayList<Tile> all_tenpai_tiles)
         {
             foreach (Tile t in all_tenpai_tiles)
                 game_reveal_tile(t);
 
-            ServerMessageDraw message = new ServerMessageDraw(tenpai_indices);
+            ServerMessageDraw message = new ServerMessageDraw(tenpai_indices, draw_type == GameDrawType.VOID_HAND);
 
             foreach (GameRoundServerPlayer pl in players)
                 pl.server_player.send_message(message);
 
             finished = true;
-            result = new RoundFinishResult.draw(tenpai_indices);
+            result = new RoundFinishResult.draw(tenpai_indices, draw_type);
         }
 
         //////////////////////

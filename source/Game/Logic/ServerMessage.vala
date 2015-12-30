@@ -199,13 +199,15 @@ public class ServerMessageChii : ServerMessage
 
 public class ServerMessageDraw : ServerMessage
 {
-    public ServerMessageDraw(int[] tenpai_indices)
+    public ServerMessageDraw(int[] tenpai_indices, bool void_hand)
     {
         ObjInt[] ints = new ObjInt[tenpai_indices.length];
         for (int i = 0; i < tenpai_indices.length; i++)
             ints[i] = new ObjInt(tenpai_indices[i]);
 
         list = new SerializableList<ObjInt>(ints);
+
+        this.void_hand = void_hand;
     }
 
     public int[] get_tenpai_indices()
@@ -220,6 +222,7 @@ public class ServerMessageDraw : ServerMessage
     }
 
     protected SerializableList<ObjInt> list { get; protected set; }
+    public bool void_hand { get; protected set; }
 }
 
 public class ServerMessageAcceptJoin : ServerMessage {}
