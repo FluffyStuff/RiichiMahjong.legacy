@@ -83,6 +83,7 @@ public abstract class Bot : Object
 
     public void tile_draw()
     {
+        round_state.calls_finished();
         round_state.tile_draw();
     }
 
