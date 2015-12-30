@@ -45,9 +45,36 @@ public class ScoringPointsView : View2D
         if (draw)
         {
             score_label.text = score_text;
-            score_label.position = Vec2(0, 0);
             score_label.inner_anchor = Vec2(0.5f, 0.5f);
             score_label.outer_anchor = Vec2(0.5f, 0.5f);
+
+            if (score.result.draw_type != GameDrawType.EMPTY_WALL || score.result.nagashi_indices.length != 0)
+            {
+                score_label.inner_anchor = Vec2(0.5f, 0);
+
+                LabelControl draw_label = new LabelControl();
+                add_child(draw_label);
+                draw_label.inner_anchor = Vec2(0.5f, 1);
+                draw_label.outer_anchor = Vec2(0.5f, 0.5f);
+
+                string text;
+
+                if (score.result.draw_type == GameDrawType.EMPTY_WALL && score.result.nagashi_indices.length != 0)
+                    text = "Nagashi Mangan";
+                else if (score.result.draw_type == GameDrawType.FOUR_WINDS)
+                    text = "Four Winds";
+                else if (score.result.draw_type == GameDrawType.FOUR_KANS)
+                    text = "Four Kans";
+                else if (score.result.draw_type == GameDrawType.FOUR_RIICHI)
+                    text = "Four Riichi";
+                else if (score.result.draw_type == GameDrawType.VOID_HAND)
+                    text = "Void Hand";
+                else
+                    text = "";
+
+                draw_label.text = text;
+            }
+
             return;
         }
 
