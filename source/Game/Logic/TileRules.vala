@@ -585,6 +585,8 @@ public class TileRules
                         new_melds.add_all(melds);
                         new_melds.add(new TileMeld(tile, t, new Tile(-1, tile.tile_type, false), true));
                         readings.add(new HandReading(new_melds, pair));
+
+                        return readings;
                     }
                     else if (tile.is_neighbour(t) || tile.is_second_neighbour(t)) // We have a pair and are waiting on the final triplet
                     {
@@ -629,9 +631,9 @@ public class TileRules
                                 readings.add(new HandReading(new_melds, pair));
                             }
                         }
-                    }
 
-                    return readings;
+                        return readings;
+                    }
                 }
             }
         }
