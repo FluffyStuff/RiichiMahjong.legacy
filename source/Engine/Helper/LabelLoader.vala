@@ -1,16 +1,63 @@
-using Cairo;
 using GLib;
 using Pango;
 
+extern void*   FcConfigCreate();
+extern void    FcConfigSetCurrent(void *config);
+extern bool    FcConfigAppFontAddDir(void *config, char *dir);
+extern FontMap pango_ft2_font_map_new();
+extern Context pango_ft2_font_map_create_context(FontMap map);
+extern void    pango_ft2_render_layout(FT_Bitmap bitmap, Layout layout, int x, int y);
+
+struct FT_Bitmap
+{
+    public uint   rows;
+    public uint   width;
+    public int    pitch;
+    public uchar *buffer;
+    public uint   num_grays;
+    public uchar  pixel_mode;
+    public uchar  palette_mode;
+    public void  *palette;
+
+    public FT_Bitmap()
+    {
+        rows = 0;
+        width = 0;
+        pitch = 0;
+        buffer = null;
+        num_grays = 0;
+        pixel_mode = 0;
+        palette_mode = 0;
+        palette = null;
+    }
+}
+
 public class LabelLoader
 {
-    private static Mutex mutex = Mutex();
-
     private const int PANGO_SCALE = 64 * 16;
+    private const float DPI_FACTOR = 96 / 72.0f;
+
+    private static Mutex mutex = Mutex();
+    private static FontMap map;
+    private static bool initialized = false;
 
     public LabelLoader()
     {
+        initialize();
+    }
 
+    private static void initialize()
+    {
+        mutex.lock();
+        if (!initialized)
+        {
+            void *config = FcConfigCreate();
+            FcConfigAppFontAddDir(config, "./Data/Fonts");
+            FcConfigSetCurrent(config);
+            map = pango_ft2_font_map_new();
+            initialized = true;
+        }
+        mutex.unlock();
     }
 
     public LabelInfo get_label_info(string font_type, float font_size, string text)
@@ -25,13 +72,17 @@ public class LabelLoader
 
     public static LabelInfo get_label_info_static(string font_type, float font_size, string text)
     {
-        font_size = font_size / 1.6f;
+        initialize();
+
+        font_size = font_size / DPI_FACTOR;
         return get_text_size(text, font_type + " " + font_size.to_string());
     }
 
     public static LabelBitmap generate_label_bitmap_static(string font_type, float font_size, string text)
     {
-        font_size = font_size / 1.6f;
+        initialize();
+
+        font_size = font_size / DPI_FACTOR;
         return render_text(text, font_type + " " + font_size.to_string());
     }
 
@@ -39,15 +90,13 @@ public class LabelLoader
     {
         mutex.lock();
 
-        Cairo.ImageSurface temp_surface = new Cairo.ImageSurface(Cairo.Format.ARGB32, 0, 0);
-        Cairo.Context layout_context = new Cairo.Context(temp_surface);
-
         // Create a PangoLayout, set the font and text
-        Layout layout = Pango.cairo_create_layout(layout_context);
+        Context context = pango_ft2_font_map_create_context(map);
+        Layout layout = new Layout(context);
         layout.set_text(text, -1);
 
         // Load the font
-        Pango.FontDescription desc = Pango.FontDescription.from_string(font);
+        FontDescription desc = FontDescription.from_string(font);
         layout.set_font_description(desc);
 
         // Get text dimensions and create a context to render to
@@ -55,6 +104,12 @@ public class LabelLoader
         layout.get_size(out text_width, out text_height);
         text_width /= PANGO_SCALE;
         text_height /= PANGO_SCALE;
+
+        // Avoids alignment issues
+        if (text_width % 2 != 0)
+            text_width++;
+        if (text_height % 2 != 0)
+            text_height++;
 
         mutex.unlock();
 
@@ -65,15 +120,13 @@ public class LabelLoader
     {
         mutex.lock();
 
-        Cairo.ImageSurface temp_surface = new Cairo.ImageSurface(Cairo.Format.ARGB32, 0, 0);
-        Cairo.Context layout_context = new Cairo.Context(temp_surface);
-
         // Create a PangoLayout, set the font and text
-        Layout layout = Pango.cairo_create_layout(layout_context);
+        Context context = pango_ft2_font_map_create_context(map);
+        Layout layout = new Layout(context);
         layout.set_text(text, -1);
 
         // Load the font
-        Pango.FontDescription desc = Pango.FontDescription.from_string(font);
+        FontDescription desc = FontDescription.from_string(font);
         layout.set_font_description(desc);
 
         // Get text dimensions and create a context to render to
@@ -82,19 +135,38 @@ public class LabelLoader
         text_width /= PANGO_SCALE;
         text_height /= PANGO_SCALE;
 
-        uchar[] surface_data = new uchar[channels * text_width * text_height];
-        Cairo.ImageSurface surface = new Cairo.ImageSurface.for_data(surface_data, Cairo.Format.ARGB32, text_width, text_height, channels * text_width);
-        Cairo.Context render_context = new Cairo.Context(surface);
+        // Avoids alignment issues
+        if (text_width % 2 != 0)
+            text_width++;
+        if (text_height % 2 != 0)
+            text_height++;
+
+        // Create a rendering bitmap
+        uchar[] buffer = new uchar[text_width * text_height];
+        FT_Bitmap bitmap = FT_Bitmap();
+        bitmap.width = text_width;
+        bitmap.rows = text_height;
+        bitmap.buffer = buffer;
+        bitmap.pitch = text_width;
 
         // Render
-        render_context.set_source_rgba(1, 1, 1, 1);
-        cairo_show_layout(render_context, layout);
+        pango_ft2_render_layout(bitmap, layout, 0, 0);
 
-        LabelBitmap bitmap = new LabelBitmap(surface_data, Size2i(text_width, text_height));
+        uchar[] surface_data = new uchar[channels * text_width * text_height];
+        for (int i = 0; i < buffer.length; i++)
+        {
+            uchar u = buffer[i];
+            surface_data[4 * i + 0] = u;
+            surface_data[4 * i + 1] = u;
+            surface_data[4 * i + 2] = u;
+            surface_data[4 * i + 3] = u;
+        }
+
+        LabelBitmap bitmp = new LabelBitmap(surface_data, Size2i(text_width, text_height));
 
         mutex.unlock();
 
-        return bitmap;
+        return bitmp;
     }
 }
 

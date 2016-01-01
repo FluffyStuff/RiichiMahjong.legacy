@@ -150,7 +150,7 @@ public class OpenGLRenderer : RenderTarget
             if (type == typeof(RenderImage2D))
                 render_image_2D((RenderImage2D)obj, program);
             else if (type == typeof(RenderLabel2D))
-                render_label_2D((RenderLabel2D)obj, program);
+                render_label_2D((RenderLabel2D)obj, program, scene.screen_size);
             else if (type == typeof(RenderRectangle2D))
                 render_rectangle_2D((RenderRectangle2D)obj, program);
         }
@@ -166,12 +166,24 @@ public class OpenGLRenderer : RenderTarget
         program.render_object(model_transform, obj.diffuse_color, true);
     }
 
-    private void render_label_2D(RenderLabel2D label, OpenGLShaderProgram2D program)
+    private void render_label_2D(RenderLabel2D label, OpenGLShaderProgram2D program, Size2i screen_size)
     {
         OpenGLLabelResourceHandle label_handle = (OpenGLLabelResourceHandle)get_label(label.handle);
         glBindTexture(GL_TEXTURE_2D, label_handle.handle);
 
-        Mat3 model_transform = Calculations.get_model_matrix_3(label.position, label.rotation, label.scale);
+        Vec2 p = label.position;
+
+        // Round position to nearest pixel
+        p = Vec2(Math.rintf(p.x * (float)screen_size.width  / 2) / (float)screen_size.width  * 2,
+                 Math.rintf(p.y * (float)screen_size.height / 2) / (float)screen_size.height * 2);
+
+        // If the label and screen size don't have the same mod 2, we are misaligned by exactly half a pixel
+        if (label.info.size.width  % 2 != screen_size.width  % 2)
+            p.x += 1.0f / screen_size.width;
+        if (label.info.size.height % 2 != screen_size.height % 2)
+            p.y += 1.0f / screen_size.height;
+
+        Mat3 model_transform = Calculations.get_model_matrix_3(p, label.rotation, label.scale);
 
         program.render_object(model_transform, label.diffuse_color, true);
     }

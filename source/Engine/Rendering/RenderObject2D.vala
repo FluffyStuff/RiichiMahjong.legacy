@@ -54,7 +54,7 @@ public class RenderLabel2D : RenderObject2D
         position = Vec2.empty();
         scale = Size2(1, 1);
 
-        _font_type = "Sans";
+        _font_type = "Noto Sans CJK JP";
         _font_size = 40;
         _text = "";
 

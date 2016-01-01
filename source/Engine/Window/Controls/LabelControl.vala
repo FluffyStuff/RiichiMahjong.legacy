@@ -7,7 +7,7 @@ public class LabelControl : EndControl
         label = store.create_label();
         label.text = "";
         label.font_size = 30;
-        label.font_type = "Sans";
+        label.font_type = "Noto Sans CJK JP";
         color = Color.white();
     }
 

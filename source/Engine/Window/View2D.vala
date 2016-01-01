@@ -5,7 +5,7 @@ public class View2D : Container
         if (!visible)
             return;
 
-        RenderScene2D new_scene = new RenderScene2D(rect);
+        RenderScene2D new_scene = new RenderScene2D(state.screen_size, rect);
 
         do_render(state, new_scene);
 
