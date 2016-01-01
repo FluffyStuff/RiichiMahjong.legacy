@@ -225,6 +225,8 @@ class RenderSceneManager : Object
 
     private void action_draw_dead_wall(RenderActionDrawDeadWall action)
     {
+        wall.flip_dora();
+        wall.dead_tile_add();
         draw_sound.play();
         action.player.draw_tile(wall.draw_dead_wall());
 
@@ -275,20 +277,20 @@ class RenderSceneManager : Object
     private void action_late_kan(RenderActionLateKan action)
     {
         action.player.late_kan(action.tile);
-        kan(action.player);
+        kan_sound.play();
     }
 
     private void action_closed_kan(RenderActionClosedKan action)
     {
         action.player.closed_kan(action.tile_type);
-        kan(action.player);
+        kan_sound.play();
     }
 
     private void action_open_kan(RenderActionOpenKan action)
     {
         action.discarder.rob_tile(action.tile);
         action.player.open_kan(action.discarder, action.tile, action.tile_1, action.tile_2, action.tile_3);
-        kan(action.player);
+        kan_sound.play();
     }
 
     private void action_pon(RenderActionPon action)
@@ -345,17 +347,6 @@ class RenderSceneManager : Object
     private void action_set_active(RenderActionSetActive action)
     {
         active = action.active;
-    }
-
-    private void kan(RenderPlayer player)
-    {
-        kan_sound.play();
-        wall.flip_dora();
-        wall.dead_tile_add();
-        player.draw_tile(wall.draw_dead_wall());
-
-        if (player.seat == player_index)
-            active = true;
     }
 
     private void position_lights(float rotation)

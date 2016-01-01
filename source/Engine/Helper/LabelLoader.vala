@@ -46,7 +46,7 @@ public class LabelLoader
         initialize();
     }
 
-    private static void initialize()
+    public static void initialize()
     {
         mutex.lock();
         if (!initialized)

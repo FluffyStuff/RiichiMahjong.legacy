@@ -19,6 +19,7 @@ namespace GameServer
         public signal void game_open_kan(int player_index, ArrayList<Tile> tiles);
         public signal void game_pon(int player_index, ArrayList<Tile> tiles);
         public signal void game_chii(int player_index, ArrayList<Tile> tiles);
+        public signal void game_calls_finished();
 
         public signal void game_get_call_decision(int receiver);
         public signal void game_get_turn_decision(int player_index);
@@ -179,8 +180,7 @@ namespace GameServer
             Tile tile = validator.get_tile(tile_ID);
 
             game_late_kan(tile);
-            kan(player_index);
-            turn_decision(player_index);
+            call_decisions();
 
             return true;
         }
@@ -202,8 +202,7 @@ namespace GameServer
             }
 
             game_closed_kan(tiles);
-            kan(player_index);
-            turn_decision(player_index);
+            call_decisions();
 
             return true;
         }
@@ -261,16 +260,7 @@ namespace GameServer
         private void tile_discard(Tile tile)
         {
             game_discard_tile(tile);
-
-            var call_players = validator.do_player_calls();
-
-            if (call_players.size == 0)
-            {
-                next_turn();
-                return;
-            }
-
-            call_decision(call_players);
+            call_decisions();
         }
 
         private void check_calls_done()
@@ -282,6 +272,7 @@ namespace GameServer
 
             if (result == null)
             {
+                game_calls_finished();
                 next_turn();
                 return;
             }
@@ -322,19 +313,20 @@ namespace GameServer
             reset_timeout();
         }
 
-        private void call_decision(ArrayList<ServerRoundStatePlayer> players)
+        private void call_decisions()
         {
-            foreach (var player in players)
+            var call_players = validator.do_player_calls();
+
+            if (call_players.size == 0)
+            {
+                game_calls_finished();
+                next_turn();
+                return;
+            }
+
+            foreach (var player in call_players)
                 game_get_call_decision(player.index);
             reset_timeout();
-        }
-
-        private void kan(int player_index)
-        {
-            ServerRoundStatePlayer player = validator.get_player(player_index);
-
-            game_flip_dora(validator.newest_dora);
-            game_draw_dead_tile(player_index, player.newest_tile);
         }
 
         private void reset_timeout()
@@ -366,9 +358,16 @@ namespace GameServer
                 return;
             }
 
-            Tile tile = validator.draw_wall();
             ServerRoundStatePlayer player = validator.get_current_player();
-            game_draw_tile(player.index, tile);
+
+            if (validator.chankan_call)
+                kan(player.index);
+            else
+            {
+                Tile tile = validator.draw_wall();
+                game_draw_tile(player.index, tile);
+            }
+
             turn_decision(player.index);
         }
 
@@ -388,6 +387,13 @@ namespace GameServer
 
             game_draw(tenpai_indices, nagashi_indices, validator.game_draw_type, tiles);
             game_over();
+        }
+
+        private void kan(int player_index)
+        {
+            ServerRoundStatePlayer player = validator.get_player(player_index);
+            game_flip_dora(validator.newest_dora);
+            game_draw_dead_tile(player.index, player.newest_tile);
         }
 
         private void initial_draw()

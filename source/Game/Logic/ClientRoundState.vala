@@ -29,6 +29,7 @@ public class ClientRoundState : Object
     public signal void game_finished(RoundFinishResult result);
     public signal void game_tile_assignment(Tile tile);
     public signal void game_tile_draw(int player_index);
+    public signal void game_dead_tile_draw(int player_index);
     public signal void game_tile_discard(int player_index, int tile_ID);
     public signal void game_flip_dora();
     public signal void game_riichi(int player_index);
@@ -60,6 +61,7 @@ public class ClientRoundState : Object
         parser.connect(server_open_kan, typeof(ServerMessageOpenKan));
         parser.connect(server_pon, typeof(ServerMessagePon));
         parser.connect(server_chii, typeof(ServerMessageChii));
+        parser.connect(server_calls_finished, typeof(ServerMessageCallsFinished));
     }
 
     public void receive_message(ServerMessage message)
@@ -462,7 +464,6 @@ public class ClientRoundState : Object
     {
         decision_finished();
 
-        state.calls_finished();
         state.tile_draw();
         game_tile_draw(state.current_player.index);
     }
@@ -484,8 +485,6 @@ public class ClientRoundState : Object
 
         if (draw.void_hand)
             state.void_hand();
-        else
-            state.calls_finished();
 
         int[] tenpai = draw.get_tenpai_indices();
         int[] nagashi = state.get_nagashi_indices();
@@ -569,6 +568,17 @@ public class ClientRoundState : Object
         state.chii(chii.player_index, chii.tile_1_ID, chii.tile_2_ID);
 
         game_chii(state.current_player.index, discard_index, state.discard_tile.ID, chii.tile_1_ID, chii.tile_2_ID);
+    }
+
+    public void server_calls_finished(ServerMessage message)
+    {
+        decision_finished();
+
+        bool kan = state.chankan_call != ChankanCall.NONE;
+        state.calls_finished();
+
+        if (kan)
+            game_dead_tile_draw(state.current_player.index);
     }
 
     public void server_turn_decision(ServerMessage message)

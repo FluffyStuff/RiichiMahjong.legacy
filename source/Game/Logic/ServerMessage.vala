@@ -197,6 +197,8 @@ public class ServerMessageChii : ServerMessage
     public int tile_2_ID { get; protected set; }
 }
 
+public class ServerMessageCallsFinished : ServerMessage {}
+
 public class ServerMessageDraw : ServerMessage
 {
     public ServerMessageDraw(int[] tenpai_indices, bool void_hand)

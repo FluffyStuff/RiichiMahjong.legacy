@@ -36,6 +36,7 @@ public class RoundState : Object
             players[i] = new RoundStatePlayer(i, i == dealer, (Wind)((i - dealer + 4) % 4), can_riichi[i]);
 
         game_draw_type = GameDrawType.NONE;
+        chankan_call = ChankanCall.NONE;
         riichi_return_index = -1;
     }
 
@@ -77,63 +78,74 @@ public class RoundState : Object
 
     public void calls_finished()
     {
-        riichi_return_index = -1;
-
-        if (wall.empty)
+        if (chankan_call == ChankanCall.NONE)
         {
-            game_over = true;
-            game_draw_type = GameDrawType.EMPTY_WALL;
-            return;
-        }
-
-        bool four_riichi = true;
-        bool diff = false;
-        int count = 0;
-
-        foreach (RoundStatePlayer player in players)
-        {
-            if (!player.in_riichi)
-                four_riichi = false;
-
-            if ((count += player.get_kan_count()) != 4)
-                diff = true;
-        }
-
-        if (count == 4 && diff) // Four kans game draw
-        {
-            game_over = true;
-            game_draw_type = GameDrawType.FOUR_KANS;
-            return;
-        }
-
-        if (four_riichi) // Four riichi game draw
-        {
-            game_over = true;
-            game_draw_type = GameDrawType.FOUR_RIICHI;
-            return;
-        }
-
-        if (turn_counter == 4 && !flow_interrupted)
-        {
-            bool four_winds = true;
-            for (int i = 0; i < players.length; i++)
+            if (wall.empty)
             {
-                if (players[i].pond.size != 1 ||
-                   !players[i].pond[0].is_wind_tile() ||
-                    players[i].pond[0].tile_type != players[0].pond[0].tile_type)
+                game_over = true;
+                game_draw_type = GameDrawType.EMPTY_WALL;
+                return;
+            }
+
+            bool four_riichi = true;
+            bool diff = false;
+            int count = 0;
+
+            foreach (RoundStatePlayer player in players)
+            {
+                if (!player.in_riichi)
+                    four_riichi = false;
+
+                if ((count += player.get_kan_count()) != 4)
+                    diff = true;
+            }
+
+            if (count == 4 && diff) // Four kans game draw
+            {
+                game_over = true;
+                game_draw_type = GameDrawType.FOUR_KANS;
+                return;
+            }
+
+            if (four_riichi) // Four riichi game draw
+            {
+                game_over = true;
+                game_draw_type = GameDrawType.FOUR_RIICHI;
+                return;
+            }
+
+            if (turn_counter == 4 && !flow_interrupted)
+            {
+                bool four_winds = true;
+                for (int i = 0; i < players.length; i++)
                 {
-                    four_winds = false;
-                    break;
+                    if (players[i].pond.size != 1 ||
+                       !players[i].pond[0].is_wind_tile() ||
+                        players[i].pond[0].tile_type != players[0].pond[0].tile_type)
+                    {
+                        four_winds = false;
+                        break;
+                    }
+                }
+
+                if (four_winds) // Four winds game draw
+                {
+                    game_over = true;
+                    game_draw_type = GameDrawType.FOUR_WINDS;
+                    return;
                 }
             }
 
-            if (four_winds) // Four winds game draw
-            {
-                game_over = true;
-                game_draw_type = GameDrawType.FOUR_WINDS;
-                return;
-            }
+            current_index = (current_index + 1) % players.length;
         }
+
+        if (discard_tile != null)
+            foreach (var player in players)
+                player.check_temporary_furiten(discard_tile, chankan_call == ChankanCall.CLOSED);
+
+        turn_counter++;
+        riichi_return_index = -1;
+        chankan_call = ChankanCall.NONE;
     }
 
     public void void_hand()
@@ -145,12 +157,6 @@ public class RoundState : Object
 
     public Tile tile_draw()
     {
-        if (discard_tile != null)
-            foreach (var player in players)
-                player.check_temporary_furiten(discard_tile);
-
-        current_index = (current_index + 1) % players.length;
-        turn_counter++;
         Tile tile = wall.draw_wall();
         current_player.draw(tile);
 
@@ -174,6 +180,7 @@ public class RoundState : Object
 
         discard_tile = tile;
         rinshan = false;
+        chankan_call = ChankanCall.NONE;
 
         return true;
     }
@@ -213,6 +220,9 @@ public class RoundState : Object
 
         var kan_tiles = current_player.do_late_kan(tile);
         kan();
+        chankan_call = ChankanCall.LATE;
+        discard_tile = tile;
+
         return kan_tiles;
     }
 
@@ -223,6 +233,8 @@ public class RoundState : Object
 
         var tiles = current_player.do_closed_kan(tile_type);
         kan();
+        chankan_call = ChankanCall.CLOSED;
+        discard_tile = tiles[0];
         //interrupt_flow(); // TODO: Find out whether this is correct
 
         return tiles;
@@ -296,7 +308,16 @@ public class RoundState : Object
 
     public bool can_ron(RoundStatePlayer player)
     {
-        return player != current_player && player.can_ron(create_context(true, discard_tile));
+        if (player == current_player)
+            return false;
+
+        if (!player.can_ron(create_context(true, discard_tile)))
+            return false;
+
+        if (chankan_call == ChankanCall.CLOSED)
+            return player.can_closed_chankan(discard_tile);
+
+        return true;
     }
 
     public bool can_tsumo()
@@ -332,22 +353,37 @@ public class RoundState : Object
 
     public bool can_open_kan(RoundStatePlayer player)
     {
-        return wall.can_call && wall.can_kan && !player.in_riichi && player != current_player && TileRules.can_open_kan(player.hand, discard_tile);
+        return
+            wall.can_call &&
+            wall.can_kan &&
+            !player.in_riichi &&
+            player != current_player &&
+            chankan_call == ChankanCall.NONE &&
+            TileRules.can_open_kan(player.hand, discard_tile);
     }
 
     public bool can_pon(RoundStatePlayer player)
     {
-        return wall.can_call && !player.in_riichi && player != current_player && TileRules.can_pon(player.hand, discard_tile);
+        return
+            wall.can_call &&
+            !player.in_riichi &&
+            player != current_player &&
+            chankan_call == ChankanCall.NONE &&
+            TileRules.can_pon(player.hand, discard_tile);
     }
 
     public bool can_chii(RoundStatePlayer player)
     {
-        return wall.can_call && ((current_player.index + 1) % 4 == player.index) && player.can_chii(discard_tile);
+        return
+            wall.can_call &&
+            ((current_player.index + 1) % 4 == player.index) &&
+            chankan_call == ChankanCall.NONE &&
+            player.can_chii(discard_tile);
     }
 
     public bool can_chii_with(RoundStatePlayer player, Tile tile_1, Tile tile_2)
     {
-        return ((current_player.index + 1) % 4 == player.index) && player.can_chii_with(tile_1, tile_2, discard_tile);
+        return can_chii(player) && player.can_chii_with(tile_1, tile_2, discard_tile);
     }
 
     public ArrayList<ArrayList<Tile>> get_chii_groups(RoundStatePlayer player)
@@ -409,13 +445,12 @@ public class RoundState : Object
         wall.flip_dora();
         tile_draw_dead_wall();
         interrupt_flow();
-
     }
 
     private RoundStateContext create_context(bool ron, Tile win_tile)
     {
         bool last_tile = wall.empty;
-        bool chankan = false;
+        bool chankan = chankan_call != ChankanCall.NONE && ron;
 
         return new RoundStateContext
         (
@@ -441,6 +476,7 @@ public class RoundState : Object
     public Tile newest_dora { get { return wall.newest_dora; } }
     public ArrayList<Tile> ura_dora { get { return wall.ura_dora; } }
     public bool tiles_empty { get { return wall.empty; } }
+    public ChankanCall chankan_call { get; private set; }
     public int riichi_return_index { get; private set; }
 }
 
@@ -516,14 +552,18 @@ public class RoundStatePlayer
         tiles_called_on = true;
     }
 
-    public void check_temporary_furiten(Tile tile)
+    public void check_temporary_furiten(Tile tile, bool closed_chankan)
     {
+        // TODO: Check for closed chankan
         ArrayList<Tile> hand = new ArrayList<Tile>();
         hand.add_all(this.hand);
         hand.add(tile);
 
         if (TileRules.winning_hand(hand))
-            temporary_furiten = true;
+        {
+            if (!closed_chankan || can_closed_chankan(tile))
+                temporary_furiten = true;
+        }
     }
 
     public void flow_interrupted()
@@ -711,6 +751,14 @@ public class RoundStatePlayer
     public bool can_ron(RoundStateContext context)
     {
         return !temporary_furiten && !TileRules.in_furiten(hand, pond) && TileRules.can_ron(create_context(false), context);
+    }
+
+    public bool can_closed_chankan(Tile tile)
+    {
+        ArrayList<Tile> tiles = new ArrayList<Tile>();
+        tiles.add(tile);
+
+        return TileRules.can_closed_chankan(tiles);
     }
 
     public bool can_tsumo(RoundStateContext context)
@@ -996,4 +1044,11 @@ public enum GameDrawType
     VOID_HAND,
     // TODO: Implement multiple ron
     TRIPLE_RON
+}
+
+public enum ChankanCall
+{
+    NONE,
+    LATE,
+    CLOSED
 }

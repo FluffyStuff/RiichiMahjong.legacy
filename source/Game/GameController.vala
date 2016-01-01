@@ -90,6 +90,7 @@ public class GameController : Object
         round.game_finished.connect(renderer.game_finished);
         round.game_tile_assignment.connect(renderer.tile_assignment);
         round.game_tile_draw.connect(renderer.tile_draw);
+        round.game_dead_tile_draw.connect(renderer.dead_tile_draw);
         round.game_tile_discard.connect(renderer.tile_discard);
         round.game_flip_dora.connect(renderer.flip_dora);
         round.game_riichi.connect(renderer.riichi);

@@ -22,6 +22,7 @@ public class Environment : Object
         }
 
         bugfix();
+        LabelLoader.initialize();
 
         initialized = true;
         return true;

@@ -137,6 +137,12 @@ public class GameRenderView : View3D, IGameRenderer
             player.draw_tile(scene.wall.draw_wall());*/
     }
 
+    public void dead_tile_draw(int player_index)
+    {
+        RenderPlayer player = players[player_index];
+        buffer_action(new RenderActionDrawDeadWall(player));
+    }
+
     private void tile_discard(int player_index, int tile_ID)
     {
         RenderPlayer player = players[player_index];
@@ -184,6 +190,8 @@ public class GameRenderView : View3D, IGameRenderer
         RenderTile tile_3 = tiles[tile_3_ID];
 
         buffer_action(new RenderActionOpenKan(player, discard_player, tile, tile_1, tile_2, tile_3));
+
+        dead_tile_draw(player_index);
     }
 
     private void pon(int player_index, int discard_player_index, int tile_ID, int tile_1_ID, int tile_2_ID)
@@ -354,19 +362,5 @@ public class GameRenderView : View3D, IGameRenderer
     public void set_tile_select_groups(ArrayList<TileSelectionGroup>? groups)
     {
         select_groups = groups;
-    }
-
-    protected override void do_key_press(KeyArgs key)
-    {
-        switch (key.key)
-        {
-        case 118:
-            parent_window.renderer.v_sync = !parent_window.renderer.v_sync;
-            print("V-Sync is now %s\n", parent_window.renderer.v_sync ? "enabled" : "disabled");
-            break;
-        default:
-            //print("%i\n", (int)key.key);
-            break;
-        }
     }
 }

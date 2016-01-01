@@ -393,31 +393,36 @@ public class TileRules
         {
             // -------- Kokushi musou --------
             {
-                bool[] kokushi = new bool[13];
+                int[] kokushi = new int[13];
 
                 foreach (Tile tile in remaining_tiles)
                 {
-                         if (tile.tile_type == TileType.MAN1 ) kokushi[ 0] = true;
-                    else if (tile.tile_type == TileType.MAN9 ) kokushi[ 1] = true;
-                    else if (tile.tile_type == TileType.PIN1 ) kokushi[ 2] = true;
-                    else if (tile.tile_type == TileType.PIN9 ) kokushi[ 3] = true;
-                    else if (tile.tile_type == TileType.SOU1 ) kokushi[ 4] = true;
-                    else if (tile.tile_type == TileType.SOU9 ) kokushi[ 5] = true;
-                    else if (tile.tile_type == TileType.TON  ) kokushi[ 6] = true;
-                    else if (tile.tile_type == TileType.NAN  ) kokushi[ 7] = true;
-                    else if (tile.tile_type == TileType.SHAA ) kokushi[ 8] = true;
-                    else if (tile.tile_type == TileType.PEI  ) kokushi[ 9] = true;
-                    else if (tile.tile_type == TileType.HATSU) kokushi[10] = true;
-                    else if (tile.tile_type == TileType.HAKU ) kokushi[11] = true;
-                    else if (tile.tile_type == TileType.CHUN ) kokushi[12] = true;
+                         if (tile.tile_type == TileType.MAN1 ) kokushi[ 0]++;
+                    else if (tile.tile_type == TileType.MAN9 ) kokushi[ 1]++;
+                    else if (tile.tile_type == TileType.PIN1 ) kokushi[ 2]++;
+                    else if (tile.tile_type == TileType.PIN9 ) kokushi[ 3]++;
+                    else if (tile.tile_type == TileType.SOU1 ) kokushi[ 4]++;
+                    else if (tile.tile_type == TileType.SOU9 ) kokushi[ 5]++;
+                    else if (tile.tile_type == TileType.TON  ) kokushi[ 6]++;
+                    else if (tile.tile_type == TileType.NAN  ) kokushi[ 7]++;
+                    else if (tile.tile_type == TileType.SHAA ) kokushi[ 8]++;
+                    else if (tile.tile_type == TileType.PEI  ) kokushi[ 9]++;
+                    else if (tile.tile_type == TileType.HATSU) kokushi[10]++;
+                    else if (tile.tile_type == TileType.HAKU ) kokushi[11]++;
+                    else if (tile.tile_type == TileType.CHUN ) kokushi[12]++;
                 }
 
-                int count = 0;
-                for (int i = 0; i < kokushi.length; i++)
-                    if (kokushi[i])
-                        count++;
+                int unique = 0;
+                int total = 0;
 
-                if (hand.size - count <= 1)
+                for (int i = 0; i < kokushi.length; i++)
+                {
+                    if (kokushi[i] != 0)
+                        unique++;
+                    total += kokushi[i];
+                }
+
+                if (unique >= hand.size - 1 && total == hand.size)
                 {
                     readings.add(new HandReading.kokushi(remaining_tiles));
                     return readings; // Can't be anything else
@@ -647,6 +652,14 @@ public class TileRules
             if (!tile.is_honor_tile() && !tile.is_terminal_tile())
                 return false;
         return true;
+    }
+
+    public static bool can_closed_chankan(ArrayList<Tile> hand)
+    {
+        foreach (HandReading reading in hand_readings(hand, false, false))
+            if (reading.is_kokushi)
+                return true;
+        return false;
     }
 
     public static ArrayList<Tile> tenpai_tiles(ArrayList<Tile> hand)
@@ -1308,8 +1321,6 @@ public class Yaku : Object
         ArrayList<Yaku> yaku = new ArrayList<Yaku>();
 
         bool closed_hand = player.calls.size == 0;
-
-        // TODO: Fix Chankan
 
         // Tenhou / Chiihou / Renhou
         if (!round.flow_interrupted && player.first_turn)

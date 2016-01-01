@@ -48,6 +48,7 @@ namespace GameServer
             round.game_open_kan.connect(game_open_kan);
             round.game_pon.connect(game_pon);
             round.game_chii.connect(game_chii);
+            round.game_calls_finished.connect(game_calls_finished);
             round.game_draw.connect(game_draw);
 
             for (int i = 0; i < players.size; i++)
@@ -334,6 +335,14 @@ namespace GameServer
                 game_reveal_tile(t);
 
             ServerMessageChii message = new ServerMessageChii(player_index, tiles[0].ID, tiles[1].ID);
+
+            foreach (GameRoundServerPlayer pl in players)
+                pl.server_player.send_message(message);
+        }
+
+        public void game_calls_finished()
+        {
+            ServerMessageCallsFinished message = new ServerMessageCallsFinished();
 
             foreach (GameRoundServerPlayer pl in players)
                 pl.server_player.send_message(message);

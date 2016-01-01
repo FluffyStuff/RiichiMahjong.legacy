@@ -30,7 +30,13 @@ namespace GameServer
 
         public bool discard_tile(int tile_ID)
         {
-            return state.tile_discard(tile_ID);
+            if (state.tile_discard(tile_ID))
+            {
+                chankan_call = false;
+                return true;
+            }
+
+            return false;
         }
 
         public int[] get_nagashi_indices()
@@ -187,12 +193,22 @@ namespace GameServer
 
         public ArrayList<Tile>? do_closed_kan(TileType type)
         {
-            return state.closed_kan(type);
+            ArrayList<Tile>? tiles = state.closed_kan(type);
+            if (tiles != null)
+                chankan_call = true;
+
+            return tiles;
         }
 
         public bool do_late_kan(int tile_ID)
         {
-            return state.late_kan(tile_ID) != null;
+            if (state.late_kan(tile_ID) != null)
+            {
+                chankan_call = true;
+                return true;
+            }
+
+            return false;
         }
 
         public bool decide_open_kan(int player_index)
@@ -293,9 +309,10 @@ namespace GameServer
                 else if (result.call_type == CallDecisionType.CHII)
                     state.chii(result.caller.index, result.tiles[0].ID, result.tiles[1].ID);
             }
+            else
+                state.calls_finished();
 
             action_state = ron ? ActionState.FINISHED : ActionState.WAITING_TURN;
-            state.calls_finished();
             return result;
         }
 
@@ -326,6 +343,7 @@ namespace GameServer
         public bool game_draw { get { return state.game_draw_type != GameDrawType.NONE; } }
         public GameDrawType game_draw_type { get { return state.game_draw_type; } }
         public bool tiles_empty { get { return state.tiles_empty; } }
+        public bool chankan_call { get; private set; }
 
         private enum ActionState
         {

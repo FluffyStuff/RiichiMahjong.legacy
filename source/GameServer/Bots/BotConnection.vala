@@ -24,6 +24,7 @@ class BotConnection : Object
         parser.connect(open_kan, typeof(ServerMessageOpenKan));
         parser.connect(pon, typeof(ServerMessagePon));
         parser.connect(chii, typeof(ServerMessageChii));
+        parser.connect(calls_finished, typeof(ServerMessageCallsFinished));
         parser.connect(draw, typeof(ServerMessageDraw));
 
         bot.poll.connect(poll);
@@ -158,6 +159,11 @@ class BotConnection : Object
     {
         ServerMessageChii chii = (ServerMessageChii)message;
         bot.chii(chii.player_index, chii.tile_1_ID, chii.tile_2_ID);
+    }
+
+    private void calls_finished(ServerMessage message)
+    {
+        bot.calls_finished();
     }
 
     private void draw(ServerMessage message)
