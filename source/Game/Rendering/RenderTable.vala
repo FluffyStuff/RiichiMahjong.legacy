@@ -2,8 +2,23 @@ public class RenderTable
 {
     private RenderObject3D table;
     private RenderObject3D field;
+    private Vec3 tile_size;
+    private float field_rotation;
 
     public RenderTable(IResourceStore store, string extension, Vec3 tile_size, float field_rotation)
+    {
+        this.tile_size = tile_size;
+        this.field_rotation = field_rotation;
+        reload(store, extension);
+    }
+
+    public void render(RenderScene3D scene)
+    {
+        scene.add_object(table);
+        scene.add_object(field);
+    }
+
+    public void reload(IResourceStore store, string extension)
     {
         table = store.load_object_3D("table_" + extension);
 
@@ -31,12 +46,6 @@ public class RenderTable
 
         center = Vec3(0, field.position.y, 0);
         player_offset = field.scale.z - 1.0f - (tile_size.x + tile_size.z) / 2;
-    }
-
-    public void render(RenderScene3D scene)
-    {
-        scene.add_object(table);
-        scene.add_object(field);
     }
 
     public Vec3 center { get; private set; }

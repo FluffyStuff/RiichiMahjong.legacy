@@ -48,8 +48,8 @@ public abstract class Container : Object
 
     public void process(DeltaArgs delta)
     {
-        foreach (Container child in children)
-            child.process(delta);
+        for (int i = children.size - 1; i >= 0 && i < children.size; i--)
+            children[i].process(delta);
         do_process(delta);
     }
 
@@ -60,8 +60,8 @@ public abstract class Container : Object
 
         do_render(state, scene);
 
-        foreach (Container child in children)
-            child.render(state, scene);
+        for (int i = 0; i < children.size; i++)
+            children[i].render(state, scene);
 
         state.add_scene(scene);
     }
@@ -72,7 +72,7 @@ public abstract class Container : Object
         if (!visible)
             return;
 
-        for (int i = children.size - 1; i >= 0; i--)
+        for (int i = children.size - 1; i >= 0 && i < children.size; i--)
             children[i].mouse_event(mouse);
         do_mouse_event(mouse);
     }
@@ -82,7 +82,7 @@ public abstract class Container : Object
         if (!visible)
             return;
 
-        for (int i = children.size - 1; i >= 0; i--)
+        for (int i = children.size - 1; i >= 0 && i < children.size; i--)
             children[i].mouse_move(mouse);
         do_mouse_move(mouse);
     }
@@ -92,7 +92,7 @@ public abstract class Container : Object
         if (!visible)
             return;
 
-        for (int i = children.size - 1; i >= 0; i--)
+        for (int i = children.size - 1; i >= 0 && i < children.size; i--)
             children[i].key_press(key);
         do_key_press(key);
     }
@@ -102,7 +102,7 @@ public abstract class Container : Object
         if (!visible)
             return;
 
-        for (int i = children.size - 1; i >= 0; i--)
+        for (int i = children.size - 1; i >= 0 && i < children.size; i--)
             children[i].text_input(text);
         do_text_input(text);
     }
@@ -112,7 +112,7 @@ public abstract class Container : Object
         if (!visible)
             return;
 
-        for (int i = children.size - 1; i >= 0; i--)
+        for (int i = children.size - 1; i >= 0 && i < children.size; i--)
             children[i].text_edit(text);
         do_text_edit(text);
     }

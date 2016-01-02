@@ -5,7 +5,9 @@ using GameServer;
 public class MainWindow : RenderWindow
 {
     private MainMenuView? menu;
+    private View2D game_view;
     private GameController? game_controller = null;
+    private GameEscapeMenuView? escape_menu;
     private bool game_running = false;
     private MusicPlayer music;
 
@@ -18,20 +20,15 @@ public class MainWindow : RenderWindow
     protected override void shown()
     {
         set_icon("./Data/Icon.png");
+        music = new MusicPlayer(store.audio_player);
 
         Options options = new Options.from_disk();
-
-        renderer.anisotropic_filtering = options.anisotropic_filtering == Options.OnOffEnum.ON;
-        renderer.v_sync = options.v_sync == Options.OnOffEnum.ON;
-        store.audio_player.muted = options.sounds == Options.OnOffEnum.OFF;
+        load_options(options);
 
         create_main_menu();
 
-        if (options.music == Options.OnOffEnum.ON)
-        {
-            music = new MusicPlayer(store.audio_player);
-            music.start();
-        }
+        game_view = new View2D();
+        main_view.add_child(game_view);
     }
 
     private void create_main_menu()
@@ -48,7 +45,7 @@ public class MainWindow : RenderWindow
         /*main_view.remove_child(menu);
         menu = null;*/
         menu.visible = false;
-        game_controller = new GameController(main_view, info, connection, player_index, new Options.from_disk());
+        game_controller = new GameController(game_view, info, connection, player_index, new Options.from_disk());
         game_controller.finished.connect(game_finished);
         game_running = true;
     }
@@ -58,6 +55,11 @@ public class MainWindow : RenderWindow
         game_running = false;
         game_controller = null;
         menu.visible = true;
+        if (escape_menu != null)
+        {
+            main_view.remove_child(escape_menu);
+            escape_menu = null;
+        }
         //create_main_menu();
     }
 
@@ -85,8 +87,54 @@ public class MainWindow : RenderWindow
             fullscreen = !fullscreen;
             return true;
         }
+        else if (key.scancode == ScanCode.ESCAPE)
+        {
+            if (game_running)
+            {
+                if (escape_menu == null)
+                {
+                    escape_menu = new GameEscapeMenuView();
+                    escape_menu.apply_options.connect(apply_options);
+                    escape_menu.close_menu.connect(close_menu);
+                    escape_menu.leave_game.connect(game_finished);
+                    main_view.add_child(escape_menu);
+                }
+                else
+                {
+                    main_view.remove_child(escape_menu);
+                    escape_menu = null;
+                }
+            }
+
+            return true;
+        }
 
         return false;
+    }
+
+    private void close_menu()
+    {
+        main_view.remove_child(escape_menu);
+        escape_menu = null;
+    }
+
+    private void apply_options(Options options)
+    {
+        load_options(options);
+        game_controller.load_options(options);
+    }
+
+    private void load_options(Options options)
+    {
+        renderer.anisotropic_filtering = options.anisotropic_filtering == Options.OnOffEnum.ON;
+        renderer.v_sync = options.v_sync == Options.OnOffEnum.ON;
+        store.audio_player.muted = options.sounds == Options.OnOffEnum.OFF;
+        fullscreen = options.fullscreen == Options.OnOffEnum.ON;
+
+        if (options.music == Options.OnOffEnum.ON)
+            music.start();
+        else
+            music.stop();
     }
 
     public bool do_restart { get; private set; }

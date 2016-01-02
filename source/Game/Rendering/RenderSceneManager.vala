@@ -2,7 +2,7 @@ using Gee;
 
 class RenderSceneManager : Object
 {
-    private string extension;
+    private Options options;
     private int player_index;
     private Wind round_wind;
     private int dealer;
@@ -34,9 +34,9 @@ class RenderSceneManager : Object
     private RenderAction? current_action = null;
     private float action_start_time;
 
-    public RenderSceneManager(string extension, int player_index, Wind round_wind, int dealer, int wall_index, AudioPlayer audio)
+    public RenderSceneManager(Options options, int player_index, Wind round_wind, int dealer, int wall_index, AudioPlayer audio)
     {
-        this.extension = extension;
+        this.options = options;
         this.player_index = player_index;
         this.round_wind = round_wind;
         this.dealer = dealer;
@@ -63,6 +63,7 @@ class RenderSceneManager : Object
         reveal_sound = audio.load_sound("reveal");
 
         float tile_scale = 1.55f;
+        string extension = Options.quality_enum_to_string(options.model_quality);
 
         RenderModel tile = store.load_model("tile_" + extension, true);
         tile_size = tile.size.mul_scalar(tile_scale);
@@ -103,6 +104,15 @@ class RenderSceneManager : Object
         light2.intensity = 4;
 
         position_lights((float)observer.seat / 2);
+    }
+
+    public void load_options(IResourceStore store, Options options)
+    {
+        string extension = Options.quality_enum_to_string(options.model_quality);
+
+        foreach (RenderTile tile in tiles)
+            tile.reload(store, extension);
+        table.reload(store, extension);
     }
 
     public void process(DeltaArgs delta)

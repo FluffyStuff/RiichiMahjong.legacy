@@ -161,7 +161,7 @@ public abstract class Control : Container
     public bool focused { get; private set; }
     public bool mouse_down { get; private set; }
     public bool selectable { get; set; }
-    public CursorType cursor_type { get; protected set; }
+    public CursorType cursor_type { get; public set; }
 }
 
 public abstract class EndControl : Control

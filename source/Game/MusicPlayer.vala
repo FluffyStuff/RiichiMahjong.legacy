@@ -7,11 +7,7 @@ public class MusicPlayer : Object
 
     ~MusicPlayer()
     {
-        if (music != null)
-        {
-            music.music_finished.disconnect(song_finished);
-            music.stop();
-        }
+        stop();
     }
 
     public MusicPlayer(AudioPlayer audio)
@@ -21,8 +17,21 @@ public class MusicPlayer : Object
 
     public void start()
     {
-        files = FileLoader.get_files_in_dir("Data/Audio/Music");
-        play_next();
+        if (music == null)
+        {
+            files = FileLoader.get_files_in_dir("Data/Audio/Music");
+            play_next();
+        }
+    }
+
+    public void stop()
+    {
+        if (music != null)
+        {
+            music.music_finished.disconnect(song_finished);
+            music.stop();
+            music = null;
+        }
     }
 
     private void play_next()

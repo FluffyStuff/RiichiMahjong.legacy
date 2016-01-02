@@ -4,17 +4,27 @@ using SFML.Audio;
 public class AudioPlayer
 {
     private ArrayList<Sound> sounds = new ArrayList<Sound>();
+    private Mutex mutex = Mutex();
     private bool _muted = false;
 
     public Sound load_sound(string name)
     {
-        foreach (Sound sound in sounds)
-            if (sound.name == name)
-                return sound;
+        mutex.lock();
 
-        Sound sound = new Sound("Data/Audio/Sounds/" + name + ".wav");
+        string n = "Data/Audio/Sounds/" + name + ".wav";
+
+        foreach (Sound sound in sounds)
+            if (sound.name == n)
+            {
+                mutex.unlock();
+                return sound;
+            }
+
+        Sound sound = new Sound(n);
         sound.muted = muted;
         sounds.add(sound);
+
+        mutex.unlock();
 
         return sound;
     }
@@ -34,16 +44,24 @@ public class AudioPlayer
         {
             _muted = value;
 
+            mutex.lock();
             foreach (Sound sound in sounds)
                 sound.muted = value;
+            mutex.unlock();
         }
     }
 }
 
 public class Sound
 {
-    SFML.Audio.Sound sound;
-    SoundBuffer buffer;
+    private SFML.Audio.Sound sound;
+    private SoundBuffer buffer;
+
+    ~Sound()
+    {
+        sound = null;
+        buffer = null;
+    }
 
     public Sound(string name)
     {
@@ -79,6 +97,7 @@ public class Music : Object
     ~Music()
     {
         stop();
+        music = null;
     }
 
     public void play()

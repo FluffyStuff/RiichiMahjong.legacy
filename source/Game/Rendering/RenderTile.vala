@@ -4,6 +4,7 @@ public class RenderTile
 
     private string extension;
     private bool _hovered = false;
+    private float scale;
 
     private bool animation_set_time = false;
     private float animation_time = 0;
@@ -18,12 +19,12 @@ public class RenderTile
     {
         this.extension = extension;
         tile_type = tile;
+        this.scale = scale;
 
         RenderModel model = store.load_model("tile_" + extension, true);
         RenderTexture texture = store.load_texture("Tiles/" + get_tile_type_name(tile_type.tile_type), false);
 
         this.tile = new RenderObject3D(model, texture);
-
         this.tile.scale = { scale, scale, scale };
     }
 
@@ -32,6 +33,14 @@ public class RenderTile
         tile_type.tile_type = type.tile_type;
         tile_type.dora = type.dora;
         tile.texture = store.load_texture("Tiles" + "/" + get_tile_type_name(tile_type.tile_type), false);
+    }
+
+    public void reload(IResourceStore store, string extension)
+    {
+        RenderModel model = store.load_model("tile_" + extension, true);
+        RenderTexture texture = tile.texture;
+        tile = new RenderObject3D(model, texture);
+        this.tile.scale = { scale, scale, scale };
     }
 
     private static string get_tile_type_name(TileType type)

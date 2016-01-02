@@ -2,7 +2,6 @@ using Gee;
 
 public class OptionsMenuView : View2D
 {
-    private Options options = new Options.from_disk();
     private OptionItemControl shader_option;
     private OptionItemControl model_option;
     private OptionItemControl fullscreen_option;
@@ -17,6 +16,7 @@ public class OptionsMenuView : View2D
 
     public override void added()
     {
+        options = new Options.from_disk();
         LabelControl label = new LabelControl();
         add_child(label);
         label.text = "Options";
@@ -101,4 +101,6 @@ public class OptionsMenuView : View2D
     {
         back_clicked();
     }
+
+    public Options options { get; private set; }
 }

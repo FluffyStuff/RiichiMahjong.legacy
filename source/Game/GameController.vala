@@ -10,7 +10,7 @@ public class GameController : Object
     private IGameConnection connection;
     private int player_index;
 
-    private string extension;
+    private Options options;
     private bool game_finished = false;
     public signal void finished();
 
@@ -23,9 +23,8 @@ public class GameController : Object
 
         this.connection.disconnected.connect(disconnected);
 
+        this.options = options;
         string quality = Options.quality_enum_to_string(options.shader_quality);
-        extension = Options.quality_enum_to_string(options.model_quality);
-
         parent_view.window.renderer.shader_3D = "open_gl_shader_3D_" + quality;
 
         game = new GameState(start_info);
@@ -68,6 +67,16 @@ public class GameController : Object
                 menu.display_score(result, player_index, start_info.round_wait_time, start_info.hanchan_wait_time, start_info.game_wait_time);
             }
         }
+    }
+
+    public void load_options(Options options)
+    {
+        this.options = options;
+
+        renderer.load_options(options);
+
+        string quality = Options.quality_enum_to_string(options.shader_quality);
+        parent_view.window.renderer.shader_3D = "open_gl_shader_3D_" + quality;
     }
 
     private void create_round_state(RoundStartInfo round_start)
@@ -126,7 +135,7 @@ public class GameController : Object
         menu = new GameMenuView(start_info.decision_time);
         menu.quit.connect(finish_game);
 
-        renderer = new GameRenderView(info, player_index, game.round_wind, game.dealer_index, extension);
+        renderer = new GameRenderView(info, player_index, game.round_wind, game.dealer_index, options);
         parent_view.add_child(renderer);
         parent_view.add_child(menu);
 

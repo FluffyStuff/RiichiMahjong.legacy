@@ -16,20 +16,20 @@ public class GameRenderView : View3D, IGameRenderer
     private int player_index;
     private Wind round_wind;
     private int dealer_index;
-    private string extension;
+    private Options options;
 
-    public GameRenderView(RoundStartInfo info, int player_index, Wind round_wind, int dealer_index, string extension)
+    public GameRenderView(RoundStartInfo info, int player_index, Wind round_wind, int dealer_index, Options options)
     {
         this.info = info;
         this.player_index = player_index;
         this.round_wind = round_wind;
         this.dealer_index = dealer_index;
-        this.extension = extension;
+        this.options = options;
     }
 
     public override void added()
     {
-        scene = new RenderSceneManager(extension, player_index, round_wind, dealer_index, info.wall_index, store.audio_player);
+        scene = new RenderSceneManager(options, player_index, round_wind, dealer_index, info.wall_index, store.audio_player);
 
         scene.added(store);
         tiles = scene.tiles;
@@ -68,6 +68,11 @@ public class GameRenderView : View3D, IGameRenderer
     public override void do_render_3D(RenderState state)
     {
         scene.render(state);
+    }
+
+    public void load_options(Options options)
+    {
+        scene.load_options(store, options);
     }
 
     private void game_finished(RoundFinishResult results)
@@ -300,7 +305,7 @@ public class GameRenderView : View3D, IGameRenderer
 
     protected override void do_mouse_event(MouseEventArgs mouse)
     {
-        if (!scene.active)
+        if (mouse.handled || !scene.active)
         {
             mouse_down_tile = null;
             return;
