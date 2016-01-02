@@ -169,11 +169,11 @@ class MainMenuView : View2D
     {
         add_child(background_view);
 
-        host_game_button = new MenuTextButton("MenuButton", "Create Server");
-        join_game_button = new MenuTextButton("MenuButton", "Join Server");
-        lobby_button = new MenuTextButton("MenuButton", "Online Lobby");
-        options_button = new MenuTextButton("MenuButton", "Options");
-        quit_button = new MenuTextButton("MenuButton", "Quit");
+        host_game_button = new MenuTextButton("MenuButtonBig", "Create Server");
+        join_game_button = new MenuTextButton("MenuButtonBig", "Join Server");
+        lobby_button = new MenuTextButton("MenuButtonBig", "Online Lobby");
+        options_button = new MenuTextButton("MenuButtonBig", "Options");
+        quit_button = new MenuTextButton("MenuButtonBig", "Quit");
 
         ArrayList<MenuTextButton> buttons = new ArrayList<MenuTextButton>();
 
