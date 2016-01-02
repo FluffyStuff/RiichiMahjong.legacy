@@ -123,6 +123,7 @@
 		<Unit filename="source/Game/Options.vala" />
 		<Unit filename="source/Game/Rendering/GameRenderView.vala" />
 		<Unit filename="source/Game/Rendering/IGameRenderer.vala" />
+		<Unit filename="source/Game/Rendering/Menu/GameEscapeMenuView.vala" />
 		<Unit filename="source/Game/Rendering/Menu/GameMenuButton.vala" />
 		<Unit filename="source/Game/Rendering/Menu/GameMenuView.vala" />
 		<Unit filename="source/Game/Rendering/Menu/MenuTextButton.vala" />
