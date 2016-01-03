@@ -55,7 +55,7 @@ class SimpleBot : Bot
             call_ron();
             return;
         }
-        else if (round_state.can_pon(round_state.self))
+        else if (round_state.can_pon(round_state.self) && count(tile) == 2)
         {
             if (tile.is_dragon_tile() || tile.is_wind(round_state.self.wind) || tile.is_wind(round_state.round_wind))
             {
