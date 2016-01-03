@@ -709,7 +709,7 @@ public class RoundStatePlayer
                 tiles.add(tile);
 
         if (tiles.size != 4)
-            return null;
+            tiles.clear();
         return tiles;
     }
 
@@ -756,6 +756,7 @@ public class RoundStatePlayer
     public bool can_closed_chankan(Tile tile)
     {
         ArrayList<Tile> tiles = new ArrayList<Tile>();
+        tiles.add_all(hand);
         tiles.add(tile);
 
         return TileRules.can_closed_chankan(tiles);

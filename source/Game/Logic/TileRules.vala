@@ -656,6 +656,9 @@ public class TileRules
 
     public static bool can_closed_chankan(ArrayList<Tile> hand)
     {
+        if (hand.size != 14)
+            return false;
+
         foreach (HandReading reading in hand_readings(hand, false, false))
             if (reading.is_kokushi)
                 return true;
