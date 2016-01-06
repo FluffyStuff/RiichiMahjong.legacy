@@ -1,6 +1,6 @@
 using Gee;
 
-public abstract class RenderAction
+public abstract class RenderAction : Object
 {
     public RenderAction(float time)
     {

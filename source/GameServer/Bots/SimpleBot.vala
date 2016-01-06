@@ -21,6 +21,8 @@ class SimpleBot : Bot
             do_riichi();
 
             ArrayList<Tile> tiles = round_state.get_tenpai_tiles(round_state.self);
+            assert(tiles.size > 0);
+
             Tile tile = tiles[rnd.int_range(0, tiles.size)];
 
             do_discard(tile);
@@ -28,11 +30,15 @@ class SimpleBot : Bot
         else if (round_state.can_late_kan())
         {
             ArrayList<Tile> tiles = TileRules.get_late_kan_tiles(round_state.self.hand, round_state.self.calls);
+            assert(tiles.size > 0);
+
             do_late_kan(tiles[0]);
         }
         else if (round_state.can_closed_kan())
         {
             ArrayList<ArrayList<Tile>> groups = round_state.self.get_closed_kan_groups();
+            assert(groups.size > 0);
+
             do_closed_kan(groups[0][0].tile_type);
         }
         else
@@ -80,6 +86,7 @@ class SimpleBot : Bot
     private Tile get_discard_tile()
     {
         ArrayList<Tile> tiles = round_state.self.get_discard_tiles();
+        assert(tiles.size > 0);
 
         ArrayList<Tile> copy = new ArrayList<Tile>();
         foreach (Tile tile in tiles)

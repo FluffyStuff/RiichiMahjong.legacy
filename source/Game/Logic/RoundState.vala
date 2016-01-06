@@ -8,32 +8,63 @@ public class RoundState : Object
     private RoundStateWall wall;
 
     private bool flow_interrupted = false;
-    private int turn_counter = 0;
+    private int turn_counter = 1;
     private bool rinshan = false;
 
     public RoundState(int player_index, Wind round_wind, int dealer, int wall_index, bool[] can_riichi)
     {
-        init(false, player_index, round_wind, dealer, wall_index, null, can_riichi);
+        init(false, player_index, round_wind, dealer, wall_index, null, can_riichi, false);
     }
 
     public RoundState.server(Wind round_wind, int dealer, int wall_index, Rand rnd, bool[] can_riichi)
     {
-        init(true, -1, round_wind, dealer, wall_index, rnd, can_riichi);
+        init(true, -1, round_wind, dealer, wall_index, rnd, can_riichi, true);
     }
 
-    private void init(bool shuffled, int player_index, Wind round_wind, int dealer, int wall_index, Rand? rnd, bool[] can_riichi)
+    private void init(bool shuffled, int player_index, Wind round_wind, int dealer, int wall_index, Rand? rnd, bool[] can_riichi, bool revealed)
     {
         this.player_index = player_index;
         this.round_wind = round_wind;
         this.dealer = current_index = dealer;
+
         if (shuffled)
+        {
+            // For testing purposes
+            /*TileType[] p1 = new TileType[]
+            {
+            };
+
+            TileType[] p2 = new TileType[]
+            {
+            };
+
+            TileType[] p3 = new TileType[]
+            {
+            };
+
+            TileType[] p4 = new TileType[]
+            {
+            };
+
+
+            TileType[] draw_wall = new TileType[]
+            {
+            };
+
+
+            TileType[] dead_wall = new TileType[]
+            {
+            };
+
+            wall = new RoundStateWall.seeded(dealer, wall_index, true, rnd, p1, p2, p3, p4, draw_wall, dead_wall);*/
             wall = new RoundStateWall.shuffled(dealer, wall_index, rnd);
+        }
         else
             wall = new RoundStateWall(dealer, wall_index);
         discard_tile = null;
 
         for (int i = 0; i < players.length; i++)
-            players[i] = new RoundStatePlayer(i, i == dealer, (Wind)((i - dealer + 4) % 4), can_riichi[i]);
+            players[i] = new RoundStatePlayer(i, i == dealer, (Wind)((i - dealer + 4) % 4), can_riichi[i], i == player_index || revealed);
 
         game_draw_type = GameDrawType.NONE;
         chankan_call = ChankanCall.NONE;
@@ -63,9 +94,7 @@ public class RoundState : Object
             RoundStatePlayer player = current_player;
             Tile tile = wall.draw_wall();
             player.draw_initial(tile);
-
-            if (p < 3)
-                current_index = (current_index + 1) % players.length;
+            current_index = (current_index + 1) % players.length;
         }
     }
 
@@ -138,6 +167,8 @@ public class RoundState : Object
 
             current_index = (current_index + 1) % players.length;
         }
+        else
+            kan();
 
         if (discard_tile != null)
             foreach (var player in players)
@@ -219,7 +250,6 @@ public class RoundState : Object
         Tile tile = get_tile(tile_ID);
 
         var kan_tiles = current_player.do_late_kan(tile);
-        kan();
         chankan_call = ChankanCall.LATE;
         discard_tile = tile;
 
@@ -232,7 +262,8 @@ public class RoundState : Object
             return null;
 
         var tiles = current_player.do_closed_kan(tile_type);
-        kan();
+        assert(tiles.size == 4);
+
         chankan_call = ChankanCall.CLOSED;
         discard_tile = tiles[0];
         //interrupt_flow(); // TODO: Find out whether this is correct
@@ -398,6 +429,7 @@ public class RoundState : Object
 
     public RoundStatePlayer get_player(int player_index)
     {
+        assert(player_index >= 0 && player_index < players.length);
         return players[player_index];
     }
 
@@ -482,6 +514,7 @@ public class RoundState : Object
 
 public class RoundStatePlayer
 {
+    private bool revealed;
     private bool double_riichi = false;
     private bool do_riichi_discard = false;
     private bool do_chii_discard = false;
@@ -492,12 +525,13 @@ public class RoundStatePlayer
     private bool temporary_furiten = false;
     private bool _can_riichi;
 
-    public RoundStatePlayer(int index, bool dealer, Wind wind, bool can_riichi)
+    public RoundStatePlayer(int index, bool dealer, Wind wind, bool can_riichi, bool revealed)
     {
         this.index = index;
         this.dealer = dealer;
         this.wind = wind;
         _can_riichi = can_riichi;
+        this.revealed = revealed;
 
         hand = new ArrayList<Tile>();
         pond = new ArrayList<Tile>();
@@ -554,7 +588,6 @@ public class RoundStatePlayer
 
     public void check_temporary_furiten(Tile tile, bool closed_chankan)
     {
-        // TODO: Check for closed chankan
         ArrayList<Tile> hand = new ArrayList<Tile>();
         hand.add_all(this.hand);
         hand.add(tile);
@@ -797,7 +830,7 @@ public class RoundStatePlayer
         if (do_chii_discard || do_pon_discard)
             return false;
 
-        return TileRules.can_closed_kan(hand, in_riichi);
+        return !revealed || TileRules.can_closed_kan(hand, in_riichi);
     }
 
     public bool can_closed_kan_with(TileType type)
@@ -925,15 +958,20 @@ class RoundStateWall
 
     public RoundStateWall(int dealer, int wall_index)
     {
-        init(dealer, wall_index, null, false);
+        init(dealer, wall_index, null, false, false, null, null, null, null, null, null);
     }
 
     public RoundStateWall.shuffled(int dealer, int wall_index, Rand rnd)
     {
-        init(dealer, wall_index, rnd, true);
+        init(dealer, wall_index, rnd, true, false, null, null, null, null, null, null);
     }
 
-    private void init(int dealer, int wall_index, Rand? rnd, bool shuffled)
+    public RoundStateWall.seeded(int dealer, int wall_index, bool shuffle, Rand? rnd, TileType[] p1_tiles, TileType[] p2_tiles, TileType[] p3_tiles, TileType[] p4_tiles, TileType[] draw_tiles, TileType[] dead_wall)
+    {
+        init(dealer, wall_index, rnd, shuffle, true, p1_tiles, p2_tiles, p3_tiles, p4_tiles, draw_tiles, dead_wall);
+    }
+
+    private void init(int dealer, int wall_index, Rand? rnd, bool shuffled, bool seeded, TileType[]? p1_tiles, TileType[]? p2_tiles, TileType[]? p3_tiles, TileType[]? p4_tiles, TileType[]? draw_tiles, TileType[]? dead_wall)
     {
         tiles = new Tile[136];
         dora = new ArrayList<Tile>();
@@ -941,14 +979,16 @@ class RoundStateWall
 
         for (int i = 0; i < tiles.length; i++)
         {
-            TileType type = shuffled ? (TileType)((i / 4) + 1) : TileType.BLANK;
+            TileType type = (shuffled && !seeded) ? (TileType)((i / 4) + 1) : TileType.BLANK;
             tiles[i] = new Tile(-1, type, false);
         }
 
         int start_wall = (4 - dealer) % 4;
         int index = start_wall * 34 + wall_index * 2;
 
-        if (shuffled)
+        if (seeded)
+            seed(index, rnd, tiles, p1_tiles, p2_tiles, p3_tiles, p4_tiles, draw_tiles, dead_wall);
+        else if (shuffled)
             shuffle(tiles, rnd);
 
         for (int i = 0; i < tiles.length; i++)
@@ -976,6 +1016,8 @@ class RoundStateWall
 
     public Tile flip_dora()
     {
+        assert(dead_wall_tiles.size > dora_index + 1);
+
         Tile tile = dead_wall_tiles[dora_index];
         dora.add(tile);
         ura_dora.add(dead_wall_tiles[dora_index + 1]);
@@ -988,18 +1030,22 @@ class RoundStateWall
 
     public Tile draw_wall()
     {
+        assert(wall_tiles.size > 0);
+
         return wall_tiles.remove_at(0);
     }
 
     public Tile draw_dead_wall()
     {
+        assert(dead_wall_tiles.size > 0);
+
         Tile tile = dead_wall_tiles.remove_at(0);
         dead_tile_add();
         dora_index--;
         return tile;
     }
 
-    public Tile dead_tile_add()
+    private Tile dead_tile_add()
     {
         Tile tile = wall_tiles.remove_at(wall_tiles.size - 1);
         dead_wall_tiles.insert(dead_wall_tiles.size, tile);
@@ -1008,6 +1054,8 @@ class RoundStateWall
 
     public Tile? get_tile(int tile_ID)
     {
+        assert(tile_ID >= 0 && tile_ID < tiles.length);
+
         foreach (Tile tile in tiles)
             if (tile.ID == tile_ID)
                 return tile;
@@ -1023,6 +1071,96 @@ class RoundStateWall
             tiles[i] = tiles[tmp];
             tiles[tmp] = t;
         }
+    }
+
+    private static void seed(int index, Rand? rnd, Tile[] tiles, TileType[] p1_tiles, TileType[] p2_tiles, TileType[] p3_tiles, TileType[] p4_tiles, TileType[] draw_tiles, TileType[] dead_wall)
+    {
+        ArrayList<TileType> unassigned = new ArrayList<TileType>();
+        for (int i = 0; i < tiles.length; i++)
+            unassigned.add((TileType)((i / 4) + 1));
+
+        int length = tiles.length;
+
+        for (int i = 0; i < 4; i++)
+        {
+            for (int j = 0; j < 4; j++)
+            {
+                int a = i * 4 + j;
+
+                if (p1_tiles.length > a)
+                    replace(tiles, p1_tiles[a], unassigned, index);
+                index++;
+                length--;
+
+                if (a >= 12)
+                    break;
+            }
+
+            for (int j = 0; j < 4; j++)
+            {
+                int a = i * 4 + j;
+                if (p2_tiles.length > a)
+                    replace(tiles, p2_tiles[a], unassigned, index);
+                index++;
+                length--;
+
+                if (a >= 12)
+                    break;
+            }
+
+            for (int j = 0; j < 4; j++)
+            {
+                int a = i * 4 + j;
+                if (p3_tiles.length > a)
+                    replace(tiles, p3_tiles[a], unassigned, index);
+                index++;
+                length--;
+
+                if (a >= 12)
+                    break;
+            }
+
+            for (int j = 0; j < 4; j++)
+            {
+                int a = i * 4 + j;
+                if (p4_tiles.length > a)
+                    replace(tiles, p4_tiles[a], unassigned, index);
+                index++;
+                length--;
+
+                if (a >= 12)
+                    break;
+            }
+        }
+
+        for (int i = 0; i < draw_tiles.length; i++)
+            replace(tiles, draw_tiles[i], unassigned, index++);
+
+        index += length - 22;
+
+        for (int i = 0; i < dead_wall.length; i++)
+            replace(tiles, dead_wall[i], unassigned, index++);
+
+        foreach (Tile t in tiles)
+            if (t.tile_type == TileType.BLANK)
+            {
+                assert(unassigned.size > 0);
+                t.tile_type = unassigned.remove_at(rnd.int_range(0, unassigned.size));
+            }
+    }
+
+    private static void replace(Tile[] tiles, TileType tile_type, ArrayList<TileType> unassigned, int index)
+    {
+        index = index % tiles.length;
+
+        for (int i = 0; i < unassigned.size; i++)
+            if (unassigned[i] == tile_type)
+            {
+                tiles[index].tile_type = unassigned.remove_at(i);
+                return;
+            }
+
+        print("RoundState seed: Did not find " + tile_type.to_string() + "\n");
     }
 
     public bool empty { get { return wall_tiles.size == 0; } }

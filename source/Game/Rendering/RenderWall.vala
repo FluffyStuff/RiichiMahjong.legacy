@@ -191,9 +191,10 @@ public class RenderWall : Object
             else
                 list = wall_left;
 
+            assert(list.size > 0);
             RenderTile tile = list.remove_at(list.size - 1);
 
-            if (removed_tiles % 2 == 0)
+            if (removed_tiles % 2 == 0 && list.size > 0)
             {
                 RenderTile t = list[list.size - 1];
                 t.animate_towards(tile.position, tile.rotation);
@@ -205,6 +206,8 @@ public class RenderWall : Object
 
         public RenderTile? draw()
         {
+            assert(!empty);
+
             if (empty)
                 return null;
 
@@ -278,12 +281,16 @@ public class RenderWall : Object
 
         public RenderTile draw()
         {
+            assert(tiles.size > 0);
+
             dora_index--;
             return tiles.remove_at(0);
         }
 
         public void flip_dora()
         {
+            assert(tiles.size > dora_index + 1);
+
             RenderTile t = tiles[dora_index];
             doras.add(t);
             ura_doras.add(tiles[dora_index + 1]);

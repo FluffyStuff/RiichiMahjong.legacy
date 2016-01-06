@@ -176,7 +176,10 @@ public class TileRules
                 ArrayList<HandReading> readings = hand_readings(hand, true, false);
 
                 if (readings.size == 0)
+                {
                     list.remove_at(i--);
+                    continue;
+                }
 
                 foreach (HandReading reading in readings)
                 {
@@ -1188,6 +1191,12 @@ public class Scoring : Object
             return;
         }
 
+        if (hand.is_kokushi)
+        {
+            fu = 20;
+            return;
+        }
+
         fu = 0;
 
         WaitType wait = WaitType.NONE;
@@ -1623,7 +1632,10 @@ public class Yaku : Object
             }
 
             if (toitoi && closed_count == 4)
-                yaku.add(new Yaku(YakuType.SUU_ANKOU, 0, 1));
+            {
+                bool pair_wait = (hand.pairs[0].tile_1.tile_type == round.win_tile.tile_type);
+                yaku.add(new Yaku(YakuType.SUU_ANKOU, 0, pair_wait ? 2 : 1));
+            }
             else
             {
                 if (toitoi)
@@ -1807,7 +1819,7 @@ public class Yaku : Object
 
         // Tsuu iisou
         {
-            bool tsuu = false;
+            bool tsuu = true;
 
             foreach (Tile tile in hand.tiles)
             {

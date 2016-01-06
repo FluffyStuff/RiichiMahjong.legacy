@@ -20,11 +20,11 @@ namespace GameServer
         public void start()
         {
             state.start();
+            action_state = ActionState.WAITING_TURN;
         }
 
         public Tile draw_wall()
         {
-            action_state = ActionState.WAITING_TURN;
             return state.tile_draw();
         }
 
@@ -64,7 +64,7 @@ namespace GameServer
 
         public ServerRoundStatePlayer get_current_player()
         {
-            return players[state.current_player.index];
+            return get_player(state.current_player.index);
         }
 
         public bool is_players_turn(int index)
