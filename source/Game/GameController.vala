@@ -92,6 +92,7 @@ public class GameController : Object
         round.set_timer_state.connect(menu.set_timer);
         round.set_continue_state.connect(menu.set_continue);
         round.set_void_hand_state.connect(menu.set_void_hand);
+        round.set_furiten_state.connect(menu.set_furiten);
         round.set_tile_select_state.connect(renderer.set_active);
         round.set_tile_select_groups.connect(renderer.set_tile_select_groups);
         round.game_riichi.connect(game.declare_riichi);

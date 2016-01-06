@@ -10,6 +10,7 @@ public class GameMenuView : View2D
     private int decision_time;
     private float start_time;
     private LabelControl timer;
+    private LabelControl furiten;
 
     private MenuTextButton chii;
     private MenuTextButton pon;
@@ -53,9 +54,19 @@ public class GameMenuView : View2D
         add_child(timer);
         timer.inner_anchor = Vec2(1, 0);
         timer.outer_anchor = Vec2(1, 0);
-        timer.position = Vec2(-padding, padding);
+        timer.position = Vec2(-padding, padding / 2);
         timer.font_size = 60;
         timer.visible = false;
+
+        furiten = new LabelControl();
+        add_child(furiten);
+        furiten.inner_anchor = Vec2(0, 0);
+        furiten.outer_anchor = Vec2(0, 0);
+        furiten.position = Vec2(padding, padding / 2);
+        furiten.font_size = 30;
+        furiten.visible = false;
+        furiten.text = "Furiten";
+        furiten.color = Color.red();
 
         chii = new MenuTextButton("MenuButtonSmall", "Chii");
         pon = new MenuTextButton("MenuButtonSmall", "Pon");
@@ -176,6 +187,11 @@ public class GameMenuView : View2D
         void_hand.visible = enabled;
         void_hand.enabled = enabled;
         position_buttons();
+    }
+
+    public void set_furiten(bool enabled)
+    {
+        furiten.visible = enabled;
     }
 
     public void set_timer(bool enabled)

@@ -170,9 +170,7 @@ public class RoundState : Object
         else
             kan();
 
-        if (discard_tile != null)
-            foreach (var player in players)
-                player.check_temporary_furiten(discard_tile, chankan_call == ChankanCall.CLOSED);
+        check_temporary_furiten();
 
         turn_counter++;
         riichi_return_index = -1;
@@ -286,6 +284,8 @@ public class RoundState : Object
 
         current_index = player_index;
         kan();
+
+        check_temporary_furiten();
     }
 
     public void pon(int player_index, int tile_1_ID, int tile_2_ID)
@@ -302,6 +302,8 @@ public class RoundState : Object
 
         interrupt_flow();
         current_index = player_index;
+
+        check_temporary_furiten();
     }
 
     public void chii(int player_index, int tile_1_ID, int tile_2_ID)
@@ -318,6 +320,8 @@ public class RoundState : Object
 
         interrupt_flow();
         current_index = player_index;
+
+        check_temporary_furiten();
     }
 
     public Scoring get_ron_score()
@@ -461,6 +465,13 @@ public class RoundState : Object
                 players.add(player);
 
         return players;
+    }
+
+    private void check_temporary_furiten()
+    {
+        if (discard_tile != null)
+            foreach (var player in players)
+                player.check_temporary_furiten(discard_tile, chankan_call == ChankanCall.CLOSED);
     }
 
     private void interrupt_flow()
@@ -783,7 +794,7 @@ public class RoundStatePlayer
 
     public bool can_ron(RoundStateContext context)
     {
-        return !temporary_furiten && !TileRules.in_furiten(hand, pond) && TileRules.can_ron(create_context(false), context);
+        return !in_furiten() && TileRules.can_ron(create_context(false), context);
     }
 
     public bool can_closed_chankan(Tile tile)
@@ -868,6 +879,11 @@ public class RoundStatePlayer
         }
 
         return false;
+    }
+
+    public bool in_furiten()
+    {
+        return temporary_furiten || TileRules.in_furiten(hand, pond);
     }
 
     public ArrayList<ArrayList<Tile>> get_chii_groups(Tile discard_tile)
