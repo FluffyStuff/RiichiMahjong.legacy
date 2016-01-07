@@ -19,10 +19,13 @@ varying vec3 light_colors[MAX_LIGHTS];
 
 void main()
 {
-	vec3 normal = normalize(frag_normal);
-	
 	vec4 out_color = texture2D(tex, frag_texture_coord);
+	if (out_color.a <= 0)
+		discard;
+	
 	out_color.xyz += diffuse_color.xyz;
+	
+	vec3 normal = normalize(frag_normal);
 	
 	vec3 diffuse = out_color.xyz * 0.02;
 	vec3 specular = vec3(0);
@@ -76,7 +79,7 @@ void main()
 	
 	
 	out_color.xyz /= max(pow(length(frag_camera_normal) / 5, 1.0) / 10, 1);
-	out_color.a = diffuse_color.a;
+	out_color.a *= diffuse_color.a;
 	
 	gl_FragColor = out_color;
 }

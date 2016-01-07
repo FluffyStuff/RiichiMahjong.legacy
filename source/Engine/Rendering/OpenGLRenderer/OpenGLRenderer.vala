@@ -113,10 +113,15 @@ public class OpenGLRenderer : RenderTarget
         int last_texture_handle = -1;
         int last_array_handle = -1;
         foreach (RenderObject3D obj in scene.objects)
-            render_object_3D(obj, program, ref last_texture_handle, ref last_array_handle);
+        {
+            if (obj is RenderBody3D)
+                render_body_3D(obj as RenderBody3D, program, ref last_texture_handle, ref last_array_handle);
+            else if (obj is RenderLabel3D)
+                render_label_3D(obj as RenderLabel3D, program, ref last_texture_handle, ref last_array_handle);
+        }
     }
 
-    private void render_object_3D(RenderObject3D obj, OpenGLShaderProgram3D program, ref int last_texture_handle, ref int last_array_handle)
+    private void render_body_3D(RenderBody3D obj, OpenGLShaderProgram3D program, ref int last_texture_handle, ref int last_array_handle)
     {
         OpenGLTextureResourceHandle texture_handle = (OpenGLTextureResourceHandle)get_texture(obj.texture.handle);
         OpenGLModelResourceHandle model_handle = (OpenGLModelResourceHandle)get_model(obj.model.handle);
@@ -136,6 +141,28 @@ public class OpenGLRenderer : RenderTarget
         Mat4 model_transform = Calculations.get_model_matrix(obj.position, obj.rotation, obj.scale);
 
         program.render_object(model_handle.triangle_count, model_transform, obj.light_multiplier, obj.diffuse_color);
+    }
+
+    private void render_label_3D(RenderLabel3D label, OpenGLShaderProgram3D program, ref int last_texture_handle, ref int last_array_handle)
+    {
+        OpenGLLabelResourceHandle label_handle = (OpenGLLabelResourceHandle)get_label(label.handle);
+        OpenGLModelResourceHandle model_handle = (OpenGLModelResourceHandle)get_model(label.model.handle);
+
+        if (last_texture_handle != label_handle.handle)
+        {
+            last_texture_handle = (int)label_handle.handle;
+            glBindTexture(GL_TEXTURE_2D, label_handle.handle);
+        }
+
+        if (last_array_handle != model_handle.array_handle)
+        {
+            last_array_handle = (int)model_handle.array_handle;
+            glBindVertexArray(model_handle.array_handle);
+        }
+
+        Mat4 model_transform = Calculations.get_model_matrix(label.position, label.rotation, label.end_scale);
+
+        program.render_object(model_handle.triangle_count, model_transform, label.light_multiplier, label.diffuse_color);
     }
 
     private void render_scene_2D(RenderScene2D scene)

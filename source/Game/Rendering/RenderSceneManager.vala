@@ -7,6 +7,7 @@ class RenderSceneManager : Object
     private Wind round_wind;
     private int dealer;
     private int wall_index;
+    private RoundScoreState score;
 
     private AudioPlayer audio;
     private Sound slide_sound;
@@ -34,7 +35,7 @@ class RenderSceneManager : Object
     private RenderAction? current_action = null;
     private float action_start_time;
 
-    public RenderSceneManager(Options options, int player_index, Wind round_wind, int dealer, int wall_index, AudioPlayer audio)
+    public RenderSceneManager(Options options, int player_index, Wind round_wind, int dealer, int wall_index, AudioPlayer audio, RoundScoreState score)
     {
         this.options = options;
         this.player_index = player_index;
@@ -42,6 +43,7 @@ class RenderSceneManager : Object
         this.dealer = dealer;
         this.wall_index = wall_index;
         this.audio = audio;
+        this.score = score;
 
         players = new RenderPlayer[4];
         tiles = new RenderTile[136];
@@ -68,7 +70,7 @@ class RenderSceneManager : Object
         RenderModel tile = store.load_model("tile_" + extension, true);
         tile_size = tile.size.mul_scalar(tile_scale);
 
-        table = new RenderTable(store, extension, tile_size, -(float)player_index / 2);
+        table = new RenderTable(store, extension, tile_size, round_wind, -(float)player_index / 2, score);
 
         table_length = table.player_offset;
         center = table.center;

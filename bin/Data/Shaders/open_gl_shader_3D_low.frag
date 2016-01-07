@@ -11,5 +11,9 @@ varying vec3 light_color_additive;
 
 void main()
 {
-	gl_FragColor = vec4(texture2D(tex, frag_texture_coord).xyz * light_color_original + light_color_additive, diffuse_color.a);
+	vec4 col = texture2D(tex, frag_texture_coord);
+	if (col.a <= 0)
+		discard;
+		
+	gl_FragColor = vec4(col.xyz * light_color_original + light_color_additive, col.a * diffuse_color.a);
 }

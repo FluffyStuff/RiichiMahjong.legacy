@@ -103,7 +103,7 @@ public class LabelLoader
         int text_width, text_height;
         layout.get_size(out text_width, out text_height);
         text_width /= PANGO_SCALE;
-        text_height /= PANGO_SCALE;
+        text_height /= (int)(PANGO_SCALE * 1.25f);
 
         // Avoids alignment issues
         if (text_width % 2 != 0)
@@ -133,7 +133,7 @@ public class LabelLoader
         int text_width, text_height, channels = 4;
         layout.get_size(out text_width, out text_height);
         text_width /= PANGO_SCALE;
-        text_height /= PANGO_SCALE;
+        text_height /= (int)(PANGO_SCALE * 1.25f);
 
         // Avoids alignment issues
         if (text_width % 2 != 0)
@@ -150,10 +150,10 @@ public class LabelLoader
         bitmap.pitch = text_width;
 
         // Render
-        pango_ft2_render_layout(bitmap, layout, 0, 0);
+        pango_ft2_render_layout(bitmap, layout, 0, -text_height / 5);
 
         uchar[] surface_data = new uchar[channels * text_width * text_height];
-        for (int i = 0; i < buffer.length; i++)
+        for (int i = 0; i < surface_data.length / 4; i++)
         {
             uchar u = buffer[i];
             surface_data[4 * i + 0] = u;

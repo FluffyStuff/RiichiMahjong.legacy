@@ -27,39 +27,21 @@ class ScoringPlayerElement : Control
         container.add_child(background);
         size = background.end_size;
 
-        string w;
-        switch (wind)
-        {
-        case Wind.EAST:
-        default:
-            w = "東";
-            break;
-        case Wind.SOUTH:
-            w = "南";
-            break;
-        case Wind.WEST:
-            w = "西";
-            break;
-        case Wind.NORTH:
-            w = "北";
-            break;
-        }
-
         int padding = 10;
         LabelControl wind_label = new LabelControl();
         add_child(wind_label);
-        wind_label.text = w;
+        wind_label.text = WIND_TO_STRING(wind);
         wind_label.inner_anchor = Vec2(0, 0.5f);
         wind_label.outer_anchor = Vec2(0, 0.5f);
         wind_label.font_size = 50;
         wind_label.position = Vec2(padding, 0);
-        wind_label.color = Color(0.0f, 0.0f, 0.4f, 1);
+        wind_label.color = Color.blue();
 
         LabelControl name_label = new LabelControl();
         add_child(name_label);
         name_label.text = player_name;
         name_label.font_size = 40;
-        name_label.color = Color(0.0f, 0.0f, 0.6f, 1);
+        name_label.color = wind_label.color;
         name_label.inner_anchor = Vec2(0, 0);
         name_label.outer_anchor = Vec2(0, 0.5f);
         name_label.position = Vec2(wind_label.size.width + padding * 2, 0);

@@ -17,19 +17,21 @@ public class GameRenderView : View3D, IGameRenderer
     private Wind round_wind;
     private int dealer_index;
     private Options options;
+    private RoundScoreState score;
 
-    public GameRenderView(RoundStartInfo info, int player_index, Wind round_wind, int dealer_index, Options options)
+    public GameRenderView(RoundStartInfo info, int player_index, Wind round_wind, int dealer_index, Options options, RoundScoreState score)
     {
         this.info = info;
         this.player_index = player_index;
         this.round_wind = round_wind;
         this.dealer_index = dealer_index;
         this.options = options;
+        this.score = score;
     }
 
     public override void added()
     {
-        scene = new RenderSceneManager(options, player_index, round_wind, dealer_index, info.wall_index, store.audio_player);
+        scene = new RenderSceneManager(options, player_index, round_wind, dealer_index, info.wall_index, store.audio_player, score);
 
         scene.added(store);
         tiles = scene.tiles;

@@ -65,9 +65,9 @@ public class RenderLabel2D : RenderObject2D
     {
         RenderLabel2D img = new RenderLabel2D(handle, reference);
         img.info = info;
-        img.font_type = font_type;
-        img.font_size = font_size;
-        img.text = text;
+        img._font_type = _font_type;
+        img._font_size = _font_size;
+        img._text = _text;
         img.rotation = rotation;
         img.position = position;
         img.scale = scale;

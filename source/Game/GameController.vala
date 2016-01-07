@@ -136,7 +136,7 @@ public class GameController : Object
         menu = new GameMenuView(start_info.decision_time);
         menu.quit.connect(finish_game);
 
-        renderer = new GameRenderView(info, player_index, game.round_wind, game.dealer_index, options);
+        renderer = new GameRenderView(info, player_index, game.round_wind, game.dealer_index, options, game.score);
         parent_view.add_child(renderer);
         parent_view.add_child(menu);
 

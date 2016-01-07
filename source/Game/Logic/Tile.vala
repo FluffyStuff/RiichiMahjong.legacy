@@ -238,6 +238,22 @@ public static Wind PREVIOUS_WIND(Wind wind)
     }
 }
 
+public static string WIND_TO_STRING(Wind wind)
+{
+    switch (wind)
+    {
+    case Wind.EAST:
+    default:
+        return "東";
+    case Wind.SOUTH:
+        return "南";
+    case Wind.WEST:
+        return "西";
+    case Wind.NORTH:
+        return "北";
+    }
+}
+
 public enum TileType
 {
     BLANK,

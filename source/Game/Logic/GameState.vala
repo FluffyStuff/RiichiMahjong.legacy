@@ -23,8 +23,6 @@ public class GameState : Object
 
         for (int i = 0; i < players.length; i++)
             players[i] = new GameScorePlayer(p[i].name, i, (Wind)((i + 4 - starting_dealer_index) % 4), info.starting_score, 0, 0);
-
-        add_round_score_state(new RoundFinishResult()); // Add initial info (is not a proper round)
     }
 
     public void start_round(RoundStartInfo info)
@@ -75,6 +73,8 @@ public class GameState : Object
 
         round_is_finished = false;
         hanchan_is_finished = false;
+
+        add_round_score_state(new RoundFinishResult()); // Add temp info (is not a proper round)
     }
 
     public RoundScoreState? round_finished(RoundFinishResult result)
@@ -200,7 +200,7 @@ public class GameState : Object
                 game_is_finished = true;
         }
 
-        return add_round_score_state(result);
+        return replace_round_score_state(result);
     }
 
     public bool[] can_riichi()
@@ -294,6 +294,34 @@ public class GameState : Object
         return score;
     }
 
+    private RoundScoreState replace_round_score_state(RoundFinishResult result)
+    {
+        assert(scores.size > 0);
+
+        RoundScoreState score = new RoundScoreState
+        (
+            result,
+            players,
+            round_wind,
+            starting_dealer_index,
+            dealer_index,
+            current_round,
+            renchan,
+            current_hanchan,
+            hanchan_count,
+            riichi_count,
+            hanchan_is_finished,
+            game_is_started,
+            game_is_finished,
+            do_renchan,
+            reset_riichi
+        );
+
+        scores.remove_at(scores.size - 1);
+        scores.add(score);
+        return score;
+    }
+
     public string to_string()
     {
         string str =
@@ -302,6 +330,7 @@ public class GameState : Object
         return str;
     }
 
+    public RoundScoreState score { owned get { return scores[scores.size - 1]; } }
     public ArrayList<RoundScoreState> scores { get; private set; }
     public Wind round_wind { get; private set; }
     public int starting_dealer_index { get; private set; }

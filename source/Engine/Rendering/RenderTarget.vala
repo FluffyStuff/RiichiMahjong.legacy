@@ -230,16 +230,15 @@ public abstract class RenderTarget : Object, IRenderTarget
     {
         foreach (RenderScene scene in state.scenes)
         {
-            Type scene_type = scene.get_type();
-            if (scene_type == typeof(RenderScene2D))
+            if (scene is RenderScene2D)
             {
-                RenderScene2D s = (RenderScene2D)scene;
+                RenderScene2D s = scene as RenderScene2D;
                 foreach (RenderObject2D obj in s.objects)
                 {
-                    Type obj_type = obj.get_type();
-                    if (obj_type == typeof(RenderLabel2D))
+                    //Type obj_type = obj.get_type();
+                    if (obj is RenderLabel2D)
                     {
-                        RenderLabel2D label = (RenderLabel2D)obj;
+                        RenderLabel2D label = obj as RenderLabel2D;
                         ILabelResourceHandle handle = get_label(label.handle);
 
                         bool invalid = false;
@@ -253,6 +252,36 @@ public abstract class RenderTarget : Object, IRenderTarget
                             continue;
 
                         LabelBitmap bitmap = store.generate_label_bitmap(label);
+                        do_load_label(handle, bitmap);
+
+                        handle.created = true;
+                        handle.font_type = label.font_type;
+                        handle.font_size = label.font_size;
+                        handle.text = label.text;
+                    }
+                }
+            }
+            else if (scene is RenderScene3D)
+            {
+                RenderScene3D s = scene as RenderScene3D;
+                foreach (RenderObject3D obj in s.objects)
+                {
+                    if (obj is RenderLabel3D)
+                    {
+                        RenderLabel3D label = obj as RenderLabel3D;
+                        ILabelResourceHandle handle = get_label(label.handle);
+
+                        bool invalid = false;
+                        if (!handle.created ||
+                            label.font_type != handle.font_type ||
+                            label.font_size != handle.font_size ||
+                            label.text != handle.text)
+                            invalid = true;
+
+                        if (!invalid)
+                            continue;
+
+                        LabelBitmap bitmap = store.generate_label_bitmap_3D(label);
                         do_load_label(handle, bitmap);
 
                         handle.created = true;

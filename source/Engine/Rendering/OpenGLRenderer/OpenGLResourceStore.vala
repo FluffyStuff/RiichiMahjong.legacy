@@ -65,6 +65,16 @@ public class OpenGLResourceStore : IResourceStore
         return label;
     }
 
+    public override RenderLabel3D? create_label_3D()
+    {
+        ResourceLabel resource = new ResourceLabel();
+        uint handle = renderer.load_label(resource);
+        LabelResourceReference reference = new LabelResourceReference(handle, this);
+        RenderLabel3D label = new RenderLabel3D(handle, reference, load_model("field", true));
+
+        return label;
+    }
+
     public override void delete_label(LabelResourceReference reference)
     {
         // TODO: Implement label deletion

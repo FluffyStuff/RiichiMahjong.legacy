@@ -5,11 +5,11 @@ public abstract class IResourceStore : Object
     private AudioPlayer audio = new AudioPlayer();
     private LabelLoader label_loader = new LabelLoader();
 
-    public RenderObject3D? load_object_3D(string name)
+    public RenderBody3D? load_body_3D(string name)
     {
         RenderModel? model = load_model(name, false);
         RenderTexture? texture = load_texture(name, false);
-        RenderObject3D obj = new RenderObject3D(model, texture);
+        RenderBody3D obj = new RenderBody3D(model, texture);
         return obj;
     }
 
@@ -33,11 +33,17 @@ public abstract class IResourceStore : Object
         return label_loader.generate_label_bitmap(label.font_type, label.font_size, label.text);
     }
 
+    public LabelBitmap generate_label_bitmap_3D(RenderLabel3D label)
+    {
+        return label_loader.generate_label_bitmap(label.font_type, label.font_size, label.text);
+    }
+
     public AudioPlayer audio_player { get { return audio; } }
 
     public abstract RenderModel? load_model_dir(string dir, string name, bool center);
     public abstract RenderTexture? load_texture_dir(string dir, string name, bool tile);
     public abstract RenderLabel2D? create_label();
+    public abstract RenderLabel3D? create_label_3D();
     public abstract void delete_label(LabelResourceReference reference);
 
     private const string DATA_DIR = "./Data/";

@@ -24,7 +24,7 @@ public class RenderTile
         RenderModel model = store.load_model("tile_" + extension, true);
         RenderTexture texture = store.load_texture("Tiles/" + get_tile_type_name(tile_type.tile_type), false);
 
-        this.tile = new RenderObject3D(model, texture);
+        this.tile = new RenderBody3D(model, texture);
         this.tile.scale = { scale, scale, scale };
     }
 
@@ -39,7 +39,7 @@ public class RenderTile
     {
         RenderModel model = store.load_model("tile_" + extension, true);
         RenderTexture texture = tile.texture;
-        tile = new RenderObject3D(model, texture);
+        tile = new RenderBody3D(model, texture);
         this.tile.scale = { scale, scale, scale };
     }
 
@@ -143,7 +143,7 @@ public class RenderTile
         get { return animation_end_rotation; }
     }
 
-    public RenderObject3D tile { get; private set; }
+    public RenderBody3D tile { get; private set; }
     public Tile tile_type { get; private set; }
     public bool hovered
     {

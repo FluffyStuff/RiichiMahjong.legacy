@@ -14,7 +14,7 @@ public class RenderPlayer
     private RenderPond pond;
     private RenderCalls calls;
     private RenderRiichi render_riichi;
-    private RenderObject3D? wind_indicator = null;
+    private RenderBody3D? wind_indicator = null;
 
     public RenderPlayer(IResourceStore store, Vec3 center, bool dealer, int seat, float player_offset, float wall_offset, Vec3 tile_size, bool observed, Wind round_wind)
     {
@@ -59,7 +59,7 @@ public class RenderPlayer
 
             RenderModel? model = store.load_model("wind_indicator", true);
             RenderTexture? texture = store.load_texture("WindIndicators/" + wind_string, false);
-            wind_indicator = new RenderObject3D(model, texture);
+            wind_indicator = new RenderBody3D(model, texture);
 
             pos = Vec3(this.player_offset - model.size.x / 2 - (tile_size.x * 3 + tile_size.y), 0, this.player_offset);
             pos = Calculations.rotate_y(Vec3.empty(), (float)seat / 2, pos);
@@ -916,7 +916,7 @@ public class RenderCalls
 
 class RenderRiichi
 {
-    private RenderObject3D stick;
+    private RenderBody3D stick;
     private bool visible = false;
 
     private bool return_animation;
@@ -933,7 +933,7 @@ class RenderRiichi
         RenderModel model = store.load_model("stick", true);
         RenderTexture texture = store.load_texture("Sticks/Stick1000", false);
 
-        stick = new RenderObject3D(model, texture);
+        stick = new RenderBody3D(model, texture);
         stick.rotation = Vec3(0, (float)seat / 2, 0);
 
         animation_start_position = center.plus(Calculations.rotate_y(Vec3.empty(), (float)seat / 2, Vec3(0, model.size.y / 2, start_offset )));
