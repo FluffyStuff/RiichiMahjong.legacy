@@ -22,7 +22,7 @@ public class RenderTile
         this.scale = scale;
 
         RenderModel model = store.load_model("tile_" + extension, true);
-        RenderTexture texture = store.load_texture("Tiles/" + get_tile_type_name(tile_type.tile_type), false);
+        RenderTexture texture = get_texture(store, tile_type.tile_type, tile.dora);
 
         this.tile = new RenderBody3D(model, texture);
         this.tile.scale = { scale, scale, scale };
@@ -32,7 +32,7 @@ public class RenderTile
     {
         tile_type.tile_type = type.tile_type;
         tile_type.dora = type.dora;
-        tile.texture = store.load_texture("Tiles" + "/" + get_tile_type_name(tile_type.tile_type), false);
+        tile.texture = get_texture(store, tile_type.tile_type, tile_type.dora);
     }
 
     public void reload(IResourceStore store, string extension)
@@ -41,6 +41,20 @@ public class RenderTile
         RenderTexture texture = tile.texture;
         tile = new RenderBody3D(model, texture);
         this.tile.scale = { scale, scale, scale };
+    }
+
+    private static RenderTexture get_texture(IResourceStore store, TileType tile_type, bool dora)
+    {
+        string name = "Tiles/" + get_tile_type_name(tile_type);
+
+        if (dora)
+        {
+            RenderTexture? texture = store.load_texture(name + "-Dora", false);
+            if (texture != null)
+                return texture;
+        }
+
+        return store.load_texture(name, false);
     }
 
     private static string get_tile_type_name(TileType type)
@@ -161,12 +175,7 @@ public class RenderTile
                     1
                 );
             else
-            {
-                if (tile_type.dora)
-                    tile.diffuse_color = Color(0.2f, 0.2f, -0.4f, 1);
-                else
-                    tile.diffuse_color = Color.with_alpha(1);
-            }
+                tile.diffuse_color = Color.with_alpha(1);
         }
     }
 }

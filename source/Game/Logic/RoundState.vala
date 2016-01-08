@@ -1007,6 +1007,27 @@ class RoundStateWall
         else if (shuffled)
             shuffle(tiles, rnd);
 
+        if (shuffled || seeded)
+        {
+            ArrayList<Tile> five_man = new ArrayList<Tile>();
+            ArrayList<Tile> five_pin = new ArrayList<Tile>();
+            ArrayList<Tile> five_sou = new ArrayList<Tile>();
+
+            foreach (Tile tile in tiles)
+            {
+                if (tile.tile_type == TileType.MAN5)
+                    five_man.add(tile);
+                else if (tile.tile_type == TileType.PIN5)
+                    five_pin.add(tile);
+                else if (tile.tile_type == TileType.SOU5)
+                    five_sou.add(tile);
+            }
+
+            five_man[rnd.int_range(0, five_man.size - 1)].dora = true;
+            five_pin[rnd.int_range(0, five_pin.size - 1)].dora = true;
+            five_sou[rnd.int_range(0, five_sou.size - 1)].dora = true;
+        }
+
         for (int i = 0; i < tiles.length; i++)
             tiles[i].ID = i;
 

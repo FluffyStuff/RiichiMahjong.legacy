@@ -1025,10 +1025,11 @@ public class Scoring : Object
 
         int dora = 0;
         int ura_dora = 0;
+        int aka_dora = 0;
 
         foreach (Tile tile in hand.tiles)
             if (tile.dora)
-                dora++;
+                aka_dora++;
 
         foreach (TileMeld meld in hand.melds)
         {
@@ -1056,11 +1057,13 @@ public class Scoring : Object
             }
         }
 
-        han += dora + ura_dora;
+        han += dora + ura_dora + aka_dora;
         if (dora > 0)
             yaku.add(new Yaku(YakuType.DORA, dora, 0));
         if (ura_dora > 0)
             yaku.add(new Yaku(YakuType.URA_DORA, ura_dora, 0));
+        if (aka_dora > 0)
+            yaku.add(new Yaku(YakuType.AKA_DORA, aka_dora, 0));
 
         int basic_points;
         if (yakuman > 0)
@@ -1176,7 +1179,7 @@ public class Scoring : Object
             return false;
 
         foreach (Yaku y in yaku)
-            if (y.yaku_type != YakuType.DORA && y.yaku_type != YakuType.URA_DORA)
+            if (y.yaku_type != YakuType.DORA && y.yaku_type != YakuType.URA_DORA && y.yaku_type != YakuType.AKA_DORA)
                 return true;
 
         return false;
@@ -1890,5 +1893,6 @@ public enum YakuType // Han
 
     // Dora
     DORA,
-    URA_DORA
+    URA_DORA,
+    AKA_DORA
 }
