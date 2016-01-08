@@ -1246,8 +1246,15 @@ public class Scoring : Object
             fu += 2;
 
         Tile pair_tile = hand.pairs[0].tile_1;
-        if (pair_tile.is_dragon_tile() || pair_tile.is_wind(round.round_wind) || pair_tile.is_wind(player.wind))
+        if (pair_tile.is_dragon_tile())
             fu += 2;
+        else
+        {
+            if (pair_tile.is_wind(round.round_wind))
+                fu += 2;
+            if (pair_tile.is_wind(player.wind))
+                fu += 2;
+        }
 
         bool closed = player.calls.size == 0;
 
