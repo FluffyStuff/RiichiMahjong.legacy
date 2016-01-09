@@ -86,9 +86,14 @@ public class GameState : Object
         do_renchan = false;
         reset_riichi = false;
 
-        if (result.result == RoundFinishResult.RoundResultEnum.RON)
+        bool ron = result.result == RoundFinishResult.RoundResultEnum.RON;
+        bool tsumo = result.result == RoundFinishResult.RoundResultEnum.TSUMO;
+        int sekinin_index = result.score.player.sekinin_index;
+        bool sekinin = sekinin_index != -1;
+
+        if (ron || (tsumo && sekinin))
         {
-            if (result.riichi_return_index != -1)
+            if (result.riichi_return_index != -1 && ron)
             {
                 players[result.riichi_return_index].transfer += 1000;
                 riichi_count--;
@@ -98,8 +103,17 @@ public class GameState : Object
             int loser  = result.loser_index;
 
             int transfer = result.score.total_points + renchan * 300;
-            players[ loser].transfer -= transfer;
             players[winner].transfer += transfer + 1000 * riichi_count;
+
+            if (sekinin)
+            {
+                if (ron)
+                    transfer /= 2;
+                players[sekinin_index].transfer -= transfer;
+            }
+
+            if (ron)
+                players[loser].transfer -= transfer;
 
             if (dealer_index == winner)
                 do_renchan = true;

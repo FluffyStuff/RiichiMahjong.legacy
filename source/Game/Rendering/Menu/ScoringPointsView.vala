@@ -19,11 +19,17 @@ public class ScoringPointsView : View2D
         bool draw = false;
         string score_text;
 
+        int sekinin_index = score.result.score.player.sekinin_index;
+        bool sekinin = !draw && sekinin_index != -1;
+        bool dual_payer = false;
+
         if (score.result.result == RoundFinishResult.RoundResultEnum.RON)
         {
             score_text = "Ron";
             if (score.result.score.dealer)
                 score_text = "Dealer " + score_text;
+
+            dual_payer = sekinin = sekinin && sekinin_index != score.result.loser_index;
         }
         else if (score.result.result == RoundFinishResult.RoundResultEnum.TSUMO)
         {
@@ -36,6 +42,9 @@ public class ScoringPointsView : View2D
             score_text = "Draw";
             draw = true;
         }
+
+        if (sekinin)
+            score_text += " (Sekinin Barai)";
 
         Scoring scoring = score.result.score;
 
@@ -135,10 +144,17 @@ public class ScoringPointsView : View2D
         string points;
 
         if (scoring.ron)
-            points = scoring.ron_points.to_string();
+        {
+            if (dual_payer)
+                points = "2 * " + (scoring.ron_points / 2).to_string();
+            else
+                points = scoring.ron_points.to_string();
+        }
         else
         {
-            if (scoring.dealer)
+            if (sekinin)
+                points = scoring.total_points.to_string();
+            else if (scoring.dealer)
                 points = "3 * " + scoring.tsumo_points_higher.to_string();
             else
                 points = scoring.tsumo_points_lower.to_string() + "/" + scoring.tsumo_points_higher.to_string();

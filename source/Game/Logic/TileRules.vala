@@ -349,6 +349,33 @@ public class TileRules
         return count >= 9;
     }
 
+    public static bool is_sekinin(ArrayList<RoundStateCall> calls, RoundStateCall new_call, Tile call_tile)
+    {
+        int wind_calls = 0;
+        int dragon_calls = 0;
+        int kans = 0;
+
+        foreach (RoundStateCall call in calls)
+        {
+            Tile t = call.tiles[0];
+            if (t.is_wind_tile())
+                wind_calls++;
+            else if (t.is_dragon_tile())
+                dragon_calls++;
+            if (call.tiles.size == 4) // If is kan
+                kans++;
+        }
+
+        if (wind_calls == 3 && call_tile.is_wind_tile())
+            return true;
+        if (dragon_calls == 2 && call_tile.is_dragon_tile())
+            return true;
+        if (kans == 3 && new_call.tiles.size == 4)
+            return true;
+
+        return false;
+    }
+
     public static bool in_tenpai(ArrayList<Tile> hand)
     {
         return hand_readings(hand, true, true).size > 0;
@@ -802,7 +829,8 @@ public class PlayerStateContext : Object
         bool double_riichi,
         bool ippatsu,
         bool tiles_called_on,
-        bool first_turn
+        bool first_turn,
+        int sekinin_index
     )
     {
         this.hand = hand;
@@ -815,6 +843,7 @@ public class PlayerStateContext : Object
         this.ippatsu = ippatsu;
         this.tiles_called_on = tiles_called_on;
         this.first_turn = first_turn;
+        this.sekinin_index = sekinin_index;
     }
 
     public string to_string()
@@ -826,7 +855,8 @@ public class PlayerStateContext : Object
         "double_riichi: " + double_riichi.to_string() + "\n" +
         "ippatsu: " + ippatsu.to_string() + "\n" +
         "tiles_called_on: " + tiles_called_on.to_string() + "\n" +
-        "first_turn: " + first_turn.to_string() + "\n";
+        "first_turn: " + first_turn.to_string() + "\n" +
+        "sekinin_index: " + sekinin_index.to_string() + "\n";
 
         str += "hand: \n";
         foreach (Tile t in hand)
@@ -849,6 +879,7 @@ public class PlayerStateContext : Object
     public bool ippatsu { get; private set; }
     public bool tiles_called_on { get; private set; }
     public bool first_turn { get; private set; }
+    public int sekinin_index { get; private set; }
 }
 
 public class HandReading : Object

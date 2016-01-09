@@ -29,8 +29,8 @@ public class RoundState : Object
 
         if (shuffled)
         {
-            // For testing purposes
-            /*TileType[] p1 = new TileType[]
+            /* For testing purposes
+            TileType[] p1 = new TileType[]
             {
             };
 
@@ -56,8 +56,10 @@ public class RoundState : Object
             {
             };
 
-            wall = new RoundStateWall.seeded(dealer, wall_index, true, rnd, p1, p2, p3, p4, draw_wall, dead_wall);*/
+            wall = new RoundStateWall.seeded(dealer, wall_index, true, rnd, p1, p2, p3, p4, draw_wall, dead_wall);
+            /*/
             wall = new RoundStateWall.shuffled(dealer, wall_index, rnd);
+            //*/
         }
         else
             wall = new RoundStateWall(dealer, wall_index);
@@ -280,7 +282,7 @@ public class RoundState : Object
         Tile tile_3 = get_tile(tile_3_ID);
         discarder.rob_tile(tile);
 
-        player.do_open_kan(tile, tile_1, tile_2, tile_3);
+        player.do_open_kan(discarder.index, tile, tile_1, tile_2, tile_3);
 
         current_index = player_index;
         kan();
@@ -298,7 +300,7 @@ public class RoundState : Object
         Tile tile_2 = get_tile(tile_2_ID);
         discarder.rob_tile(tile);
 
-        player.do_pon(tile, tile_1, tile_2);
+        player.do_pon(discarder.index, tile, tile_1, tile_2);
 
         interrupt_flow();
         current_index = player_index;
@@ -316,7 +318,7 @@ public class RoundState : Object
         Tile tile_2 = get_tile(tile_2_ID);
         discarder.rob_tile(tile);
 
-        player.do_chii(tile, tile_1, tile_2);
+        player.do_chii(discarder.index, tile, tile_1, tile_2);
 
         interrupt_flow();
         current_index = player_index;
@@ -536,6 +538,9 @@ public class RoundStatePlayer
     private bool temporary_furiten = false;
     private bool _can_riichi;
 
+    private int sekinin_rinshan_index = -1;
+    private int sekinin_index = -1;
+
     public RoundStatePlayer(int index, bool dealer, Wind wind, bool can_riichi, bool revealed)
     {
         this.index = index;
@@ -588,6 +593,8 @@ public class RoundStatePlayer
         first_turn = false;
         do_chii_discard = false;
         do_pon_discard = false;
+        sekinin_rinshan_index = -1;
+
         return true;
     }
 
@@ -665,7 +672,7 @@ public class RoundStatePlayer
         return tiles;
     }
 
-    public void do_open_kan(Tile discard_tile, Tile tile_1, Tile tile_2, Tile tile_3)
+    public void do_open_kan(int discarder_index, Tile discard_tile, Tile tile_1, Tile tile_2, Tile tile_3)
     {
         hand.remove(tile_1);
         hand.remove(tile_2);
@@ -677,10 +684,15 @@ public class RoundStatePlayer
         tiles.add(tile_2);
         tiles.add(tile_3);
 
-        calls.add(new RoundStateCall(RoundStateCall.CallType.OPEN_KAN, tiles, discard_tile));
+        RoundStateCall new_call = new RoundStateCall(RoundStateCall.CallType.OPEN_KAN, tiles, discard_tile);
+        if (TileRules.is_sekinin(calls, new_call, discard_tile))
+            sekinin_index = discarder_index;
+        sekinin_rinshan_index = discarder_index;
+
+        calls.add(new_call);
     }
 
-    public void do_pon(Tile discard_tile, Tile tile_1, Tile tile_2)
+    public void do_pon(int discarder_index, Tile discard_tile, Tile tile_1, Tile tile_2)
     {
         hand.remove(tile_1);
         hand.remove(tile_2);
@@ -690,11 +702,15 @@ public class RoundStatePlayer
         tiles.add(tile_1);
         tiles.add(tile_2);
 
-        calls.add(new RoundStateCall(RoundStateCall.CallType.PON, tiles, discard_tile));
+        RoundStateCall new_call = new RoundStateCall(RoundStateCall.CallType.PON, tiles, discard_tile);
+        if (TileRules.is_sekinin(calls, new_call, discard_tile))
+            sekinin_index = discarder_index;
+
+        calls.add(new_call);
         do_pon_discard = true;
     }
 
-    public void do_chii(Tile discard_tile, Tile tile_1, Tile tile_2)
+    public void do_chii(int discarder_index, Tile discard_tile, Tile tile_1, Tile tile_2)
     {
         hand.remove(tile_1);
         hand.remove(tile_2);
@@ -704,8 +720,13 @@ public class RoundStatePlayer
         tiles.add(tile_1);
         tiles.add(tile_2);
 
-        calls.add(new RoundStateCall(RoundStateCall.CallType.CHII, tiles, discard_tile));
+        RoundStateCall new_call = new RoundStateCall(RoundStateCall.CallType.CHII, tiles, discard_tile);
+        if (TileRules.is_sekinin(calls, new_call, discard_tile))
+            sekinin_index = discarder_index;
+
+        calls.add(new_call);
         do_chii_discard = true;
+
     }
 
     public ArrayList<Tile> get_discard_tiles()
@@ -940,6 +961,10 @@ public class RoundStatePlayer
         if (tsumo)
             hand.remove(newest_tile);
 
+        int sekinin = sekinin_rinshan_index;
+        if (sekinin_index != -1)
+            sekinin = sekinin_index;
+
         return new PlayerStateContext
         (
             hand,
@@ -951,7 +976,8 @@ public class RoundStatePlayer
             double_riichi,
             ippatsu,
             tiles_called_on,
-            first_turn
+            first_turn,
+            sekinin
         );
     }
 
@@ -1171,9 +1197,12 @@ class RoundStateWall
         }
 
         for (int i = 0; i < draw_tiles.length; i++)
+        {
             replace(tiles, draw_tiles[i], unassigned, index++);
+            length--;
+        }
 
-        index += length - 22;
+        index += length - 14;
 
         for (int i = 0; i < dead_wall.length; i++)
             replace(tiles, dead_wall[i], unassigned, index++);
