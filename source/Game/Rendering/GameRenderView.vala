@@ -85,17 +85,16 @@ public class GameRenderView : View3D, IGameRenderer
             draw(results.tenpai_indices, results.draw_type);
             break;
         case RoundFinishResult.RoundResultEnum.RON:
-            ron(results.winner_index, results.loser_index, results.discard_tile, results.riichi_return_index);
+            ron(results.winner_indices, results.loser_index, results.discard_tile, results.riichi_return_index);
             break;
         case RoundFinishResult.RoundResultEnum.TSUMO:
-            tsumo(results.winner_index);
+            tsumo(results.winner_indices[0]);
             break;
         }
     }
 
-    private void ron(int player_index, int discard_player_index, int tile_ID, int return_riichi_index)
+    private void ron(int[] winner_indices, int discard_player_index, int tile_ID, int return_riichi_index)
     {
-        RenderPlayer player = players[player_index];
         RenderPlayer discard_player = players[discard_player_index];
 
         RenderPlayer? return_riichi_player = null;
@@ -105,7 +104,11 @@ public class GameRenderView : View3D, IGameRenderer
         RenderTile tile = tiles[tile_ID];
         discard_player.rob_tile(tile);
 
-        buffer_action(new RenderActionRon(player, discard_player, tile, return_riichi_player));
+        RenderPlayer[] winners = new RenderPlayer[winner_indices.length];
+        for (int i = 0; i < winners.length; i++)
+            winners[i] = players[winner_indices[i]];
+
+        buffer_action(new RenderActionRon(winners, discard_player, tile, return_riichi_player));
     }
 
     private void tsumo(int player_index)

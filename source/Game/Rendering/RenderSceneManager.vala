@@ -255,13 +255,23 @@ class RenderSceneManager : Object
     private void action_ron(RenderActionRon action)
     {
         ron_sound.play();
-        action.player.ron(action.tile);
-        add_action(new RenderActionHandReveal(action.player));
+
+        if (action.winners.length == 1)
+            action.winners[0].ron(action.tile);
+
+        bool flip_ura_dora = false;
+
+        foreach (RenderPlayer player in action.winners)
+        {
+            add_action(new RenderActionHandReveal(player));
+            if (player.in_riichi)
+                flip_ura_dora = true;
+        }
 
         if (action.return_riichi_player != null)
             add_action(new RenderActionReturnRiichi(action.return_riichi_player));
 
-        if (action.player.in_riichi)
+        if (flip_ura_dora)
             add_action(new RenderActionFlipUraDora());
     }
 

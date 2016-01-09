@@ -80,17 +80,17 @@ public class RenderActionDiscard : RenderAction
 
 public class RenderActionRon : RenderAction
 {
-    public RenderActionRon(RenderPlayer player, RenderPlayer discarder, RenderTile tile, RenderPlayer? return_riichi_player)
+    public RenderActionRon(RenderPlayer[] winners, RenderPlayer discarder, RenderTile tile, RenderPlayer? return_riichi_player)
     {
         base(0.5f);
 
-        this.player = player;
+        this.winners = winners;
         this.discarder = discarder;
         this.tile = tile;
         this.return_riichi_player = return_riichi_player;
     }
 
-    public RenderPlayer player { get; private set; }
+    public RenderPlayer[] winners { get; private set; }
     public RenderPlayer discarder { get; private set; }
     public RenderTile tile { get; private set; }
     public RenderPlayer? return_riichi_player { get; private set; }

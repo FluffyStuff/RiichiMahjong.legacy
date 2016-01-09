@@ -91,12 +91,12 @@ public abstract class Bot : Object
         round_state.tile_discard(tile_ID);
     }
 
-    public void ron(int player_index)
+    public void ron(int[] player_indices)
     {
         int discarder_index = round_state.current_player.index;
-        round_state.ron(player_index);
-        Scoring score = round_state.get_ron_score();
-        RoundFinishResult result = new RoundFinishResult.ron(score, player_index, discarder_index, round_state.discard_tile.ID, round_state.riichi_return_index);
+        round_state.ron(player_indices);
+        Scoring[] scores = round_state.get_ron_score();
+        RoundFinishResult result = new RoundFinishResult.ron(scores, player_indices, discarder_index, round_state.discard_tile.ID, round_state.riichi_return_index);
         game_state.round_finished(result);
     }
 

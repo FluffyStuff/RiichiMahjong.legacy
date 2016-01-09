@@ -157,7 +157,7 @@ namespace GameServer
             return state.riichi();
         }
 
-        public Scoring get_ron_score()
+        public Scoring[] get_ron_score()
         {
             return state.get_ron_score();
         }
@@ -261,7 +261,9 @@ namespace GameServer
 
         public CallResult? get_call()
         {
-            CallResult? result = null;
+            ArrayList<ServerRoundStatePlayer> ron_players = new ArrayList<ServerRoundStatePlayer>();
+            ServerRoundStatePlayer? kan_pon_player = null;
+            ServerRoundStatePlayer? chii_player = null;
 
             for (int i = 0; i < players.length - 1; i++)
             {
@@ -270,49 +272,78 @@ namespace GameServer
 
                 if (player.call_decision != null)
                 {
-                    bool use = false;
-                    if (result == null)
-                        use = true;
-                    else if (player.call_decision.call_type == CallDecisionType.RON && result.call_type != CallDecisionType.RON)
-                        use = true;
-                    else if (result.call_type == CallDecisionType.CHII)
-                        use = true;
-
-                    if (use)
-                        result = new CallResult
-                        (
-                            player,
-                            get_player(state.current_player.index),
-                            state.discard_tile,
-                            player.call_decision.tiles,
-                            player.call_decision.call_type,
-                            state.riichi_return_index
-                        );
+                    if (player.call_decision.call_type == CallDecisionType.RON)
+                        ron_players.add(player);
+                    else if (player.call_decision.call_type == CallDecisionType.KAN || player.call_decision.call_type == CallDecisionType.PON)
+                        kan_pon_player = player;
+                    else if (player.call_decision.call_type == CallDecisionType.CHII)
+                        chii_player = player;
                 }
+            }
 
+            CallResult? result = null;
+
+            if (ron_players.size > 0)
+            {
+                result = new CallResult
+                (
+                    ron_players.to_array(),
+                    get_player(state.current_player.index),
+                    state.discard_tile,
+                    null,
+                    CallDecisionType.RON,
+                    state.riichi_return_index
+                );
+            }
+            else
+            {
+                ServerRoundStatePlayer? player = null;
+                if (kan_pon_player != null)
+                    player = kan_pon_player;
+                else if (chii_player != null)
+                    player = chii_player;
+
+                if (player != null)
+                {
+                    result = new CallResult
+                    (
+                        new ServerRoundStatePlayer[] { player },
+                        get_player(state.current_player.index),
+                        state.discard_tile,
+                        player.call_decision.tiles,
+                        player.call_decision.call_type,
+                        state.riichi_return_index
+                    );
+                }
+            }
+
+            foreach (ServerRoundStatePlayer player in players)
+            {
                 player.call_decision = null;
                 player.state = PlayerState.DONE;
             }
 
-            bool ron = false;
             if (result != null)
             {
                 if (result.call_type == CallDecisionType.RON)
                 {
-                    state.ron(result.caller.index);
-                    ron = true;
+                    int[] indices = new int[result.callers.length];
+                    for (int i = 0; i < indices.length; i++)
+                        indices[i] = result.callers[i].index;
+
+                    state.ron(indices);
                 }
                 else if (result.call_type == CallDecisionType.KAN)
-                    state.open_kan(result.caller.index, result.tiles[0].ID, result.tiles[1].ID, result.tiles[2].ID);
+                    state.open_kan(result.callers[0].index, result.tiles[0].ID, result.tiles[1].ID, result.tiles[2].ID);
                 else if (result.call_type == CallDecisionType.PON)
-                    state.pon(result.caller.index, result.tiles[0].ID, result.tiles[1].ID);
+                    state.pon(result.callers[0].index, result.tiles[0].ID, result.tiles[1].ID);
                 else if (result.call_type == CallDecisionType.CHII)
-                    state.chii(result.caller.index, result.tiles[0].ID, result.tiles[1].ID);
+                    state.chii(result.callers[0].index, result.tiles[0].ID, result.tiles[1].ID);
             }
             else
                 state.calls_finished();
 
-            action_state = ron ? ActionState.FINISHED : ActionState.WAITING_TURN;
+            action_state = ron_players.size > 0 ? ActionState.FINISHED : ActionState.WAITING_TURN;
             return result;
         }
 
@@ -356,9 +387,9 @@ namespace GameServer
 
     class CallResult
     {
-        public CallResult(ServerRoundStatePlayer caller, ServerRoundStatePlayer discarder, Tile discard_tile, ArrayList<Tile>? tiles, CallDecisionType call_type, int riichi_return_index)
+        public CallResult(ServerRoundStatePlayer[] callers, ServerRoundStatePlayer discarder, Tile discard_tile, ArrayList<Tile>? tiles, CallDecisionType call_type, int riichi_return_index)
         {
-            this.caller = caller;
+            this.callers = callers;
             this.discarder = discarder;
             this.discard_tile = discard_tile;
             this.tiles = tiles;
@@ -366,7 +397,7 @@ namespace GameServer
             this.riichi_return_index = riichi_return_index;
         }
 
-        public ServerRoundStatePlayer caller { get; private set; }
+        public ServerRoundStatePlayer[] callers { get; private set; }
         public ServerRoundStatePlayer discarder { get; private set; }
         public Tile discard_tile { get; private set; }
         public ArrayList<Tile>? tiles { get; private set; }

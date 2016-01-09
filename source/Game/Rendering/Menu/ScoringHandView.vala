@@ -22,7 +22,7 @@ public class ScoringHandView : View3D
         string extension = "high";
 
         RenderModel model = store.load_model("tile_" + extension, true);
-        float tile_scale = 1f;
+        float tile_scale = 0.9f;
         Vec3 tile_size = model.size.mul_scalar(tile_scale);
 
         for (int i = 0; i < score.player.hand.size; i++)

@@ -88,7 +88,9 @@ public class GameState : Object
 
         bool ron = result.result == RoundFinishResult.RoundResultEnum.RON;
         bool tsumo = result.result == RoundFinishResult.RoundResultEnum.TSUMO;
-        int sekinin_index = result.score.player.sekinin_index;
+        int sekinin_index = -1;
+        if (result.scores.length > 0)
+            sekinin_index = result.scores[0].player.sekinin_index;
         bool sekinin = sekinin_index != -1;
 
         if (ron || (tsumo && sekinin))
@@ -99,35 +101,46 @@ public class GameState : Object
                 riichi_count--;
             }
 
-            int winner = result.winner_index;
             int loser  = result.loser_index;
 
-            int transfer = result.score.total_points + renchan * 300;
-            players[winner].transfer += transfer + 1000 * riichi_count;
-
-            if (sekinin)
+            for (int i = 0; i < result.winner_indices.length; i++)
             {
+                int winner = result.winner_indices[i];
+                sekinin_index = result.scores[i].player.sekinin_index;
+                sekinin = sekinin_index != -1;
+
+                int transfer = result.scores[i].total_points + renchan * 300;
+                players[winner].transfer += transfer;
+
+                if (winner == result.winner_indices[0])
+                    players[winner].transfer += 1000 * riichi_count;
+
+                if (sekinin)
+                {
+                    if (ron)
+                        transfer /= 2;
+                    players[sekinin_index].transfer -= transfer;
+                }
+
                 if (ron)
-                    transfer /= 2;
-                players[sekinin_index].transfer -= transfer;
+                    players[loser].transfer -= transfer;
+
+                if (dealer_index == winner)
+                    do_renchan = true;
             }
 
-            if (ron)
-                players[loser].transfer -= transfer;
-
-            if (dealer_index == winner)
-                do_renchan = true;
             reset_riichi = true;
         }
         else if (result.result == RoundFinishResult.RoundResultEnum.TSUMO)
         {
-            int winner = result.winner_index;
+            Scoring score = result.scores[0];
+            int winner = result.winner_indices[0];
 
             if (dealer_index == winner)
             {
                 for (int i = 0; i < players.length; i++)
                     if (i != dealer_index)
-                        players[i].transfer -= result.score.tsumo_points_higher + renchan * 100;
+                        players[i].transfer -= score.tsumo_points_higher + renchan * 100;
 
                 do_renchan = true;
             }
@@ -138,13 +151,13 @@ public class GameState : Object
                     if (i == winner)
                         continue;
                     else if (i == dealer_index)
-                        players[i].transfer -= result.score.tsumo_points_higher + renchan * 100;
+                        players[i].transfer -= score.tsumo_points_higher + renchan * 100;
                     else
-                        players[i].transfer -= result.score.tsumo_points_lower  + renchan * 100;
+                        players[i].transfer -= score.tsumo_points_lower  + renchan * 100;
                 }
             }
 
-            players[winner].transfer += result.score.total_points + renchan * 300 + 1000 * riichi_count;
+            players[winner].transfer += score.total_points + renchan * 300 + 1000 * riichi_count;
             reset_riichi = true;
         }
         else if (result.result == RoundFinishResult.RoundResultEnum.DRAW)
@@ -450,11 +463,11 @@ public class RoundFinishResult
         result = RoundResultEnum.NONE;
     }
 
-    public RoundFinishResult.ron(Scoring score, int winner_index, int loser_index, int discard_tile, int riichi_return_index)
+    public RoundFinishResult.ron(Scoring[] scores, int[] winner_indices, int loser_index, int discard_tile, int riichi_return_index)
     {
         result = RoundResultEnum.RON;
-        this.score = score;
-        this.winner_index = winner_index;
+        this.scores = scores;
+        this.winner_indices = winner_indices;
         this.loser_index = loser_index;
         this.discard_tile = discard_tile;
         this.riichi_return_index = riichi_return_index;
@@ -463,8 +476,8 @@ public class RoundFinishResult
     public RoundFinishResult.tsumo(Scoring score, int winner_index)
     {
         result = RoundResultEnum.TSUMO;
-        this.score = score;
-        this.winner_index = winner_index;
+        this.scores = new Scoring[] { score };
+        this.winner_indices = new int[] { winner_index };
     }
 
     public RoundFinishResult.draw(int[] tenpai_indices, int[] nagashi_indices, GameDrawType draw_type)
@@ -476,9 +489,9 @@ public class RoundFinishResult
     }
 
     public RoundResultEnum result { get; private set; }
-    public Scoring score { get; private set; }
+    public Scoring[] scores { get; private set; }
     public GameDrawType draw_type { get; private set; }
-    public int winner_index { get; private set; }
+    public int[] winner_indices { get; private set; }
     public int loser_index { get; private set; }
     public int discard_tile { get; private set; }
     public int[] tenpai_indices { get; private set; }

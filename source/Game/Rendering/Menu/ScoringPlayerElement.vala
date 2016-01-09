@@ -5,11 +5,14 @@ class ScoringPlayerElement : Control
     private int points;
     private int transfer;
     private int score;
+    private bool _highlighted = false;
 
     private LabelControl score_label;
+    private ImageControl background;
 
-    public ScoringPlayerElement(Wind wind, string player_name, int points, int transfer, int score)
+    public ScoringPlayerElement(int player_index, Wind wind, string player_name, int points, int transfer, int score)
     {
+        this.player_index = player_index;
         this.wind = wind;
         this.player_name = player_name;
         this.points = points;
@@ -23,7 +26,7 @@ class ScoringPlayerElement : Control
 
         View2D container = new View2D();
         add_child(container);
-        ImageControl background = new ImageControl("Menu/score_background");
+        background = new ImageControl("Menu/score_background");
         container.add_child(background);
         size = background.end_size;
 
@@ -92,9 +95,25 @@ class ScoringPlayerElement : Control
             score_label.color = Color.red();
     }
 
+    public bool highlighted
+    {
+        get { return _highlighted; }
+        set
+        {
+            _highlighted = value;
+
+            if (value)
+                background.diffuse_color = Color(0, 0.04f, 0, 1.0f);
+            else
+                background.diffuse_color = Color(0, 0, 0, 1);
+        }
+    }
+
     public bool show_score
     {
         get { return score_label.visible; }
         set { score_label.visible = value; }
     }
+
+    public int player_index { get; private set; }
 }

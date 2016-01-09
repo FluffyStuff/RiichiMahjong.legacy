@@ -116,11 +116,27 @@ public class ServerMessageTurnDecision : ServerMessage {}
 
 public class ServerMessageRon : ServerMessage
 {
-    public ServerMessageRon(int player_index)
+    public ServerMessageRon(int[] player_indices)
     {
-        this.player_index = player_index;
+        ObjInt[] ints = new ObjInt[player_indices.length];
+        for (int i = 0; i < player_indices.length; i++)
+            ints[i] = new ObjInt(player_indices[i]);
+
+        list = new SerializableList<ObjInt>(ints);
     }
 
+    public int[] get_player_indices()
+    {
+        var objs = list.to_array();
+
+        int[] ints = new int[objs.length];
+        for (int i = 0; i < objs.length; i++)
+            ints[i] = objs[i].value;
+
+        return ints;
+    }
+
+    protected SerializableList<ObjInt> list { get; protected set; }
     public int player_index { get; protected set; }
 }
 

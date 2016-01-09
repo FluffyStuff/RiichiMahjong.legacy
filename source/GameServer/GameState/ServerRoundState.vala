@@ -11,7 +11,7 @@ namespace GameServer
         public signal void game_flip_dora(Tile tile);
         public signal void game_flip_ura_dora(ArrayList<Tile> tiles);
 
-        public signal void game_ron(int player_index, ArrayList<Tile> hand, int discard_player_index, Tile discard_tile, int riichi_return_index, Scoring score);
+        public signal void game_ron(int[] player_indices, ArrayList<Tile>[] hand, int discard_player_index, Tile discard_tile, int riichi_return_index, Scoring[] scores);
         public signal void game_tsumo(int player_index, ArrayList<Tile> hand, Scoring score);
         public signal void game_riichi(int player_index);
         public signal void game_late_kan(Tile tile);
@@ -278,7 +278,7 @@ namespace GameServer
             }
 
             ServerRoundStatePlayer discarder = result.discarder;
-            ServerRoundStatePlayer caller = result.caller;
+            ServerRoundStatePlayer caller = result.callers[0];
             Tile discard_tile = result.discard_tile;
 
             if (result.call_type == CallDecisionType.CHII)
@@ -297,9 +297,23 @@ namespace GameServer
             else if (result.call_type == CallDecisionType.RON)
             {
                 // Game over
-                if (caller.in_riichi)
+                bool flip_ura_dora = false;
+
+                int[] indices = new int[result.callers.length];
+                ArrayList<Tile>[] hands = new ArrayList<Tile>[result.callers.length];
+                for (int i = 0; i < result.callers.length; i++)
+                {
+                    indices[i] = result.callers[i].index;
+                    hands[i] = result.callers[i].hand;
+
+                    if (validator.get_player(indices[i]).in_riichi)
+                        flip_ura_dora = true;
+                }
+
+                if (flip_ura_dora)
                     game_flip_ura_dora(validator.ura_dora);
-                game_ron(caller.index, caller.hand, discarder.index, discard_tile, result.riichi_return_index, validator.get_ron_score());
+
+                game_ron(indices, hands, discarder.index, discard_tile, result.riichi_return_index, validator.get_ron_score());
                 game_over();
                 return;
             }

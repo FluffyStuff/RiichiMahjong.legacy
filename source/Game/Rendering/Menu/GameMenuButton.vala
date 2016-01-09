@@ -1,6 +1,6 @@
 class GameMenuButton : Control
 {
-    private ImageControl button;
+    private ImageControl? button = null;
     private string name;
 
     private Sound click_sound;
@@ -44,6 +44,12 @@ class GameMenuButton : Control
             else
                 button.diffuse_color = Color.with_alpha(1);
         }
+    }
+
+    protected override void resized()
+    {
+        if (button != null)
+            button.size = size;
     }
 
     protected override void on_mouse_over()

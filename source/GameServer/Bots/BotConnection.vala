@@ -108,7 +108,7 @@ class BotConnection : Object
     private void ron(ServerMessage message)
     {
         ServerMessageRon ron = (ServerMessageRon)message;
-        bot.ron(ron.player_index);
+        bot.ron(ron.get_player_indices());
     }
 
     private void tsumo(ServerMessage message)

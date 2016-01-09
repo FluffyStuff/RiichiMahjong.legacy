@@ -4,6 +4,7 @@ public class RoundState : Object
 {
     private int current_index;
     private int player_index;
+    private int[] winner_indices;
     private RoundStatePlayer[] players = new RoundStatePlayer[4];
     private RoundStateWall wall;
 
@@ -221,10 +222,10 @@ public class RoundState : Object
         wall.flip_dora();
     }
 
-    public void ron(int player_index)
+    public void ron(int[] player_indices)
     {
         game_over = true;
-        current_index = player_index;
+        winner_indices = player_indices;
     }
 
     public void tsumo()
@@ -326,10 +327,18 @@ public class RoundState : Object
         check_temporary_furiten();
     }
 
-    public Scoring get_ron_score()
+    public Scoring[]? get_ron_score()
     {
-        RoundStatePlayer player = current_player;
-        return player.get_ron_score(create_context(true, discard_tile));
+        if (winner_indices == null)
+            return null;
+
+        Scoring[] scores = new Scoring[winner_indices.length];
+        RoundStateContext context = create_context(true, discard_tile);
+
+        for (int i = 0; i < scores.length; i++)
+            scores[i] = get_player(winner_indices[i]).get_ron_score(context);
+
+        return scores;
     }
 
     public Scoring get_tsumo_score()

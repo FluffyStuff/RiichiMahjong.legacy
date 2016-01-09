@@ -249,18 +249,19 @@ namespace GameServer
             get_server_player(players, player_index).server_player.send_message(message);
         }
 
-        private void game_ron(int player_index, ArrayList<Tile> hand, int discard_player_index, Tile discard_tile, int riichi_return_index, Scoring score)
+        private void game_ron(int[] player_indices, ArrayList<Tile>[] hands, int discard_player_index, Tile discard_tile, int riichi_return_index, Scoring[] scores)
         {
-            foreach (Tile t in hand)
-                game_reveal_tile(t);
+            foreach (ArrayList<Tile> hand in hands)
+                foreach (Tile t in hand)
+                    game_reveal_tile(t);
 
-            ServerMessageRon message = new ServerMessageRon(player_index);
+            ServerMessageRon message = new ServerMessageRon(player_indices);
 
             foreach (GameRoundServerPlayer pl in players)
                 pl.server_player.send_message(message);
 
             finished = true;
-            result = new RoundFinishResult.ron(score, player_index, discard_player_index, discard_tile.ID, riichi_return_index);
+            result = new RoundFinishResult.ron(scores, player_indices, discard_player_index, discard_tile.ID, riichi_return_index);
         }
 
         private void game_tsumo(int player_index, ArrayList<Tile> hand, Scoring score)
