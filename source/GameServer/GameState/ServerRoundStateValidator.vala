@@ -292,7 +292,8 @@ namespace GameServer
                     state.discard_tile,
                     null,
                     CallDecisionType.RON,
-                    state.riichi_return_index
+                    state.riichi_return_index,
+                    ron_players.size >= 3
                 );
             }
             else
@@ -312,7 +313,8 @@ namespace GameServer
                         state.discard_tile,
                         player.call_decision.tiles,
                         player.call_decision.call_type,
-                        state.riichi_return_index
+                        state.riichi_return_index,
+                        false
                     );
                 }
             }
@@ -331,7 +333,10 @@ namespace GameServer
                     for (int i = 0; i < indices.length; i++)
                         indices[i] = result.callers[i].index;
 
-                    state.ron(indices);
+                    if (!result.draw)
+                        state.ron(indices);
+                    else
+                        state.triple_ron();
                 }
                 else if (result.call_type == CallDecisionType.KAN)
                     state.open_kan(result.callers[0].index, result.tiles[0].ID, result.tiles[1].ID, result.tiles[2].ID);
@@ -387,7 +392,16 @@ namespace GameServer
 
     class CallResult
     {
-        public CallResult(ServerRoundStatePlayer[] callers, ServerRoundStatePlayer discarder, Tile discard_tile, ArrayList<Tile>? tiles, CallDecisionType call_type, int riichi_return_index)
+        public CallResult
+        (
+            ServerRoundStatePlayer[] callers,
+            ServerRoundStatePlayer discarder,
+            Tile discard_tile,
+            ArrayList<Tile>? tiles,
+            CallDecisionType call_type,
+            int riichi_return_index,
+            bool draw
+        )
         {
             this.callers = callers;
             this.discarder = discarder;
@@ -395,6 +409,7 @@ namespace GameServer
             this.tiles = tiles;
             this.call_type = call_type;
             this.riichi_return_index = riichi_return_index;
+            this.draw = draw;
         }
 
         public ServerRoundStatePlayer[] callers { get; private set; }
@@ -403,5 +418,6 @@ namespace GameServer
         public ArrayList<Tile>? tiles { get; private set; }
         public CallDecisionType call_type { get; private set; }
         public int riichi_return_index { get; private set; }
+        public bool draw { get; private set; }
     }
 }

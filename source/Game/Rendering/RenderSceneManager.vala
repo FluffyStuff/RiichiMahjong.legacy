@@ -256,7 +256,7 @@ class RenderSceneManager : Object
     {
         ron_sound.play();
 
-        if (action.winners.length == 1)
+        if (action.winners.length == 1 && action.tile != null)
             action.winners[0].ron(action.tile);
 
         bool flip_ura_dora = false;
@@ -271,7 +271,7 @@ class RenderSceneManager : Object
         if (action.return_riichi_player != null)
             add_action(new RenderActionReturnRiichi(action.return_riichi_player));
 
-        if (flip_ura_dora)
+        if (flip_ura_dora && action.allow_dora_flip)
             add_action(new RenderActionFlipUraDora());
     }
 

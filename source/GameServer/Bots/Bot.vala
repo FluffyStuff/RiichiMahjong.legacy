@@ -154,10 +154,12 @@ public abstract class Bot : Object
         round_state.calls_finished();
     }
 
-    public void draw(int[] tenpai_indices, bool void_hand)
+    public void draw(int[] tenpai_indices, bool void_hand, bool triple_ron)
     {
         if (void_hand)
             round_state.void_hand();
+        else if (triple_ron)
+            round_state.triple_ron();
 
         RoundFinishResult result = new RoundFinishResult.draw(tenpai_indices, round_state.get_nagashi_indices(), round_state.game_draw_type);
         game_state.round_finished(result);

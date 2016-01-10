@@ -187,6 +187,13 @@ public class RoundState : Object
         return;
     }
 
+    public void triple_ron()
+    {
+        game_over = true;
+        game_draw_type = GameDrawType.TRIPLE_RON;
+        return;
+    }
+
     public Tile tile_draw()
     {
         Tile tile = wall.draw_wall();

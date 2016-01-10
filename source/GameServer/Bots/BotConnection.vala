@@ -169,7 +169,7 @@ class BotConnection : Object
     private void draw(ServerMessage message)
     {
         ServerMessageDraw draw = message as ServerMessageDraw;
-        bot.draw(draw.get_tenpai_indices(), draw.void_hand);
+        bot.draw(draw.get_tenpai_indices(), draw.void_hand, draw.triple_ron);
     }
 
     /////////////////

@@ -95,6 +95,8 @@ public class ScoringPointsView : View2D
                     text = "Four Riichi";
                 else if (score.result.draw_type == GameDrawType.VOID_HAND)
                     text = "Void Hand";
+                else if (score.result.draw_type == GameDrawType.TRIPLE_RON)
+                    text = "Triple Ron";
                 else
                     text = "";
 

@@ -491,6 +491,8 @@ public class ClientRoundState : Object
 
         if (draw.void_hand)
             state.void_hand();
+        else if (draw.triple_ron)
+            state.triple_ron();
 
         int[] tenpai = draw.get_tenpai_indices();
         int[] nagashi = state.get_nagashi_indices();
@@ -507,9 +509,11 @@ public class ClientRoundState : Object
         ServerMessageRon ron = (ServerMessageRon)message;
         int discard_index = state.current_player.index;
         int[] winner_indices = ron.get_player_indices();
+
         state.ron(winner_indices);
         Scoring[] scores = state.get_ron_score();
         result = new RoundFinishResult.ron(scores, winner_indices, discard_index, state.discard_tile.ID, state.riichi_return_index);
+
         finished = true;
         game_finished(result);
     }

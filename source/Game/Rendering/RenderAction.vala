@@ -80,7 +80,7 @@ public class RenderActionDiscard : RenderAction
 
 public class RenderActionRon : RenderAction
 {
-    public RenderActionRon(RenderPlayer[] winners, RenderPlayer discarder, RenderTile tile, RenderPlayer? return_riichi_player)
+    public RenderActionRon(RenderPlayer[] winners, RenderPlayer? discarder, RenderTile? tile, RenderPlayer? return_riichi_player, bool allow_dora_flip)
     {
         base(0.5f);
 
@@ -88,12 +88,14 @@ public class RenderActionRon : RenderAction
         this.discarder = discarder;
         this.tile = tile;
         this.return_riichi_player = return_riichi_player;
+        this.allow_dora_flip = allow_dora_flip;
     }
 
     public RenderPlayer[] winners { get; private set; }
-    public RenderPlayer discarder { get; private set; }
-    public RenderTile tile { get; private set; }
+    public RenderPlayer? discarder { get; private set; }
+    public RenderTile? tile { get; private set; }
     public RenderPlayer? return_riichi_player { get; private set; }
+    public bool allow_dora_flip { get; private set; }
 }
 
 public class RenderActionTsumo : RenderAction

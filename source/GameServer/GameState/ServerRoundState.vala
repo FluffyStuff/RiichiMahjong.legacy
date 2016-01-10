@@ -310,6 +310,12 @@ namespace GameServer
                         flip_ura_dora = true;
                 }
 
+                if (result.draw)
+                {
+                    triple_ron(indices);
+                    return;
+                }
+
                 if (flip_ura_dora)
                     game_flip_ura_dora(validator.ura_dora);
 
@@ -400,6 +406,16 @@ namespace GameServer
             int[] nagashi_indices = validator.get_nagashi_indices();
 
             game_draw(tenpai_indices, nagashi_indices, validator.game_draw_type, tiles);
+            game_over();
+        }
+
+        private void triple_ron(int[] ron_indices)
+        {
+            ArrayList<Tile> tiles = new ArrayList<Tile>();
+            for (int i = 0; i < ron_indices.length; i++)
+                tiles.add_all(validator.get_player(ron_indices[i]).hand);
+
+            game_draw(ron_indices, new int[] {}, GameDrawType.TRIPLE_RON, tiles);
             game_over();
         }
 

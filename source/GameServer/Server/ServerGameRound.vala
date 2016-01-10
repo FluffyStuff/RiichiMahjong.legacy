@@ -354,7 +354,7 @@ namespace GameServer
             foreach (Tile t in all_tenpai_tiles)
                 game_reveal_tile(t);
 
-            ServerMessageDraw message = new ServerMessageDraw(tenpai_indices, draw_type == GameDrawType.VOID_HAND);
+            ServerMessageDraw message = new ServerMessageDraw(tenpai_indices, draw_type == GameDrawType.VOID_HAND, draw_type == GameDrawType.TRIPLE_RON);
 
             foreach (GameRoundServerPlayer pl in players)
                 pl.server_player.send_message(message);
