@@ -446,7 +446,7 @@ public class RoundState : Object
 
     public ArrayList<Tile> get_tenpai_tiles(RoundStatePlayer player)
     {
-        return TileRules.tenpai_tiles(player.hand);
+        return TileRules.tenpai_tiles(player.hand, player.calls);
     }
 
     public RoundStatePlayer get_player(int player_index)
@@ -626,7 +626,7 @@ public class RoundStatePlayer
         hand.add_all(this.hand);
         hand.add(tile);
 
-        if (TileRules.winning_hand(hand))
+        if (TileRules.winning_hand(hand, calls))
         {
             if (!closed_chankan || can_closed_chankan(tile))
                 temporary_furiten = true;
@@ -840,7 +840,7 @@ public class RoundStatePlayer
         tiles.add_all(hand);
         tiles.add(tile);
 
-        return TileRules.can_closed_chankan(tiles);
+        return TileRules.can_closed_chankan(tiles, calls);
     }
 
     public bool can_tsumo(RoundStateContext context)
@@ -857,7 +857,7 @@ public class RoundStatePlayer
             if (call.call_type != RoundStateCall.CallType.CLOSED_KAN)
                 return false;
 
-        return TileRules.tenpai_tiles(hand).size > 0;
+        return TileRules.tenpai_tiles(hand, calls).size > 0;
     }
 
     public bool can_late_kan()
@@ -878,7 +878,7 @@ public class RoundStatePlayer
         if (do_chii_discard || do_pon_discard)
             return false;
 
-        return !revealed || TileRules.can_closed_kan(hand, in_riichi);
+        return !revealed || TileRules.can_closed_kan(hand, calls, in_riichi);
     }
 
     public bool can_closed_kan_with(TileType type)
@@ -920,7 +920,7 @@ public class RoundStatePlayer
 
     public bool in_furiten()
     {
-        return temporary_furiten || TileRules.in_furiten(hand, pond);
+        return temporary_furiten || TileRules.in_furiten(hand, calls, pond);
     }
 
     public ArrayList<ArrayList<Tile>> get_chii_groups(Tile discard_tile)
@@ -939,7 +939,7 @@ public class RoundStatePlayer
 
     public ArrayList<ArrayList<Tile>> get_closed_kan_groups()
     {
-        return TileRules.get_closed_kan_groups(hand, in_riichi);
+        return TileRules.get_closed_kan_groups(hand, calls, in_riichi);
     }
 
     public int get_kan_count()
@@ -967,7 +967,7 @@ public class RoundStatePlayer
 
     public bool in_tenpai()
     {
-        return TileRules.in_tenpai(hand);
+        return TileRules.in_tenpai(hand, calls);
     }
 
     private PlayerStateContext create_context(bool tsumo)

@@ -94,7 +94,7 @@ class SimpleBot : Bot
             copy.add_all(tiles);
             copy.remove(tile);
 
-            if (TileRules.in_tenpai(copy))
+            if (TileRules.in_tenpai(copy, null))
                 return tile;
 
             copy.clear();

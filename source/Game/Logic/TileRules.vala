@@ -27,21 +27,9 @@ public class TileRules
         hand.add_all(player.hand);
         hand.add(round.win_tile);
 
-        ArrayList<HandReading> readings = hand_readings(hand, false, false);
+        ArrayList<HandReading> readings = hand_readings(hand, player.calls, false, false);
         if (readings.size == 0)
             return new Scoring.invalid();
-
-        ArrayList<TileMeld> call_melds = new ArrayList<TileMeld>();
-
-        foreach (RoundStateCall call in player.calls)
-        {
-            if (call.call_type == RoundStateCall.CallType.CHII || call.call_type == RoundStateCall.CallType.PON)
-                call_melds.add(new TileMeld(call.tiles[0], call.tiles[1], call.tiles[2], false));
-            else if (call.call_type == RoundStateCall.CallType.OPEN_KAN || call.call_type == RoundStateCall.CallType.LATE_KAN)
-                call_melds.add(new TileMeld.kan(call.tiles[0], call.tiles[1], call.tiles[2], call.tiles[3], false));
-            else if (call.call_type == RoundStateCall.CallType.CLOSED_KAN)
-                call_melds.add(new TileMeld.kan(call.tiles[0], call.tiles[1], call.tiles[2], call.tiles[3], true));
-        }
 
         Scoring? top = null;
 
@@ -58,9 +46,6 @@ public class TileRules
                         meld.is_closed = false;
                 }
             }
-
-            foreach (TileMeld meld in call_melds)
-                reading.add_meld(meld);
 
             ArrayList<Yaku> yaku = Yaku.get_yaku(player, round, reading);
             Scoring score = new Scoring(round, player, reading, yaku);
@@ -87,7 +72,7 @@ public class TileRules
         return top;
     }
 
-    public static bool can_late_kan(ArrayList<Tile> hand, ArrayList<RoundStateCall> calls)
+    public static bool can_late_kan(ArrayList<Tile> hand, ArrayList<RoundStateCall>? calls)
     {
         foreach (RoundStateCall call in calls)
             if (call.call_type == RoundStateCall.CallType.PON)
@@ -98,9 +83,9 @@ public class TileRules
         return false;
     }
 
-    public static bool can_closed_kan(ArrayList<Tile> hand, bool in_riichi)
+    public static bool can_closed_kan(ArrayList<Tile> hand, ArrayList<RoundStateCall>? calls, bool in_riichi)
     {
-        return get_closed_kan_groups(hand, in_riichi).size > 0;
+        return get_closed_kan_groups(hand, calls, in_riichi).size > 0;
     }
 
     public static bool can_open_kan(ArrayList<Tile> hand, Tile tile)
@@ -128,7 +113,7 @@ public class TileRules
         return get_chii_groups(hand, tile).size > 0;
     }
 
-    public static ArrayList<Tile> get_late_kan_tiles(ArrayList<Tile> hand, ArrayList<RoundStateCall> calls)
+    public static ArrayList<Tile> get_late_kan_tiles(ArrayList<Tile> hand, ArrayList<RoundStateCall>? calls)
     {
         ArrayList<Tile> tiles = new ArrayList<Tile>();
 
@@ -144,7 +129,7 @@ public class TileRules
         return tiles;
     }
 
-    public static ArrayList<ArrayList<Tile>> get_closed_kan_groups(ArrayList<Tile> hand_in, bool in_riichi)
+    public static ArrayList<ArrayList<Tile>> get_closed_kan_groups(ArrayList<Tile> hand_in, ArrayList<RoundStateCall>? calls, bool in_riichi)
     {
         ArrayList<ArrayList<Tile>> list = new ArrayList<ArrayList<Tile>>();
 
@@ -173,7 +158,7 @@ public class TileRules
                 hand.clear();
                 hand.add_all(hand_in);
                 hand.remove(list[i][0]);
-                ArrayList<HandReading> readings = hand_readings(hand, true, false);
+                ArrayList<HandReading> readings = hand_readings(hand, calls, true, false);
 
                 if (readings.size == 0)
                 {
@@ -308,7 +293,7 @@ public class TileRules
         return tiles;
     }
 
-    public static bool in_furiten(ArrayList<Tile> hand, ArrayList<Tile> pond_in)
+    public static bool in_furiten(ArrayList<Tile> hand, ArrayList<RoundStateCall>? calls, ArrayList<Tile> pond_in)
     {
         ArrayList<Tile> pond = sort_tiles(pond_in);
         ArrayList<Tile> tiles = new ArrayList<Tile>();
@@ -323,7 +308,7 @@ public class TileRules
 
             tiles.add(tile);
 
-            if (winning_hand(tiles))
+            if (winning_hand(tiles, calls))
                 return true;
 
             tiles.remove(tile);
@@ -376,19 +361,34 @@ public class TileRules
         return false;
     }
 
-    public static bool in_tenpai(ArrayList<Tile> hand)
+    public static bool in_tenpai(ArrayList<Tile> hand, ArrayList<RoundStateCall>? calls)
     {
-        return hand_readings(hand, true, true).size > 0;
+        return hand_readings(hand, calls, true, true).size > 0;
     }
 
-    public static bool winning_hand(ArrayList<Tile> hand)//, ArrayList<RoundStateCall> calls)
+    public static bool winning_hand(ArrayList<Tile> hand, ArrayList<RoundStateCall>? calls)
     {
-        return hand_readings(hand, false, true).size > 0;
+        return hand_readings(hand, calls, false, true).size > 0;
     }
 
-    public static ArrayList<HandReading> hand_readings(ArrayList<Tile> hand, bool tenpai_only, bool early_return)
+    public static ArrayList<HandReading> hand_readings(ArrayList<Tile> hand, ArrayList<RoundStateCall>? calls, bool tenpai_only, bool early_return)
     {
-        return hand_reading_recursion(hand, new ArrayList<TileMeld>(), tenpai_only, early_return);
+        ArrayList<TileMeld> call_melds = new ArrayList<TileMeld>();
+
+        if (calls != null)
+        {
+            foreach (RoundStateCall call in calls)
+            {
+                if (call.call_type == RoundStateCall.CallType.CHII || call.call_type == RoundStateCall.CallType.PON)
+                    call_melds.add(new TileMeld(call.tiles[0], call.tiles[1], call.tiles[2], false));
+                else if (call.call_type == RoundStateCall.CallType.OPEN_KAN || call.call_type == RoundStateCall.CallType.LATE_KAN)
+                    call_melds.add(new TileMeld.kan(call.tiles[0], call.tiles[1], call.tiles[2], call.tiles[3], false));
+                else if (call.call_type == RoundStateCall.CallType.CLOSED_KAN)
+                    call_melds.add(new TileMeld.kan(call.tiles[0], call.tiles[1], call.tiles[2], call.tiles[3], true));
+            }
+        }
+
+        return hand_reading_recursion(hand, call_melds, tenpai_only, early_return);
     }
 
     private static ArrayList<HandReading> hand_reading_recursion(ArrayList<Tile> remaining_tiles, ArrayList<TileMeld> melds, bool tenpai_only, bool early_return)
@@ -405,7 +405,11 @@ public class TileRules
         {
             Tile t = hand[0];
             TilePair pair = new TilePair(t, new Tile(-1, t.tile_type, false));
-            readings.add(new HandReading(melds, pair));
+
+            HandReading reading = new HandReading(melds, pair);
+            if (reading.valid_keishiki)
+                readings.add(reading);
+
             return readings;
         }
         else if (hand.size == 2) // If we have a winning hand, then our last two tiles must be the same
@@ -413,7 +417,10 @@ public class TileRules
             if (hand[0].tile_type == hand[1].tile_type)
             {
                 TilePair pair = new TilePair(hand[0], hand[1]);
-                readings.add(new HandReading(melds, pair));
+
+                HandReading reading = new HandReading(melds, pair);
+                if (reading.valid_keishiki)
+                    readings.add(reading);
             }
 
             return readings;
@@ -480,12 +487,7 @@ public class TileRules
                     }
                 if (same)
                 {
-                    if (early_return)
-                    {
-                        readings.add(new HandReading.empty());
-                        return readings;
-                    }
-                    else if (tenpai_only)
+                    if (tenpai_only)
                     {
                         ArrayList<TilePair> p = new ArrayList<TilePair>();
                         for (int i = 0; i < 13; i += 2)
@@ -508,6 +510,9 @@ public class TileRules
                             p.add(new TilePair(hand[i], hand[i+1]));
                         readings.add(new HandReading.chiitoi(p));
                     }
+
+                    if (early_return)
+                        return readings;
                 }
             }
             // -------- /Chii-toi --------
@@ -613,13 +618,19 @@ public class TileRules
                         ArrayList<TileMeld> new_melds = new ArrayList<TileMeld>();
                         new_melds.add_all(melds);
                         new_melds.add(new TileMeld(n1, n2, new Tile(-1, n1.tile_type, false), true));
-                        readings.add(new HandReading(new_melds, pair));
+
+                        HandReading reading = new HandReading(new_melds, pair);
+                        if (reading.valid_keishiki)
+                            readings.add(reading);
 
                         pair = new TilePair(n1, n2);
                         new_melds.clear();
                         new_melds.add_all(melds);
                         new_melds.add(new TileMeld(tile, t, new Tile(-1, tile.tile_type, false), true));
-                        readings.add(new HandReading(new_melds, pair));
+
+                        reading = new HandReading(new_melds, pair);
+                        if (reading.valid_keishiki)
+                            readings.add(reading);
 
                         return readings;
                     }
@@ -642,6 +653,9 @@ public class TileRules
                             t2 = t;
                         }
 
+                        v1 = (int)t1.tile_type;
+                        v2 = (int)t2.tile_type;
+
                         ArrayList<TileMeld> new_melds = new ArrayList<TileMeld>();
                         new_melds.add_all(melds);
 
@@ -649,21 +663,31 @@ public class TileRules
                         {
                             int middle = (v1 + v2) / 2; // Need a new tile in the middle
                             new_melds.add(new TileMeld(t1, new Tile(-1, (TileType)middle, false), t2, true));
-                            readings.add(new HandReading(new_melds, pair));
+
+                            HandReading reading = new HandReading(new_melds, pair);
+                            if (reading.valid_keishiki)
+                                readings.add(reading);
                         }
                         else
                         {
                             if (!t1.is_terminal_tile())
                             {
                                 new_melds.add(new TileMeld(new Tile(-1, (TileType)(v1 - 1), false), t1, t2, true));
-                                readings.add(new HandReading(new_melds, pair));
+
+                                HandReading reading = new HandReading(new_melds, pair);
+                                if (reading.valid_keishiki)
+                                    readings.add(reading);
                             }
 
                             if (!t2.is_terminal_tile())
                             {
                                 new_melds.clear();
+                                new_melds.add_all(melds);
                                 new_melds.add(new TileMeld(t1, t2, new Tile(-1, (TileType)(v2 + 1), false), true));
-                                readings.add(new HandReading(new_melds, pair));
+
+                                HandReading reading = new HandReading(new_melds, pair);
+                                if (reading.valid_keishiki)
+                                    readings.add(reading);
                             }
                         }
 
@@ -684,18 +708,18 @@ public class TileRules
         return true;
     }
 
-    public static bool can_closed_chankan(ArrayList<Tile> hand)
+    public static bool can_closed_chankan(ArrayList<Tile> hand, ArrayList<RoundStateCall>? calls)
     {
         if (hand.size != 14)
             return false;
 
-        foreach (HandReading reading in hand_readings(hand, false, false))
+        foreach (HandReading reading in hand_readings(hand, calls, false, false))
             if (reading.is_kokushi)
                 return true;
         return false;
     }
 
-    public static ArrayList<Tile> tenpai_tiles(ArrayList<Tile> hand)
+    public static ArrayList<Tile> tenpai_tiles(ArrayList<Tile> hand, ArrayList<RoundStateCall>? calls)
     {
         ArrayList<Tile> tenpai_tiles = new ArrayList<Tile>();
         ArrayList<Tile> tiles = new ArrayList<Tile>();
@@ -717,20 +741,20 @@ public class TileRules
             tiles.add_all(hand);
             tiles.remove(tile);
 
-            if (in_tenpai(tiles))
+            if (in_tenpai(tiles, calls))
                 tenpai_tiles.add(tile);
         }
 
         return tenpai_tiles;
     }
 
-    public static bool can_win_with(ArrayList<Tile> hand, Tile tile)
+    public static bool can_win_with(ArrayList<Tile> hand, ArrayList<RoundStateCall> calls, Tile tile)
     {
         ArrayList<Tile> tiles = new ArrayList<Tile>();
         tiles.add_all(hand);
         tiles.add(tile);
 
-        return winning_hand(tiles);
+        return winning_hand(tiles, calls);
     }
 }
 
@@ -902,6 +926,7 @@ public class HandReading : Object
         tiles.add(pair.tile_2);
 
         is_kokushi = false;
+        valid_keishiki = check_keishiki(tiles);
     }
 
     public HandReading.chiitoi(ArrayList<TilePair> pairs)
@@ -918,6 +943,7 @@ public class HandReading : Object
 
         this.pairs.add_all(pairs);
         is_kokushi = false;
+        valid_keishiki = true;
     }
 
     public HandReading.kokushi(ArrayList<Tile> tiles)
@@ -928,6 +954,7 @@ public class HandReading : Object
         melds = new ArrayList<TileMeld>();
         pairs = new ArrayList<TilePair>();
         is_kokushi = true;
+        valid_keishiki = true;
     }
 
     public HandReading.empty()
@@ -936,6 +963,7 @@ public class HandReading : Object
         melds = new ArrayList<TileMeld>();
         pairs = new ArrayList<TilePair>();
         is_kokushi = false;
+        valid_keishiki = false;
     }
 
     public void add_meld(TileMeld meld)
@@ -949,10 +977,27 @@ public class HandReading : Object
             tiles.add(meld.tile_4);
     }
 
+    private static bool check_keishiki(ArrayList<Tile> tiles)
+    {
+        // Double loop arguably faster than using mutations
+        foreach (Tile tile in tiles)
+        {
+            int count = 0;
+            foreach (Tile t in tiles)
+                if (tile.tile_type == t.tile_type)
+                    count++;
+            if (count > 4)
+                return false;
+        }
+
+        return true;
+    }
+
     public ArrayList<Tile> tiles { get; private set; }
     public ArrayList<TileMeld> melds { get; private set; }
     public ArrayList<TilePair> pairs { get; private set; }
     public bool is_kokushi { get; private set; }
+    public bool valid_keishiki { get; private set; }
 }
 
 public class TileMeld : Object
