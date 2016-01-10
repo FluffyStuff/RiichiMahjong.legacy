@@ -118,7 +118,8 @@ class BotConnection : Object
 
     private void riichi(ServerMessage message)
     {
-        bot.riichi();
+        ServerMessageRiichi r = (ServerMessageRiichi)message;
+        bot.riichi(r.open);
     }
 
     private void turn_decision(ServerMessage message)
@@ -192,9 +193,9 @@ class BotConnection : Object
         connection.send_message(message);
     }
 
-    private void bot_do_riichi()
+    private void bot_do_riichi(bool open)
     {
-        ClientMessageRiichi message = new ClientMessageRiichi();
+        ClientMessageRiichi message = new ClientMessageRiichi(open);
         connection.send_message(message);
     }
 

@@ -112,14 +112,16 @@ public class RenderActionTsumo : RenderAction
 
 public class RenderActionRiichi : RenderAction
 {
-    public RenderActionRiichi(RenderPlayer player)
+    public RenderActionRiichi(RenderPlayer player, bool open)
     {
         base(0.5f);
 
         this.player = player;
+        this.open = open;
     }
 
     public RenderPlayer player { get; private set; }
+    public bool open { get; private set; }
 }
 
 public class RenderActionReturnRiichi : RenderAction

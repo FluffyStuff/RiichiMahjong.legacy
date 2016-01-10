@@ -108,10 +108,10 @@ public abstract class Bot : Object
         game_state.round_finished(result);
     }
 
-    public void riichi()
+    public void riichi(bool open)
     {
         game_state.declare_riichi(round_state.current_player.index);
-        round_state.riichi();
+        round_state.riichi(open);
     }
 
     public void turn_decision()
@@ -172,7 +172,7 @@ public abstract class Bot : Object
     public signal void do_discard(Tile tile);
     public signal void do_tsumo();
     public signal void do_void_hand();
-    public signal void do_riichi();
+    public signal void do_riichi(bool open);
     public signal void do_late_kan(Tile tile);
     public signal void do_closed_kan(TileType type);
     public signal void call_nothing();

@@ -184,10 +184,10 @@ public class GameRenderView : View3D, IGameRenderer
         scene.wall.dead_tile_add();
     }*/
 
-    private void riichi(int player_index)
+    private void riichi(int player_index, bool open)
     {
         RenderPlayer player = players[player_index];
-        buffer_action(new RenderActionRiichi(player));
+        buffer_action(new RenderActionRiichi(player, open));
     }
 
     private void late_kan(int player_index, int tile_ID)

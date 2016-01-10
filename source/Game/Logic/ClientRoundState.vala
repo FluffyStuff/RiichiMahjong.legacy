@@ -33,7 +33,7 @@ public class ClientRoundState : Object
     public signal void game_dead_tile_draw(int player_index);
     public signal void game_tile_discard(int player_index, int tile_ID);
     public signal void game_flip_dora();
-    public signal void game_riichi(int player_index);
+    public signal void game_riichi(int player_index, bool open);
     public signal void game_late_kan(int player_index, int tile_ID);
     public signal void game_closed_kan(int player_index, TileType type);
     public signal void game_open_kan(int player_index, int discard_player_index, int tile_ID, int tile_1_ID, int tile_2_ID, int tile_3_ID);
@@ -86,9 +86,9 @@ public class ClientRoundState : Object
         set_tile_select_state(false);
     }
 
-    private void do_riichi(Tile tile)
+    private void do_riichi(Tile tile, bool open)
     {
-        ClientMessageRiichi message = new ClientMessageRiichi();
+        ClientMessageRiichi message = new ClientMessageRiichi(open);
         send_message(message);
 
         do_discard_tile(tile);
@@ -213,7 +213,7 @@ public class ClientRoundState : Object
         }
     }
 
-    private void do_select_riichi(Tile tile)
+    private void do_select_riichi(Tile tile, bool open)
     {
         foreach (TileSelectionGroup group in selection_groups)
         {
@@ -225,7 +225,7 @@ public class ClientRoundState : Object
                 if (t.ID == tile.ID)
                 {
                     decision_finished();
-                    do_riichi(tile);
+                    do_riichi(tile, open);
                     return;
                 }
             }
@@ -367,7 +367,7 @@ public class ClientRoundState : Object
         }
     }
 
-    public void client_riichi()
+    public void client_riichi(bool open)
     {
         if (action_state == State.TURN)
         {
@@ -375,11 +375,15 @@ public class ClientRoundState : Object
             if (tiles.size == 1)
             {
                 decision_finished();
-                do_riichi(tiles[0]);
+                do_riichi(tiles[0], open);
             }
             else if (tiles.size > 1)
             {
-                action_state = State.SELECT_RIICHI;
+                if (open)
+                    action_state = State.SELECT_OPEN_RIICHI;
+                else
+                    action_state = State.SELECT_RIICHI;
+
                 selection_groups.clear();
 
                 foreach (Tile tile in tiles)
@@ -394,7 +398,7 @@ public class ClientRoundState : Object
                 set_tile_select_groups(selection_groups);
             }
         }
-        else if (action_state == State.SELECT_RIICHI)
+        else if (action_state == State.SELECT_RIICHI || action_state == State.SELECT_OPEN_RIICHI)
         {
             do_turn_decision();
         }
@@ -453,7 +457,9 @@ public class ClientRoundState : Object
         else if (action_state == State.SELECT_KAN)
             do_select_kan(tile);
         else if (action_state == State.SELECT_RIICHI)
-            do_select_riichi(tile);
+            do_select_riichi(tile, false);
+        else if (action_state == State.SELECT_OPEN_RIICHI)
+            do_select_riichi(tile, true);
     }
 
     ////////////////////////
@@ -529,8 +535,9 @@ public class ClientRoundState : Object
 
     private void server_riichi(ServerMessage message)
     {
-        state.riichi();
-        game_riichi(state.current_player.index);
+        ServerMessageRiichi riichi = (ServerMessageRiichi)message;
+        state.riichi(riichi.open);
+        game_riichi(state.current_player.index, riichi.open);
     }
 
     private void server_late_kan(ServerMessage message)
@@ -620,6 +627,7 @@ public class ClientRoundState : Object
         SELECT_CHII,
         SELECT_KAN,
         SELECT_RIICHI,
+        SELECT_OPEN_RIICHI,
         CALL,
         TURN,
         DONE

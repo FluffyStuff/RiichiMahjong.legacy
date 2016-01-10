@@ -142,7 +142,15 @@ public class ServerMessageRon : ServerMessage
 
 public class ServerMessageTsumo : ServerMessage {}
 
-public class ServerMessageRiichi : ServerMessage {}
+public class ServerMessageRiichi : ServerMessage
+{
+    public ServerMessageRiichi(bool open)
+    {
+        this.open = open;
+    }
+
+    public bool open { get; protected set; }
+}
 
 public class ServerMessageLateKan : ServerMessage
 {

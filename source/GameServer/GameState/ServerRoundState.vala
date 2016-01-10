@@ -5,15 +5,15 @@ namespace GameServer
     class ServerRoundState
     {
         public signal void game_initial_draw(int player_index, ArrayList<Tile> hand);
-        public signal void game_draw_tile(int player_index, Tile tile);
-        public signal void game_draw_dead_tile(int player_index, Tile tile);
+        public signal void game_draw_tile(int player_index, Tile tile, bool open);
+        public signal void game_draw_dead_tile(int player_index, Tile tile, bool open);
         public signal void game_discard_tile(Tile tile);
         public signal void game_flip_dora(Tile tile);
         public signal void game_flip_ura_dora(ArrayList<Tile> tiles);
 
         public signal void game_ron(int[] player_indices, ArrayList<Tile>[] hand, int discard_player_index, Tile discard_tile, int riichi_return_index, Scoring[] scores);
         public signal void game_tsumo(int player_index, ArrayList<Tile> hand, Scoring score);
-        public signal void game_riichi(int player_index);
+        public signal void game_riichi(int player_index, bool open, ArrayList<Tile> hand);
         public signal void game_late_kan(Tile tile);
         public signal void game_closed_kan(ArrayList<Tile> tiles);
         public signal void game_open_kan(int player_index, ArrayList<Tile> tiles);
@@ -145,7 +145,7 @@ namespace GameServer
             return true;
         }
 
-        public bool client_riichi(int player_index)
+        public bool client_riichi(int player_index, bool open)
         {
             if (!validator.is_players_turn(player_index))
             {
@@ -153,13 +153,14 @@ namespace GameServer
                 return false;
             }
 
-            if (!validator.riichi())
+            if (!validator.riichi(open))
             {
                 print("client_riichi: Player can't declare riichi\n");
                 return false;
             }
 
-            game_riichi(player_index);
+            ServerRoundStatePlayer player = validator.get_player(player_index);
+            game_riichi(player_index, player.open, player.hand);
             return true;
         }
 
@@ -385,7 +386,7 @@ namespace GameServer
             else
             {
                 Tile tile = validator.draw_wall();
-                game_draw_tile(player.index, tile);
+                game_draw_tile(player.index, tile, player.open);
             }
 
             turn_decision(player.index);
@@ -423,7 +424,7 @@ namespace GameServer
         {
             ServerRoundStatePlayer player = validator.get_player(player_index);
             game_flip_dora(validator.newest_dora);
-            game_draw_dead_tile(player.index, player.newest_tile);
+            game_draw_dead_tile(player.index, player.newest_tile, player.open);
         }
 
         private void initial_draw()

@@ -16,6 +16,7 @@ public class GameMenuView : View2D
     private MenuTextButton pon;
     private MenuTextButton kan;
     private MenuTextButton riichi;
+    private MenuTextButton open_riichi;
     private MenuTextButton tsumo;
     private MenuTextButton ron;
     private MenuTextButton conti;
@@ -24,7 +25,7 @@ public class GameMenuView : View2D
     public signal void chii_pressed();
     public signal void pon_pressed();
     public signal void kan_pressed();
-    public signal void riichi_pressed();
+    public signal void riichi_pressed(bool open);
     public signal void tsumo_pressed();
     public signal void ron_pressed();
     public signal void continue_pressed();
@@ -34,7 +35,8 @@ public class GameMenuView : View2D
     private void press_chii() { chii_pressed(); }
     private void press_pon() { pon_pressed(); }
     private void press_kan() { kan_pressed(); }
-    private void press_riichi() { riichi_pressed(); }
+    private void press_riichi() { riichi_pressed(false); }
+    private void press_open_riichi() { riichi_pressed(true); }
     private void press_tsumo() { tsumo_pressed(); }
     private void press_ron() { ron_pressed(); }
     private void press_continue() { continue_pressed(); }
@@ -72,6 +74,7 @@ public class GameMenuView : View2D
         pon = new MenuTextButton("MenuButtonSmall", "Pon");
         kan = new MenuTextButton("MenuButtonSmall", "Kan");
         riichi = new MenuTextButton("MenuButtonSmall", "Riichi");
+        open_riichi = new MenuTextButton("MenuButtonSmall", "Open Riichi");
         tsumo = new MenuTextButton("MenuButtonSmall", "Tsumo");
         ron = new MenuTextButton("MenuButtonSmall", "Ron");
         conti = new MenuTextButton("MenuButtonSmall", "Continue");
@@ -81,6 +84,7 @@ public class GameMenuView : View2D
         pon.clicked.connect(press_pon);
         kan.clicked.connect(press_kan);
         riichi.clicked.connect(press_riichi);
+        open_riichi.clicked.connect(press_open_riichi);
         tsumo.clicked.connect(press_tsumo);
         ron.clicked.connect(press_ron);
         conti.clicked.connect(press_continue);
@@ -90,6 +94,7 @@ public class GameMenuView : View2D
         buttons.add(pon);
         buttons.add(kan);
         buttons.add(riichi);
+        buttons.add(open_riichi);
         buttons.add(tsumo);
         buttons.add(ron);
         buttons.add(conti);
@@ -105,6 +110,7 @@ public class GameMenuView : View2D
         }
 
         void_hand.visible = false;
+        open_riichi.visible = false; // Disable open riichi for now
         position_buttons();
     }
 
@@ -163,6 +169,7 @@ public class GameMenuView : View2D
     public void set_riichi(bool enabled)
     {
         riichi.enabled = enabled;
+        open_riichi.enabled = enabled;
     }
 
     public void set_tsumo(bool enabled)

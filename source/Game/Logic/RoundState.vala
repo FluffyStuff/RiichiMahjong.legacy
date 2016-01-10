@@ -240,13 +240,13 @@ public class RoundState : Object
         game_over = true;
     }
 
-    public bool riichi()
+    public bool riichi(bool open)
     {
         if (!can_riichi())
             return false;
 
         riichi_return_index = current_player.index;
-        current_player.do_riichi();
+        current_player.do_riichi(open);
         return true;
     }
 
@@ -639,9 +639,10 @@ public class RoundStatePlayer
         first_turn = false;
     }
 
-    public void do_riichi()
+    public void do_riichi(bool open)
     {
         in_riichi = true;
+        this.open = open;
         ippatsu = true;
         do_riichi_discard = true;
 
@@ -990,6 +991,7 @@ public class RoundStatePlayer
             dealer,
             in_riichi,
             double_riichi,
+            open,
             ippatsu,
             tiles_called_on,
             first_turn,
@@ -1003,6 +1005,7 @@ public class RoundStatePlayer
     public ArrayList<Tile> pond { get; private set; }
     public ArrayList<RoundStateCall> calls { get; private set; }
     public bool in_riichi { get; private set; }
+    public bool open { get; private set; } // Open riichi
     public bool first_turn { get; private set; }
     public Tile newest_tile { owned get { return hand[hand.size - 1]; } }
     public RoundStateCall newest_call { owned get { return calls[calls.size - 1]; } }

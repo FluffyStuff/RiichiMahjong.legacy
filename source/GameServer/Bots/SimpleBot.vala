@@ -18,7 +18,7 @@ class SimpleBot : Bot
         }
         else if(round_state.can_riichi())
         {
-            do_riichi();
+            do_riichi(false);
 
             ArrayList<Tile> tiles = round_state.get_tenpai_tiles(round_state.self);
             assert(tiles.size > 0);

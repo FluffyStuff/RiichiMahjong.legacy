@@ -263,7 +263,8 @@ class RenderSceneManager : Object
 
         foreach (RenderPlayer player in action.winners)
         {
-            add_action(new RenderActionHandReveal(player));
+            if (!player.open)
+                add_action(new RenderActionHandReveal(player));
             if (player.in_riichi)
                 flip_ura_dora = true;
         }
@@ -279,7 +280,9 @@ class RenderSceneManager : Object
     {
         tsumo_sound.play();
         action.player.tsumo();
-        add_action(new RenderActionHandReveal(action.player));
+
+        if (!action.player.open)
+            add_action(new RenderActionHandReveal(action.player));
 
         if (action.player.in_riichi)
             add_action(new RenderActionFlipUraDora());
@@ -288,7 +291,10 @@ class RenderSceneManager : Object
     private void action_riichi(RenderActionRiichi action)
     {
         riichi_sound.play();
-        action.player.riichi();
+        if (action.open)
+            reveal_sound.play();
+
+        action.player.riichi(action.open);
     }
 
     private void action_return_riichi(RenderActionReturnRiichi action)
@@ -337,15 +343,27 @@ class RenderSceneManager : Object
 
     private void action_game_draw(RenderActionGameDraw action)
     {
-        reveal_sound.play();
+        bool revealed = false;
 
         foreach (RenderPlayer player in players)
         {
             if (action.players.contains(player))
-                player.open_hand();
+            {
+                if (!player.open)
+                {
+                    player.open_hand();
+                    revealed = true;
+                }
+            }
             else if (player != observer && action.draw_type != GameDrawType.VOID_HAND)
+            {
                 player.close_hand();
+                revealed = true;
+            }
         }
+
+        if (revealed)
+            reveal_sound.play();
     }
 
     private void action_hand_reveal(RenderActionHandReveal action)

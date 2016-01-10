@@ -152,9 +152,10 @@ namespace GameServer
             player.call_decision = null;
         }
 
-        public bool riichi()
+        public bool riichi(bool open)
         {
-            return state.riichi();
+            open = false; // Disable open riichi for now
+            return state.riichi(open);
         }
 
         public Scoring[] get_ron_score()

@@ -851,6 +851,7 @@ public class PlayerStateContext : Object
         bool dealer,
         bool in_riichi,
         bool double_riichi,
+        bool open,
         bool ippatsu,
         bool tiles_called_on,
         bool first_turn,
@@ -864,6 +865,7 @@ public class PlayerStateContext : Object
         this.dealer = dealer;
         this.in_riichi = in_riichi;
         this.double_riichi = double_riichi;
+        this.open = open;
         this.ippatsu = ippatsu;
         this.tiles_called_on = tiles_called_on;
         this.first_turn = first_turn;
@@ -877,6 +879,7 @@ public class PlayerStateContext : Object
         "dealer: " + dealer.to_string() + "\n" +
         "in_riichi: " + in_riichi.to_string() + "\n" +
         "double_riichi: " + double_riichi.to_string() + "\n" +
+        "open: " + open.to_string() + "\n" +
         "ippatsu: " + ippatsu.to_string() + "\n" +
         "tiles_called_on: " + tiles_called_on.to_string() + "\n" +
         "first_turn: " + first_turn.to_string() + "\n" +
@@ -900,6 +903,7 @@ public class PlayerStateContext : Object
     public bool dealer { get; private set; }
     public bool in_riichi { get; private set; }
     public bool double_riichi { get; private set; }
+    public bool open { get; private set; }
     public bool ippatsu { get; private set; }
     public bool tiles_called_on { get; private set; }
     public bool first_turn { get; private set; }
@@ -1462,7 +1466,9 @@ public class Yaku : Object
         // Riichi / Double riichi
         if (player.in_riichi)
         {
-            if (player.double_riichi)
+            if (player.open)
+                yaku.add(new Yaku(YakuType.OPEN_RIICHI, player.double_riichi ? 3 : 2, 0));
+            else if (player.double_riichi)
                 yaku.add(new Yaku(YakuType.DOUBLE_RIICHI, 2, 0));
             else
                 yaku.add(new Yaku(YakuType.RIICHI, 1, 0));
@@ -1929,6 +1935,7 @@ public enum YakuType // Han
     // Yaku situations
     MENZEN_TSUMO, // Closed tsumo
     RIICHI, // Reach
+    OPEN_RIICHI, // Open reach
     IPPATSU, // One-shot
     DOUBLE_RIICHI, // Double reach
     HAITEI_RAOYUE, // Last tile tsumo

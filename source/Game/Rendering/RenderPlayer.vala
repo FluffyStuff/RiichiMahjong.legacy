@@ -130,8 +130,13 @@ public class RenderPlayer
         hand.order_hand(true);
     }
 
-    public void riichi()
+    public void riichi(bool open)
     {
+        this.open = open;
+
+        if (open)
+            open_hand();
+
         render_riichi.animate();
         pond.riichi();
         in_riichi = true;
@@ -213,6 +218,7 @@ public class RenderPlayer
     public RenderTile last_drawn_tile { get; private set; }
     public int seat { get; private set; }
     public bool in_riichi { get; private set; }
+    public bool open { get { return hand.open; } set { hand.open = value; } } // Open riichi
 
     public static ArrayList<RenderTile> sort_tiles(ArrayList<RenderTile> list)
     {
@@ -258,6 +264,8 @@ private class RenderHand
 
     public void draw_tile(RenderTile tile)
     {
+        winning_tile = null;
+
         if (tiles.size > 1)
         {
             sort_hand();
@@ -373,6 +381,7 @@ private class RenderHand
     public ArrayList<RenderTile> tiles { get; private set; }
     public float view_angle { get; set; }
     public RenderTile? winning_tile { get; set; }
+    public bool open { get; set; }  // Open riichi
 }
 
 private class RenderPond

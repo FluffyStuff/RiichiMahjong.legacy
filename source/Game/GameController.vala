@@ -95,7 +95,7 @@ public class GameController : Object
         round.set_furiten_state.connect(menu.set_furiten);
         round.set_tile_select_state.connect(renderer.set_active);
         round.set_tile_select_groups.connect(renderer.set_tile_select_groups);
-        round.game_riichi.connect(game.declare_riichi);
+        round.game_riichi.connect(declared_riichi);
 
         round.game_finished.connect(renderer.game_finished);
         round.game_tile_assignment.connect(renderer.tile_assignment);
@@ -142,6 +142,11 @@ public class GameController : Object
 
         if (player_index != -1)
             create_round_state(info);
+    }
+
+    private void declared_riichi(int player_index, bool open)
+    {
+        game.declare_riichi(player_index);
     }
 
     private void disconnected()

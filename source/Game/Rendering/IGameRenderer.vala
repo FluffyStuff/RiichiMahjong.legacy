@@ -7,7 +7,7 @@ public interface IGameRenderer : Object
     public abstract void tile_discard(int player_index, int tile_ID);
     public abstract void flip_dora();
     public abstract void game_finished(RoundFinishResult result);
-    public abstract void riichi(int player_index);
+    public abstract void riichi(int player_index, bool open);
     public abstract void late_kan(int player_index, int tile_ID);
     public abstract void closed_kan(int player_index, TileType type);
     public abstract void open_kan(int player_index, int discard_player_index, int tile_ID, int tile_1_ID, int tile_2_ID, int tile_3_ID);

@@ -174,7 +174,15 @@ public class ClientMessageLateKan : ClientMessage
     public int tile_ID { get; protected set; }
 }
 
-public class ClientMessageRiichi : ClientMessage {}
+public class ClientMessageRiichi : ClientMessage
+{
+    public ClientMessageRiichi(bool open)
+    {
+        this.open = open;
+    }
+
+    public bool open { get; protected set; }
+}
 
 public class ClientMessageTsumo : ClientMessage {}
 

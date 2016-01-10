@@ -124,8 +124,10 @@ namespace GameServer
 
         private void client_riichi(ServerPlayer player, ClientMessage message)
         {
+            ClientMessageRiichi riichi = (ClientMessageRiichi)message;
+
             GameRoundServerPlayer p = get_game_player(players, player);
-            round.client_riichi(p.index);
+            round.client_riichi(p.index, riichi.open);
         }
 
         private void client_late_kan(ServerPlayer player, ClientMessage message)
@@ -182,7 +184,7 @@ namespace GameServer
             }
         }
 
-        private void game_draw_tile(int player_index, Tile tile)
+        private void game_draw_tile(int player_index, Tile tile, bool open)
         {
             GameRoundServerPlayer player = get_server_player(players, player_index);
             ServerMessageTileAssignment assignment = new ServerMessageTileAssignment(tile.ID, (int)tile.tile_type, tile.dora);
@@ -190,7 +192,7 @@ namespace GameServer
 
             foreach (GameRoundServerPlayer p in players)
             {
-                if (p == player || p.server_player.state != ServerPlayer.State.PLAYER)
+                if (p == player || p.server_player.state != ServerPlayer.State.PLAYER || open)
                     p.server_player.send_message(assignment);
 
                 p.server_player.send_message(draw);
@@ -225,14 +227,14 @@ namespace GameServer
                 game_reveal_tile(tile);
         }
 
-        private void game_draw_dead_tile(int player_index, Tile tile)
+        private void game_draw_dead_tile(int player_index, Tile tile, bool open)
         {
             GameRoundServerPlayer player = get_server_player(players, player_index);
             ServerMessageTileAssignment assignment = new ServerMessageTileAssignment(tile.ID, (int)tile.tile_type, tile.dora);
 
             foreach (GameRoundServerPlayer p in players)
             {
-                if (p == player || p.server_player.state != ServerPlayer.State.PLAYER)
+                if (p == player || p.server_player.state != ServerPlayer.State.PLAYER || open)
                     p.server_player.send_message(assignment);
             }
         }
@@ -278,9 +280,13 @@ namespace GameServer
             result = new RoundFinishResult.tsumo(score, player_index);
         }
 
-        private void game_riichi(int player_index)
+        private void game_riichi(int player_index, bool open, ArrayList<Tile> hand)
         {
-            ServerMessageRiichi message = new ServerMessageRiichi();
+            if (open)
+                foreach (Tile t in hand)
+                    game_reveal_tile(t);
+
+            ServerMessageRiichi message = new ServerMessageRiichi(open);
 
             foreach (GameRoundServerPlayer pl in players)
                 pl.server_player.send_message(message);
