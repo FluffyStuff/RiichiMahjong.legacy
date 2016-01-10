@@ -61,7 +61,7 @@ public class RenderPlayer
             RenderTexture? texture = store.load_texture("WindIndicators/" + wind_string, false);
             wind_indicator = new RenderBody3D(model, texture);
 
-            pos = Vec3(this.player_offset - model.size.x / 2 - (tile_size.x * 3 + tile_size.y), 0, this.player_offset);
+            pos = Vec3(this.player_offset - model.size.x / 2 - (tile_size.x * 3 + tile_size.z), 0, this.player_offset);
             pos = Calculations.rotate_y(Vec3.empty(), (float)seat / 2, pos);
             pos = center.plus(pos);
             wind_indicator.position = Vec3(pos.x, pos.y + model.size.y / 2, pos.z);

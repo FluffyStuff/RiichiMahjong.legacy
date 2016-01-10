@@ -65,7 +65,7 @@ public class RenderTable
         field.rotation = Vec3(0, field_rotation, 0);
 
         center = Vec3(0, field.position.y, 0);
-        player_offset = field.scale.z - 1.0f - (tile_size.x + tile_size.z) / 2;
+        player_offset = field.scale.z - 0.4f - (tile_size.x + tile_size.z) / 2;
 
         names = new RenderTablePlayerNameField[score.players.length];
 

@@ -64,7 +64,7 @@ class RenderSceneManager : Object
         chii_sound = audio.load_sound("chii");
         reveal_sound = audio.load_sound("reveal");
 
-        float tile_scale = 1.55f;
+        float tile_scale = 1.66f;
         string extension = Options.quality_enum_to_string(options.model_quality);
 
         RenderModel tile = store.load_model("tile_" + extension, true);
@@ -90,10 +90,10 @@ class RenderSceneManager : Object
             observer = players[0];
 
 
-        float camera_height = center.y + table_length * 1.3f;
+        float camera_height = center.y + table_length * 1.8f;
         float camera_dist = table_length * 1.0f;
-        camera.pitch = -0.34f;
-        camera.focal_length = 0.9f;
+        camera.pitch = -0.366f;
+        camera.focal_length = 0.77f;
 
         Vec3 pos = Vec3(0, camera_height, camera_dist);
         pos = Calculations.rotate_y({}, (float)observer.seat / 2, pos);
@@ -375,11 +375,11 @@ class RenderSceneManager : Object
     {
         Vec3 pos;
 
-        pos = Vec3(0, 45, table_length / 2);
+        pos = Vec3(0, 50, table_length / 2);
         pos = Calculations.rotate_y(Vec3.empty(), rotation, pos);
         light1.position = pos;
 
-        pos = Vec3(0, 45, table_length);
+        pos = Vec3(0, 50, table_length);
         pos = Calculations.rotate_y(Vec3.empty(), rotation, pos);
         light2.position = pos;
     }
