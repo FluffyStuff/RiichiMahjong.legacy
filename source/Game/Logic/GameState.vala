@@ -274,6 +274,13 @@ public class GameState : Object
             }
         }
 
+        if (!reset_riichi) // Give remaining riichi tenbou to top player (this isn't used for calculation, only for displaying)
+        {
+            ordered_players[0].transfer += 1000 * riichi_count;
+            ordered_players[0].points += 1000 * riichi_count;
+            reset_riichi = true;
+        }
+
         int sum = 0;
         for (int i = 1; i < ordered_players.length; i++)
         {
