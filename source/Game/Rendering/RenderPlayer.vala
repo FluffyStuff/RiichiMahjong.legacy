@@ -29,7 +29,7 @@ public class RenderPlayer
         pos = Calculations.rotate_y(Vec3.empty(), (float)seat / 2, pos);
         pos = center.plus(pos);
 
-        hand = new RenderHand(pos, tile_size, seat, observed ? 0.42f : 0);
+        hand = new RenderHand(pos, tile_size, seat, observed ? 0.44f : 0);
 
         pos = Vec3(0, 0, 3 * tile_size.x);
         pos = Calculations.rotate_y(Vec3.empty(), (float)seat / 2, pos);
@@ -61,7 +61,7 @@ public class RenderPlayer
             RenderTexture? texture = store.load_texture("WindIndicators/" + wind_string, false);
             wind_indicator = new RenderBody3D(model, texture);
 
-            pos = Vec3(this.player_offset - model.size.x / 2 - (tile_size.x * 3 + tile_size.z), 0, this.player_offset);
+            pos = Vec3(this.player_offset - model.size.x / 2 - (tile_size.x * 2.5f + tile_size.z), 0, this.player_offset);
             pos = Calculations.rotate_y(Vec3.empty(), (float)seat / 2, pos);
             pos = center.plus(pos);
             wind_indicator.position = Vec3(pos.x, pos.y + model.size.y / 2, pos.z);

@@ -64,7 +64,7 @@ class RenderSceneManager : Object
         chii_sound = audio.load_sound("chii");
         reveal_sound = audio.load_sound("reveal");
 
-        float tile_scale = 1.66f;
+        float tile_scale = 1.61f;
         string extension = Options.quality_enum_to_string(options.model_quality);
 
         RenderModel tile = store.load_model("tile_" + extension, true);
