@@ -59,10 +59,10 @@ class OpenGLShaderProgram2D
         glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), (GLvoid[])vertices, GL_STATIC_DRAW);
 
         uint vao[1];
-        glGenVertexArrays (1, vao);
+        OpenGLFunctions.glGenVertexArrays(1, vao);
         array_handle = vao[0];
 
-        glBindVertexArray(array_handle);
+        OpenGLFunctions.glBindVertexArray(array_handle);
         glEnableVertexAttribArray(vert_position_attribute);
         glBindBuffer(GL_ARRAY_BUFFER, vertice_handle);
         glVertexAttribPointer(vert_position_attribute, 2, GL_FLOAT, false, 0, (GLvoid[])0);
@@ -74,7 +74,7 @@ class OpenGLShaderProgram2D
         uint err = glGetError();
         if (err != 0 && err != 0x500)
         {
-            print("OpenGLShaderProgram3D: GL shader program linkage failure!\n");
+            print("OpenGLShaderProgram2D: GL shader program linkage failure! (%u)\n", err);
             return false;
         }
 
@@ -84,7 +84,7 @@ class OpenGLShaderProgram2D
     public void apply_scene()
     {
         glUseProgram(program);
-        glBindVertexArray(array_handle);
+        OpenGLFunctions.glBindVertexArray(array_handle);
     }
 
     public void render_object(Mat3 model_transform, Color diffuse_color, bool use_texture)

@@ -135,7 +135,7 @@ public class OpenGLRenderer : RenderTarget
         if (last_array_handle != model_handle.array_handle)
         {
             last_array_handle = (int)model_handle.array_handle;
-            glBindVertexArray(model_handle.array_handle);
+            OpenGLFunctions.glBindVertexArray(model_handle.array_handle);
         }
 
         Mat4 model_transform = Calculations.get_model_matrix(obj.position, obj.rotation, obj.scale);
@@ -157,7 +157,7 @@ public class OpenGLRenderer : RenderTarget
         if (last_array_handle != model_handle.array_handle)
         {
             last_array_handle = (int)model_handle.array_handle;
-            glBindVertexArray(model_handle.array_handle);
+            OpenGLFunctions.glBindVertexArray(model_handle.array_handle);
         }
 
         Mat4 model_transform = Calculations.get_model_matrix(label.position, label.rotation, label.end_scale);
@@ -261,8 +261,8 @@ public class OpenGLRenderer : RenderTarget
         glBufferData(GL_ARRAY_BUFFER, len * model.points.length, (GLvoid[])model.points, GL_STATIC_DRAW);
 
         uint vao[1];
-        glGenVertexArrays (1, vao);
-        glBindVertexArray(vao[0]);
+        OpenGLFunctions.glGenVertexArrays(1, vao);
+        OpenGLFunctions.glBindVertexArray(vao[0]);
 
         glEnableVertexAttribArray(POSITION_ATTRIBUTE);
         glVertexAttribPointer(POSITION_ATTRIBUTE, 4, GL_FLOAT, false, len, (GLvoid[])0);

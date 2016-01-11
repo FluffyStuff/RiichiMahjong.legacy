@@ -4,4 +4,6 @@ bin/RiichiMahjong*
 *.o
 *.exe
 *.rar
+*.DS_Store
 RiichiMahjong.layout
+

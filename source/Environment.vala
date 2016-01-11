@@ -15,6 +15,8 @@ public class Environment : Object
         if (initialized)
             return true;
 
+	FileLoader.initialize(); // Set correct working directory
+
         if (SDL.init(SDL.InitFlag.EVERYTHING) < 0)
         {
             print("Environment: Could not init SDL!\n");

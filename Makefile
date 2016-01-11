@@ -43,6 +43,13 @@ WLIBS = \
 	-X lib/SFML/libcsfml-audio.a \
 	-X lib/SFML/libcsfml-system.a
 
+MLIBS = \
+	-X lib/SOIL/libSOIL.mac.a \
+	-X -lsdl2_image \
+	-X -lcsfml-audio \
+	-X -framework -X OpenGL \
+	-X -framework -X CoreFoundation
+
 LLIBS = \
 	-X /usr/lib/libSOIL.so \
 	-X lib/SDL/SDL2.lib \
@@ -77,6 +84,18 @@ debug:
 
 release:
 	$(VALAC) $(O) $(DIRS) $(PKGS) $(LLIBS) $(LL64) $(VAPI) $(OTHER)
+
+macDebug:
+	$(VALAC) $(DEBUG) $(O) $(DIRS) $(PKGS) $(MLIBS) $(VAPI) $(OTHER) -D MAC
+
+macRelease:
+	$(VALAC) $(O) $(DIRS) $(PKGS) $(MLIBS) $(VAPI) $(OTHER) -D MAC
+	-mkdir rsc/archive/$(NAME).app
+	-cp bin/$(NAME) rsc/archive/$(NAME).app/
+	-cp -r bin/Data rsc/archive/$(NAME).app/
+	-cp Icon.icns rsc/archive/$(NAME).app/
+	-cp rsc/other/Info.plist rsc/archive/$(NAME).app/
+	-zip -r rsc/archive/$(NAME).mac.zip rsc/archive/$(NAME).app
 
 clean:
 	rm bin/$(NAME)
