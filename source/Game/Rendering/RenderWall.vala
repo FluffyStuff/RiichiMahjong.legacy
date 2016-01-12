@@ -123,12 +123,12 @@ public class RenderWall : Object
             for (int i = 0; i < index - 14; i++)
                 right.add(wall_left[i]);
 
-            float offset = 1.5f * tile_size.x;
-            float left_m = -1;
+            float offset = 1.0f * tile_size.x;
+            float left_m = 0;//-1;
             float center_m = 0;
-            float right_m = 1;
+            float right_m = 1.1f;
 
-            if (left.size == 0)
+            /*if (left.size == 0)
             {
                 left_m = 0;
                 center_m -= 0.5f;
@@ -137,7 +137,7 @@ public class RenderWall : Object
             {
                 right_m = 0;
                 center_m += 0.5f;
-            }
+            }*/
 
             float r = -(float)rotation / 2;
 
@@ -308,8 +308,14 @@ public class RenderWall : Object
             for (int i = 0; i < doras.size; i++)
             {
                 RenderTile tile = doras[i];
-                Vec3 pos = { 0, -tile_size.y, 0 };
-                pos = pos.plus(tile.position);
+                Vec3 pos = Vec3(0, -tile_size.y, tile_size.z / 2);
+                int rotation = this.rotation;
+                if (split >= 7)
+                    rotation--;
+                if (3 + i <= split)
+                    rotation--;
+
+                pos = Calculations.rotate_y(Vec3.empty(), -(float)rotation / 2, pos).plus(tile.position);
                 tile.animate_towards(pos, tile.rotation);
             }
 
@@ -326,7 +332,7 @@ public class RenderWall : Object
                     dir = -dir;
                 }
 
-                Vec3 pos = Vec3(0, 0, -tile_size.z);
+                Vec3 pos = Vec3(0, 0, -tile_size.z / 2);
                 pos = Calculations.rotate_y(Vec3.empty(), -(float)rotation / 2, pos).plus(tile.position);
 
                 Vec3 rot = tile.rotation;

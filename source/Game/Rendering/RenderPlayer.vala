@@ -37,7 +37,7 @@ public class RenderPlayer
 
         pond = new RenderPond(pos, tile_size, seat);
 
-        pos = Vec3(this.player_offset, 0, this.player_offset);
+        pos = Vec3(this.player_offset + tile_size.z / 2, 0, this.player_offset + tile_size.y / 2);
         pos = Calculations.rotate_y(Vec3.empty(), (float)seat / 2, pos);
         pos = center.plus(pos);
 
