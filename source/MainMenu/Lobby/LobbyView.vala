@@ -13,6 +13,7 @@ public class LobbyView : View2D
     private MenuTextButton create_button;
     private MenuTextButton back_button;
     private ServerMenuView server_menu;
+    private int current_game_ID = -1;
     private bool do_refresh_game_list = false;
     private bool do_refresh_user_list = false;
     private bool do_enter_game = false;
@@ -28,6 +29,7 @@ public class LobbyView : View2D
         lobby = connection.current_lobby;
         connection.enter_game_result.connect(enter_game_result);
         connection.create_game_result.connect(create_game_result);
+        lobby.game_removed.connect(game_removed);
         lobby.game_added.connect(refresh_game_list);
         lobby.game_removed.connect(refresh_game_list);
         lobby.user_added.connect(refresh_user_list);
@@ -152,16 +154,28 @@ public class LobbyView : View2D
         do_refresh_user_list = true;
     }
 
-    private void enter_game_result(LobbyConnection connection, bool success)
+    private void enter_game_result(LobbyConnection connection, bool success, int game_ID)
     {
         if (success)
+        {
+            current_game_ID = game_ID;
             do_enter_game = true;
+        }
     }
 
-    private void create_game_result(LobbyConnection connection, bool success)
+    private void create_game_result(LobbyConnection connection, bool success, int game_ID)
     {
         if (success)
+        {
+            current_game_ID = game_ID;
             do_create_game = true;
+        }
+    }
+
+    private void game_removed(ClientLobby lobby, ClientLobbyGame game, bool started)
+    {
+        if (!started && game.ID == current_game_ID)
+            return_to_lobby();
     }
 
     private void do_start_game(GameStartInfo info, IGameConnection connection, int player_index)
@@ -172,9 +186,16 @@ public class LobbyView : View2D
 
     private void game_back()
     {
-        remove_child(server_menu);
-        server_menu = null;
         connection.leave_game();
+        return_to_lobby();
+    }
+
+    private void return_to_lobby()
+    {
+        if (server_menu != null)
+            remove_child(server_menu);
+        server_menu = null;
+        current_game_ID = -1;
 
         lobby_label.visible = true;
         game_list.visible = true;

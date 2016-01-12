@@ -6,8 +6,8 @@ public class LobbyConnection
     public signal void authentication_result(LobbyConnection connection, bool success);
     public signal void lobby_enumeration_result(LobbyConnection connection, bool success);
     public signal void enter_lobby_result(LobbyConnection connection, bool success);
-    public signal void enter_game_result(LobbyConnection connection, bool success);
-    public signal void create_game_result(LobbyConnection connection, bool success);
+    public signal void enter_game_result(LobbyConnection connection, bool success, int game_ID);
+    public signal void create_game_result(LobbyConnection connection, bool success, int game_ID);
     public signal void disconnected(LobbyConnection connection);
 
     private Connection connection;
@@ -169,12 +169,12 @@ public class LobbyConnection
 
     private void do_enter_game_result(ServerLobbyMessageEnterGameResult result)
     {
-        enter_game_result(this, result.success);
+        enter_game_result(this, result.success, result.game_ID);
     }
 
     private void do_create_game_result(ServerLobbyMessageCreateGameResult result)
     {
-        create_game_result(this, result.success);
+        create_game_result(this, result.success, result.game_ID);
     }
 
     private void do_user_entered_lobbby(ServerLobbyMessageUserEnteredLobby message)
@@ -194,7 +194,7 @@ public class LobbyConnection
 
     private void do_game_removed(ServerLobbyMessageGameRemoved message)
     {
-        current_lobby.remove_game(message.ID);
+        current_lobby.remove_game(message.ID, message.started);
     }
 
     private void do_user_entered_game(ServerLobbyMessageUserEnteredGame message)
@@ -225,7 +225,7 @@ public class ClientLobby
     public signal void user_added(ClientLobby lobby, ClientLobbyUser user);
     public signal void user_removed(ClientLobby lobby, ClientLobbyUser user);
     public signal void game_added(ClientLobby lobby, ClientLobbyGame game);
-    public signal void game_removed(ClientLobby lobby, ClientLobbyGame game);
+    public signal void game_removed(ClientLobby lobby, ClientLobbyGame game, bool started);
     public signal void user_entered_game(ClientLobby lobby, ClientLobbyUser user, ClientLobbyGame game);
     public signal void user_left_game(ClientLobby lobby, ClientLobbyUser user, ClientLobbyGame game);
 
@@ -293,14 +293,14 @@ public class ClientLobby
         return null;
     }
 
-    public void remove_game(int ID)
+    public void remove_game(int ID, bool started)
     {
         ClientLobbyGame? game = get_game_by_ID(ID);
         if (game == null)
             return;
 
         games.remove(game);
-        game_removed(this, game);
+        game_removed(this, game, started);
     }
 
     public void add_game_user(int user_ID, int game_ID)

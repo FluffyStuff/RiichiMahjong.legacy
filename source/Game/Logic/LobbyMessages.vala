@@ -113,12 +113,14 @@ namespace Lobby
 
     public class ServerLobbyMessageEnterGameResult : ServerLobbyMessage
     {
-        public ServerLobbyMessageEnterGameResult(bool success)
+        public ServerLobbyMessageEnterGameResult(bool success, int game_ID)
         {
             this.success = success;
+            this.game_ID = game_ID;
         }
 
         public bool success { get; protected set; }
+        public int game_ID { get; protected set; }
     }
 
     public class ServerLobbyMessageLeaveGameResult : ServerLobbyMessage
@@ -175,12 +177,14 @@ namespace Lobby
 
     public class ServerLobbyMessageGameRemoved : ServerLobbyMessage
     {
-        public ServerLobbyMessageGameRemoved(int ID)
+        public ServerLobbyMessageGameRemoved(int ID, bool started)
         {
             this.ID = ID;
+            this.started = started;
         }
 
         public int ID { get; protected set; }
+        public bool started { get; protected set; }
     }
 
     public class ServerLobbyMessageUserEnteredGame : ServerLobbyMessage
