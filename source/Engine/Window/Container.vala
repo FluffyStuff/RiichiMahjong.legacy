@@ -94,6 +94,7 @@ public abstract class Container : Object
 
         for (int i = children.size - 1; i >= 0 && i < children.size; i--)
             children[i].key_press(key);
+
         do_key_press(key);
     }
 

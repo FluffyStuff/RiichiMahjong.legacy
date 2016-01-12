@@ -125,7 +125,9 @@ public class TextInputControl : Control
 
     protected override void on_key_press(KeyArgs key)
     {
-        if (ime_editing)
+        key.handled = true;
+
+        if (ime_editing || !key.down)
             return;
 
         if (key.keycode == KeyCode.BACKSPACE)

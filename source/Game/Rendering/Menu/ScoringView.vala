@@ -2,23 +2,24 @@ using Gee;
 
 public class ScoringView : View2D
 {
-    private RoundScoreState score;
     private int player_index;
     private LabelControl time_label;
     private RectangleControl rectangle;
     //private GameMenuButton next_button;
-    private ScoringPointsView view;
+    private ScoringPointsView? view = null;
     private ScoringPlayerElement bottom;
     private ScoringPlayerElement right;
     private ScoringPlayerElement top;
     private ScoringPlayerElement left;
     private int padding = 10;
+    private bool display_timer;
     private float time;
     private float start_time = 0;
 
-    public ScoringView(RoundScoreState score, int player_index, int round_time, int hanchan_time, int game_time)
+    public ScoringView(RoundScoreState score, int player_index, bool timer, int round_time, int hanchan_time, int game_time)
     {
         this.score = score;
+        display_timer = timer;
         this.player_index = player_index;
         relative_size = Size2(0.9f, 0.9f);
 
@@ -38,13 +39,18 @@ public class ScoringView : View2D
         container.add_child(rectangle);
         rectangle.resize_style = ResizeStyle.RELATIVE;
         rectangle.color = Color.with_alpha(0.5f);
+        rectangle.selectable = true;
+        rectangle.cursor_type = CursorType.NORMAL;
 
-        time_label = new LabelControl();
-        add_child(time_label);
-        time_label.inner_anchor = Vec2(1, 0);
-        time_label.outer_anchor = Vec2(1, 0);
-        time_label.position = Vec2(-padding, padding);
-        time_label.font_size = 60;
+        if (display_timer)
+        {
+            time_label = new LabelControl();
+            add_child(time_label);
+            time_label.inner_anchor = Vec2(1, 0);
+            time_label.outer_anchor = Vec2(1, 0);
+            time_label.position = Vec2(-padding, padding);
+            time_label.font_size = 60;
+        }
 
         /*next_button = new GameMenuButton("Next");
         next_button.selectable = true;
@@ -89,13 +95,19 @@ public class ScoringView : View2D
         left.position = Vec2(padding, 0);
         left.show_score = score.hanchan_is_finished;
 
-        view = new ScoringPointsView(score, time);
-        view.score_selected.connect(score_selected);
-        add_child(view);
+        if (score.round_is_finished)
+        {
+            view = new ScoringPointsView(score, time);
+            view.score_selected.connect(score_selected);
+            add_child(view);
+        }
     }
 
     protected override void do_process(DeltaArgs delta)
     {
+        if (!display_timer)
+            return;
+
         if (start_time == 0)
             start_time = delta.time;
 
@@ -104,8 +116,12 @@ public class ScoringView : View2D
 
         if (str != time_label.text)
             time_label.text = str;
+    }
 
-        view.size = Size2(right.rect.x - (left.rect.x + left.size.width) - padding * 2, top.rect.y - (bottom.rect.y + bottom.rect.height) - padding * 2);
+    protected override void resized()
+    {
+        if (view != null)
+            view.size = Size2(right.rect.x - (left.rect.x + left.size.width) - padding * 2, top.rect.y - (bottom.rect.y + bottom.rect.height) - padding * 2);
     }
 
     private void score_selected(int player_index)
@@ -115,4 +131,6 @@ public class ScoringView : View2D
         top.highlighted = player_index == top.player_index;
         left.highlighted = player_index == left.player_index;
     }
+
+    public RoundScoreState score { get; private set; }
 }

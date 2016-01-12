@@ -84,12 +84,13 @@ public class MainWindow : RenderWindow
     {
         if (key.scancode == ScanCode.F12)
         {
-            fullscreen = !fullscreen;
+            if (key.down)
+                fullscreen = !fullscreen;
             return true;
         }
         else if (key.scancode == ScanCode.ESCAPE)
         {
-            if (game_running)
+            if (game_running && key.down)
             {
                 if (escape_menu == null)
                 {

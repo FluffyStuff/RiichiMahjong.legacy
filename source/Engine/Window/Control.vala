@@ -98,8 +98,6 @@ public abstract class Control : Container
         if (key.handled || !visible || !focused)
             return;
 
-        key.handled = true;
-
         on_key_press(key);
     }
 

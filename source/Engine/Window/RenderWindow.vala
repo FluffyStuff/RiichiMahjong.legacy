@@ -70,7 +70,7 @@ public abstract class RenderWindow
         {
             if (e.type == EventType.QUIT)
                 finish();
-            else if (e.type == EventType.KEYDOWN)
+            else if (e.type == EventType.KEYDOWN || e.type == EventType.KEYUP)
             {
                 KeyArgs key = new KeyArgs
                 (
@@ -78,7 +78,7 @@ public abstract class RenderWindow
                     (KeyCode)e.key.keysym.sym,
                     (Modifier)e.key.keysym.mod,
                     e.key.repeat != 0,
-                    e.key.state == 0
+                    e.key.state != 0
                 );
 
                 if (!key_press(key))

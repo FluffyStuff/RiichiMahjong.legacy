@@ -317,6 +317,7 @@ public class GameState : Object
             current_hanchan,
             hanchan_count,
             riichi_count,
+            round_is_finished,
             hanchan_is_finished,
             game_is_started,
             game_is_finished,
@@ -344,6 +345,7 @@ public class GameState : Object
             current_hanchan,
             hanchan_count,
             riichi_count,
+            round_is_finished,
             hanchan_is_finished,
             game_is_started,
             game_is_finished,
@@ -397,6 +399,7 @@ public class RoundScoreState
         int current_hanchan,
         int hanchan_count,
         int riichi_count,
+        bool round_is_finished,
         bool hanchan_is_finished,
         bool game_is_started,
         bool game_is_finished,
@@ -414,6 +417,7 @@ public class RoundScoreState
         this.current_hanchan = current_hanchan;
         this.hanchan_count = hanchan_count;
         this.riichi_count = riichi_count;
+        this.round_is_finished = round_is_finished;
         this.hanchan_is_finished = hanchan_is_finished;
         this.game_is_started = game_is_started;
         this.game_is_finished = game_is_finished;
@@ -436,6 +440,7 @@ public class RoundScoreState
     public int current_hanchan { get; private set; }
     public int hanchan_count { get; private set; }
     public int riichi_count { get; private set; }
+    public bool round_is_finished { get; private set; }
     public bool hanchan_is_finished { get; private set; }
     public bool game_is_started { get; private set; }
     public bool game_is_finished { get; private set; }

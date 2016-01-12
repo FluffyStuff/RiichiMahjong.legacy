@@ -6,7 +6,7 @@ public class ScoringPointsView : View2D
     private LabelControl score_label;
     private GameMenuButton next_button;
     private GameMenuButton prev_button;
-    private ScoringScoreControl scoring_control;
+    private ScoringScoreControl? scoring_control = null;
     private int score_index = 0;
 
     private int switches;
@@ -26,6 +26,9 @@ public class ScoringPointsView : View2D
     public override void added()
     {
         resize_style = ResizeStyle.ABSOLUTE;
+
+        if (!score.round_is_finished)
+            return;
 
         bool draw = false;
         string score_text;

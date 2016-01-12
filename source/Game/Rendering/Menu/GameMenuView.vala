@@ -2,12 +2,16 @@ using Gee;
 
 public class GameMenuView : View2D
 {
-    private ScoringView score_view;
-
+    private ScoringView? score_view = null;
     private ArrayList<MenuTextButton> buttons = new ArrayList<MenuTextButton>();
 
-    private Sound hint_sound;
+    private int player_index;
     private int decision_time;
+    private int round_time;
+    private int hanchan_time;
+    private int game_time;
+
+    private Sound hint_sound;
     private float start_time;
     private LabelControl timer;
     private LabelControl furiten;
@@ -30,7 +34,7 @@ public class GameMenuView : View2D
     public signal void ron_pressed();
     public signal void continue_pressed();
     public signal void void_hand_pressed();
-    public signal void quit();
+    public signal void display_score_pressed();
 
     private void press_chii() { chii_pressed(); }
     private void press_pon() { pon_pressed(); }
@@ -42,9 +46,13 @@ public class GameMenuView : View2D
     private void press_continue() { continue_pressed(); }
     private void press_void_hand() { void_hand_pressed(); }
 
-    public GameMenuView(int decision_time)
+    public GameMenuView(int player_index, int decision_time, int round_time, int hanchan_time, int game_time)
     {
+        this.player_index = player_index;
         this.decision_time = decision_time;
+        this.round_time = round_time;
+        this.hanchan_time = hanchan_time;
+        this.game_time = game_time;
     }
 
     public override void added()
@@ -140,15 +148,15 @@ public class GameMenuView : View2D
 
         key.handled = true;
 
-        switch (key.key)
+        if (key.scancode == ScanCode.TAB && !key.repeat)
         {
-        /*case 'r':
-            quit();
-            break;*/
-        default:
-            key.handled = false;
-            break;
+            if (key.down)
+                display_score_pressed();
+            else
+                hide_score();
         }
+        else
+            key.handled = false;
     }
 
     public void set_chii(bool enabled)
@@ -210,10 +218,27 @@ public class GameMenuView : View2D
         timer.visible = enabled;
     }
 
-    public void display_score(RoundScoreState score, int player_index, int round_time, int hanchan_time, int game_time)
+    public void display_score(RoundScoreState score, bool timer)
     {
-        score_view = new ScoringView(score, player_index, round_time, hanchan_time, game_time);
+        if (score_view != null)
+        {
+            if (score_view.score != score)
+                remove_child(score_view);
+            else
+            {
+                score_view.visible = true;
+                return;
+            }
+        }
+
+        score_view = new ScoringView(score, player_index, timer, round_time, hanchan_time, game_time);
         add_child(score_view);
+    }
+
+    public void hide_score()
+    {
+        if (score_view != null)
+            score_view.visible = false;
     }
 
     protected override void do_process(DeltaArgs delta)

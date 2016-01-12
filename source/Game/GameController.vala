@@ -64,7 +64,7 @@ public class GameController : Object
             if (round.finished)
             {
                 var result = game.round_finished(round.result);
-                menu.display_score(result, player_index, start_info.round_wait_time, start_info.hanchan_wait_time, start_info.game_wait_time);
+                menu.display_score(result, true);
             }
         }
     }
@@ -133,8 +133,8 @@ public class GameController : Object
             parent_view.remove_child(menu);
 
         game.start_round(info);
-        menu = new GameMenuView(start_info.decision_time);
-        menu.quit.connect(finish_game);
+        menu = new GameMenuView(player_index, start_info.decision_time, start_info.round_wait_time, start_info.hanchan_wait_time, start_info.game_wait_time);
+        menu.display_score_pressed.connect(display_score_pressed);
 
         renderer = new GameRenderView(info, player_index, game.round_wind, game.dealer_index, options, game.score);
         parent_view.add_child(renderer);
@@ -147,6 +147,12 @@ public class GameController : Object
     private void declared_riichi(int player_index, bool open)
     {
         game.declare_riichi(player_index);
+    }
+
+    private void display_score_pressed()
+    {
+        if (menu != null)
+            menu.display_score(game.score, false);
     }
 
     private void disconnected()

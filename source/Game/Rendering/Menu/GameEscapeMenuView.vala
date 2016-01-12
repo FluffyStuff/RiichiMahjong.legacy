@@ -80,6 +80,11 @@ public class GameEscapeMenuView : View2D
         options_view.visible = false;
     }
 
+    protected override void do_key_press(KeyArgs key)
+    {
+        key.handled = true;
+    }
+
     private void press_back()
     {
         close_menu();
