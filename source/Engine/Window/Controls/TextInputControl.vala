@@ -3,6 +3,7 @@ public class TextInputControl : Control
     private LabelControl label;
     private string _text = "";
     private string back_text;
+    private int max_length;
 
     private RectangleControl selection;
     private RectangleControl caret;
@@ -20,10 +21,11 @@ public class TextInputControl : Control
 
     public signal void text_changed();
 
-    public TextInputControl(string back_text)
+    public TextInputControl(string back_text, int max_length)
     {
         base();
         this.back_text = back_text;
+        this.max_length = max_length;
         selectable = true;
         cursor_type = CursorType.CARET;
         resize_style = ResizeStyle.ABSOLUTE;
@@ -205,9 +207,13 @@ public class TextInputControl : Control
                 max = int.max(selection_start, selection_end);
             }
 
-            string txt = get_clipboard_text();
+            string txt = Helper.sanitize_string(get_clipboard_text());
             string pre = text.substring(0, text.index_of_nth_char(min));
             string post = text.substring(text.index_of_nth_char(max), text.index_of_nth_char(text.char_count()) - text.index_of_nth_char(max));
+
+            if (max_length >= 0 && pre.char_count() + txt.char_count() + post.char_count() > max_length)
+                txt = txt.substring(0, txt.index_of_nth_char(max_length - pre.char_count() - post.char_count()));
+
             text = pre + txt + post;
 
             caret_position = min + txt.char_count();
@@ -228,9 +234,12 @@ public class TextInputControl : Control
             max = int.max(selection_start, selection_end);
         }
 
-        string txt = t.text;
+        string txt = Helper.sanitize_string(t.text);
         string pre = text.substring(0, text.index_of_nth_char(min));
         string post = text.substring(text.index_of_nth_char(max), text.index_of_nth_char(text.char_count()) - text.index_of_nth_char(max));
+
+        if (max_length >= 0 && pre.char_count() + txt.char_count() + post.char_count() > max_length)
+            txt = txt.substring(0, txt.index_of_nth_char(max_length - pre.char_count() - post.char_count()));
 
         text = pre + txt + post;
         caret_position = min + txt.char_count();
@@ -241,7 +250,6 @@ public class TextInputControl : Control
 
     protected override void on_text_edit(TextEditArgs t)
     {
-
         if (t.length == 0 && t.start == 0 && t.text == "")
         {
             ime_editing = false;

@@ -58,12 +58,8 @@ namespace GameServer
 
         private void connection_attempt(ConnectionAttempt connection, ClientMessageAuthenticate message)
         {
-            string name = message.name.strip();
-
-            bool accept = true;
-            if (name.char_count() < 1 ||
-                name.char_count() > 20)
-                accept = false;
+            string name = message.name;
+            bool accept = Environment.is_valid_name(name) && Environment.compatible(message.version_info);
 
             mutex.lock();
             connections.remove(connection);
@@ -72,11 +68,12 @@ namespace GameServer
             {
                 ServerPlayerNetworkConnection con = new ServerPlayerNetworkConnection(connection.connection);
                 ServerHumanPlayer player = new ServerHumanPlayer(con, name);
-                player.send_message(new ServerMessageAcceptJoin());
+                player.send_message(new ServerMessageAcceptJoin(false, Environment.version_info));
                 player_connected(player);
             }
             else
             {
+                connection.connection.send(new Message(new ServerMessageAcceptJoin(true, Environment.version_info).serialize()));
                 connection.close();
             }
             mutex.unlock();
@@ -112,6 +109,7 @@ namespace GameServer
                 if (msg == null || !msg.get_type().is_a(typeof(ClientMessageAuthenticate)))
                 {
                     print("Server discarding invalid connection attempt message!\n");
+                    close();
                     return;
                 }
 

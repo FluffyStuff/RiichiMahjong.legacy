@@ -1,5 +1,6 @@
 DIRS  = \
 	source/*.vala \
+	source/Engine/*.vala \
 	source/Engine/Audio/*.vala \
 	source/Engine/Files/*.vala \
 	source/Engine/Helper/*.vala \

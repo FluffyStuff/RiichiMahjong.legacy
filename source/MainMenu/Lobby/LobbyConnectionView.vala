@@ -13,6 +13,10 @@ public class LobbyConnectionView : View2D
     private MenuTextButton join_button;
     private MenuTextButton back_button;
     private LobbyView lobby_view;
+
+    private DelayTimer timer = new DelayTimer();
+    private int delay_time = 5;
+
     private bool connecting_finished;
     private bool processed;
     private int padding = 80;
@@ -34,6 +38,7 @@ public class LobbyConnectionView : View2D
         add_child(message_label);
         message_label.text = "Connecting to lobby...";
         message_label.font_size = 50;
+        timer.set_time(delay_time);
 
         Threading.start2(try_join, new Obj<string>("riichi.fluffy.is"), new Obj<int>(1337));
     }
@@ -49,12 +54,14 @@ public class LobbyConnectionView : View2D
 
     protected override void do_process(DeltaArgs time)
     {
-        if (!connecting_finished || processed)
+        if (processed)
             return;
-        processed = true;
 
-        if (connection == null)
+        if (timer.active(time.time))
         {
+            connecting_finished = true;
+            processed = true;
+
             MenuTextButton ok_button = new MenuTextButton("MenuButton", "OK");
             add_child(ok_button);
             ok_button.outer_anchor = Vec2(0.5f, 0.5f);
@@ -62,10 +69,36 @@ public class LobbyConnectionView : View2D
             ok_button.position = Vec2(0, -message_label.size.height / 2 - padding);
             ok_button.clicked.connect(back_clicked);
 
-            message_label.text = "Could not connect to lobby";
+            string text = "Error: Could not connect to lobby";
+            message_label.text = text;
+            return;
         }
-        else
+
+        if (!connecting_finished)
+            return;
+
+        if (connection == null || connection.is_disconnected)
         {
+            processed = true;
+
+            MenuTextButton ok_button = new MenuTextButton("MenuButton", "OK");
+            add_child(ok_button);
+            ok_button.outer_anchor = Vec2(0.5f, 0.5f);
+            ok_button.inner_anchor = Vec2(0.5f, 1);
+            ok_button.position = Vec2(0, -message_label.size.height / 2 - padding);
+            ok_button.clicked.connect(back_clicked);
+
+            string text = "Error: ";
+            if (connection != null && connection.version_mismatch)
+                text += "Lobby version mismatch\n" + "Please get the latest version";
+            else
+                text += "Could not connect to lobby";
+            message_label.text = text;
+        }
+        else if (connection.server_version != null)
+        {
+            processed = true;
+
             join_button = new MenuTextButton("MenuButton", "Enter Lobby");
             add_child(join_button);
             join_button.outer_anchor = Vec2(0, 0);
@@ -81,7 +114,7 @@ public class LobbyConnectionView : View2D
             back_button.position = Vec2(-padding, padding);
             back_button.clicked.connect(back_clicked);
 
-            name_text = new TextInputControl("Player name");
+            name_text = new TextInputControl("Player name", Environment.MAX_NAME_LENGTH);
             add_child(name_text);
             name_text.text_changed.connect(button_enable_check);
             name_text.outer_anchor = Vec2(0, 0);
@@ -126,8 +159,7 @@ public class LobbyConnectionView : View2D
 
     private void button_enable_check()
     {
-        string name = name_text.text.strip();
-        join_button.enabled = name.char_count() >= 1 && name.char_count() <= 20 && selected_lobby != null;
+        join_button.enabled = Environment.is_valid_name(name_text.text);
     }
 
     private void enter_clicked()

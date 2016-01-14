@@ -253,7 +253,17 @@ public class ServerMessageDraw : ServerMessage
     public bool triple_ron { get; protected set; }
 }
 
-public class ServerMessageAcceptJoin : ServerMessage {}
+public class ServerMessageAcceptJoin : ServerMessage
+{
+    public ServerMessageAcceptJoin(bool version_mismatch, VersionInfo version_info)
+    {
+        this.version_mismatch = version_mismatch;
+        this.version_info = version_info;
+    }
+
+    public bool version_mismatch { get; protected set; }
+    public VersionInfo version_info { get; protected set; }
+}
 
 public class ServerMessageMenuSlotAssign : ServerMessage
 {

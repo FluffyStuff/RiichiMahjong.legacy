@@ -1,83 +1,25 @@
-using SDL;
-using GL;
-
-public class Environment : Object
+public class Environment
 {
-    private static bool initialized = false;
+    public static const int VERSION_MAJOR = 0;
+    public static const int VERSION_MINOR = 1;
+    public static const int VERSION_PATCH = 2;
+    public static const int VERSION_REVIS = 0;
 
-    ~Environment()
+    public static const int MIN_NAME_LENGTH =  2;
+    public static const int MAX_NAME_LENGTH = 12;
+
+    private Environment() {}
+
+    public static void init()
     {
-        exit();
+        version_info = new VersionInfo(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, VERSION_REVIS);
+
+        set_working_dir();
+        reflection_bug_fix();
     }
 
-    public bool init()
-    {
-        if (initialized)
-            return true;
-
-	FileLoader.initialize(); // Set correct working directory
-
-        if (SDL.init(SDL.InitFlag.EVERYTHING) < 0)
-        {
-            print("Environment: Could not init SDL!\n");
-            return false;
-        }
-
-        bugfix();
-        LabelLoader.initialize();
-
-        initialized = true;
-        return true;
-    }
-
-    public void set_multisampling(int multisampling)
-    {
-        int s = (int)Math.pow(2, multisampling);
-        SDL.GL.set_attribute(SDL.GLattr.MULTISAMPLEBUFFERS, 1);
-        SDL.GL.set_attribute(SDL.GLattr.MULTISAMPLESAMPLES, s);
-    }
-
-    public Window? createWindow(string name, int width, int height, bool fullscreen)
-    {
-        if (!initialized)
-            return null;
-        var flags = WindowFlags.RESIZABLE | WindowFlags.OPENGL;
-        if (fullscreen)
-            flags |= WindowFlags.FULLSCREEN_DESKTOP;
-        return new Window(name, Window.POS_CENTERED, Window.POS_CENTERED, width, height, flags);
-    }
-
-    public GLContext? create_context(Window window)
-    {
-        GLContext? context = SDL.GL.create_context(window);
-        if (context == null)
-            return null;
-
-        SDL.GL.set_attribute(GLattr.CONTEXT_MAJOR_VERSION, 2);
-        SDL.GL.set_attribute(GLattr.CONTEXT_MINOR_VERSION, 1);
-        SDL.GL.set_attribute(GLattr.CONTEXT_PROFILE_MASK, 1); // Core Profile
-        GLEW.experimental = true;
-
-        if (GLEW.init())
-        {
-            print("Environment: Could not init GLEW!\n");
-            return null;
-        }
-
-        return context;
-    }
-
-    public void exit()
-    {
-        if (initialized)
-        {
-            SDL.quit();
-            initialized = false;
-        }
-    }
-
-    // TODO: Fix class reflection bug...
-    private void bugfix()
+    // TODO: Find better way to fix class reflection bug
+    private static void reflection_bug_fix()
     {
         typeof(Serializable).class_ref();
         typeof(SerializableList).class_ref();
@@ -95,6 +37,8 @@ public class Environment : Object
         typeof(Lobby.LobbyInformation).class_ref();
         typeof(Lobby.ServerLobbyMessage).class_ref();
         typeof(Lobby.ServerLobbyMessageCloseTunnel).class_ref();
+        typeof(Lobby.ServerLobbyMessageVersionMismatch).class_ref();
+        typeof(Lobby.ServerLobbyMessageVersionInfo).class_ref();
         typeof(Lobby.ServerLobbyMessageAuthenticationResult).class_ref();
         typeof(Lobby.ServerLobbyMessageLobbyEnumerationResult).class_ref();
         typeof(Lobby.ServerLobbyMessageEnterLobbyResult).class_ref();
@@ -107,7 +51,65 @@ public class Environment : Object
         typeof(Lobby.ServerLobbyMessageUserEnteredGame).class_ref();
         typeof(Lobby.ServerLobbyMessageUserLeftGame).class_ref();
 
+        typeof(Lobby.ClientLobbyMessage).class_ref();
+        typeof(Lobby.ClientLobbyMessageCloseTunnel).class_ref();
+        typeof(Lobby.ClientLobbyMessageVersionInfo).class_ref();
+        typeof(Lobby.ClientLobbyMessageGetLobbies).class_ref();
+        typeof(Lobby.ClientLobbyMessageAuthenticate).class_ref();
+        typeof(Lobby.ClientLobbyMessageEnterLobby).class_ref();
+        typeof(Lobby.ClientLobbyMessageLeaveLobby).class_ref();
+        typeof(Lobby.ClientLobbyMessageEnterGame).class_ref();
+        typeof(Lobby.ClientLobbyMessageLeaveGame).class_ref();
+        typeof(Lobby.ClientLobbyMessageCreateGame).class_ref();
+
         typeof(NullBot).class_ref();
         typeof(SimpleBot).class_ref();
     }
+
+    private static void set_working_dir()
+    {
+	// This makes relative paths work by changing directory to the Resources folder inside the .app bundle
+	#if MAC
+        void *mainBundle = CFBundleGetMainBundle();
+        void *resourcesURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
+        char path[PATH_MAX];
+        if (!CFURLGetFileSystemRepresentation(resourcesURL, true, (uint8*)path, PATH_MAX))
+        {
+            // error!
+        }
+        CFRelease(resourcesURL);
+
+        GLib.Environment.set_current_dir((string)path);
+	#endif
+    }
+
+    public static bool compatible(VersionInfo version)
+    {
+        return
+            version.major == version_info.major &&
+            version.minor >= version_info.minor &&
+            version.patch >= version_info.patch &&
+            version.revis >= version_info.revis;
+    }
+
+    public static string sanitize_name(string input)
+    {
+        return Helper.sanitize_string(input).strip();
+    }
+
+    public static bool is_valid_name(string name)
+    {
+        int chars = sanitize_name(name).char_count();
+        return chars >= MIN_NAME_LENGTH && chars <= MAX_NAME_LENGTH;
+    }
+
+    public static VersionInfo version_info { get; private set; }
 }
+
+#if MAC
+static extern const int PATH_MAX;
+static extern void* CFBundleGetMainBundle();
+static extern void* CFBundleCopyResourcesDirectoryURL(void *bundle);
+static extern bool CFURLGetFileSystemRepresentation(void *url, bool b, uint8 *path, int max_path);
+static extern void CFRelease(void *url);
+#endif

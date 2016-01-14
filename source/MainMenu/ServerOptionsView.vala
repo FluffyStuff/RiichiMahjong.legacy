@@ -19,7 +19,7 @@ public class ServerOptionsView : View2D
 
         int padding = 50;
 
-        name_text = new TextInputControl("Player name");
+        name_text = new TextInputControl("Player name", Environment.MAX_NAME_LENGTH);
         add_child(name_text);
         name_text.position = Vec2(0, 0);
 
@@ -43,13 +43,12 @@ public class ServerOptionsView : View2D
 
     private void name_changed()
     {
-        string name = name_text.text.strip();
-        create_button.enabled = (name.char_count() > 0 && name.char_count() < 20);
+        create_button.enabled = Environment.is_valid_name(name_text.text);
     }
 
     private void create_clicked()
     {
-        finished(name_text.text);
+        finished(Environment.sanitize_name(name_text.text));
     }
 
     private void back_clicked()

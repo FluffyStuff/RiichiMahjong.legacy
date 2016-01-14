@@ -37,7 +37,12 @@ public class LobbyConnection
         Connection? con = Networking.join(host, (uint16)port);
 
         if (con != null)
-            return new LobbyConnection(con);
+        {
+            LobbyConnection lobby = new LobbyConnection(con);
+            lobby.send_message(new ClientLobbyMessageVersionInfo(Environment.version_info));
+
+            return lobby;
+        }
 
         return null;
     }
@@ -82,6 +87,19 @@ public class LobbyConnection
         send_message(new ClientLobbyMessageLeaveGame());
     }
 
+    public void disconnect()
+    {
+        tunneled_connection.request_send_message.disconnect(request_tunnel_send);
+        tunneled_connection.request_close.disconnect(request_tunnel_close);
+        connection.closed.disconnect(on_disconnected);
+        connection.message_received.disconnect(received_message);
+
+        connection.close();
+        tunneled_connection.disconnected();
+        disconnected(this);
+        is_disconnected = true;
+    }
+
     private void request_tunnel_send(TunneledGameConnection connection, ClientMessage message)
     {
         mutex.lock();
@@ -96,6 +114,7 @@ public class LobbyConnection
 
     private void on_disconnected(Connection connection)
     {
+        is_disconnected = true;
         tunneled_connection.disconnected();
         disconnected(this);
     }
@@ -120,6 +139,10 @@ public class LobbyConnection
 
         if (message is ServerLobbyMessageCloseTunnel)
             do_close_tunnel(message as ServerLobbyMessageCloseTunnel);
+        else if (message is ServerLobbyMessageVersionMismatch)
+            do_version_mismatch(message as ServerLobbyMessageVersionMismatch);
+        else if (message is ServerLobbyMessageVersionInfo)
+            do_version_info(message as ServerLobbyMessageVersionInfo);
         else if (message is ServerLobbyMessageAuthenticationResult)
             do_authentication_result(message as ServerLobbyMessageAuthenticationResult);
         else if (message is ServerLobbyMessageLobbyEnumerationResult)
@@ -144,9 +167,31 @@ public class LobbyConnection
             do_user_left_game(message as ServerLobbyMessageUserLeftGame);
     }
 
-    private void do_close_tunnel(ServerLobbyMessageCloseTunnel mesasge)
+    private void do_close_tunnel(ServerLobbyMessageCloseTunnel message)
     {
         tunneled_connection.disconnected();
+    }
+
+    private void do_version_mismatch(ServerLobbyMessageVersionMismatch message)
+    {
+        if (message.disconnecting)
+        {
+            version_mismatch = true;
+            disconnect();
+            return;
+        }
+    }
+
+    private void do_version_info(ServerLobbyMessageVersionInfo message)
+    {
+        if (!Environment.compatible(message.version_info))
+        {
+            version_mismatch = true;
+            disconnect();
+            return;
+        }
+
+        server_version = message.version_info;
     }
 
     private void do_authentication_result(ServerLobbyMessageAuthenticationResult result)
@@ -214,7 +259,10 @@ public class LobbyConnection
         mutex.unlock();
     }
 
+    public bool is_disconnected { get; private set; }
+    public bool version_mismatch { get; private set; }
     public bool authenticated { get; private set; }
+    public VersionInfo? server_version { get; private set; }
     public LobbyInformation[]? lobbies { get; private set; }
     public ClientLobby? current_lobby { get; private set; }
     public TunneledGameConnection tunneled_connection { get; private set; }

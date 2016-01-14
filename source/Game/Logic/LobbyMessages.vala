@@ -4,6 +4,16 @@ namespace Lobby
 
     public class ClientLobbyMessageCloseTunnel : ClientLobbyMessage {}
 
+    public class ClientLobbyMessageVersionInfo : ClientLobbyMessage
+    {
+        public ClientLobbyMessageVersionInfo(VersionInfo version_info)
+        {
+            this.version_info = version_info;
+        }
+
+        public VersionInfo version_info { get; protected set; }
+    }
+
     public class ClientLobbyMessageGetLobbies : ClientLobbyMessage {}
 
     public class ClientLobbyMessageAuthenticate : ClientLobbyMessage
@@ -45,6 +55,26 @@ namespace Lobby
     public class ServerLobbyMessage : Serializable {}
 
     public class ServerLobbyMessageCloseTunnel : ServerLobbyMessage {}
+
+    public class ServerLobbyMessageVersionInfo : ServerLobbyMessage
+    {
+        public ServerLobbyMessageVersionInfo(VersionInfo version_info)
+        {
+            this.version_info = version_info;
+        }
+
+        public VersionInfo version_info { get; protected set; }
+    }
+
+    public class ServerLobbyMessageVersionMismatch : ServerLobbyMessage
+    {
+        public ServerLobbyMessageVersionMismatch(bool disconnecting)
+        {
+            this.disconnecting = disconnecting;
+        }
+
+        public bool disconnecting { get; protected set; }
+    }
 
     public class ServerLobbyMessageAuthenticationResult : ServerLobbyMessage
     {

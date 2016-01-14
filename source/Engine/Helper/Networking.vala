@@ -201,6 +201,11 @@ public class Connection : Object
         this.connection = connection;
     }
 
+    ~Connection()
+    {
+        close();
+    }
+
     public void send(Message message)
     {
         try

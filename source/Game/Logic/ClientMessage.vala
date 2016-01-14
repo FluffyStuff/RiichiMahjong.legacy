@@ -89,12 +89,14 @@ public abstract class ClientMessage : Serializable
 
 public class ClientMessageAuthenticate : ClientMessage
 {
-    public ClientMessageAuthenticate(string name)
+    public ClientMessageAuthenticate(string name, VersionInfo version_info)
     {
         this.name = name;
+        this.version_info = version_info;
     }
 
     public string name { get; protected set; }
+    public VersionInfo version_info { get; protected set; }
 }
 
 public class ClientMessageMenuGameStart : ClientMessage {}
