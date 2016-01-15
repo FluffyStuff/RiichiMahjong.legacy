@@ -47,6 +47,11 @@ namespace GameServer
             default_action();
         }
 
+        public void set_disconnected(int index)
+        {
+            validator.get_player(index).disconnected = true;
+        }
+
         public void start(float time)
         {
             current_time = time;
@@ -330,8 +335,13 @@ namespace GameServer
 
         private void turn_decision(int player_index)
         {
-            game_get_turn_decision(player_index);
-            reset_timeout();
+            if (!validator.get_player(player_index).disconnected)
+            {
+                game_get_turn_decision(player_index);
+                reset_timeout();
+            }
+            else
+                default_action();
         }
 
         private void call_decisions()

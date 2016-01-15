@@ -43,9 +43,11 @@
 		</Compiler>
 		<Unit filename="Makefile" />
 		<Unit filename="source/Engine/Audio/AudioPlayer.vala" />
+		<Unit filename="source/Engine/Engine.vala" />
 		<Unit filename="source/Engine/Files/FileLoader.vala" />
 		<Unit filename="source/Engine/Files/ObjParser.vala" />
 		<Unit filename="source/Engine/Helper/Calculations.vala" />
+		<Unit filename="source/Engine/Helper/Helper.vala" />
 		<Unit filename="source/Engine/Helper/Keys.vala" />
 		<Unit filename="source/Engine/Helper/LabelLoader.vala" />
 		<Unit filename="source/Engine/Helper/Networking.vala" />
@@ -119,6 +121,7 @@
 		<Unit filename="source/Game/Logic/ServerMessage.vala" />
 		<Unit filename="source/Game/Logic/Tile.vala" />
 		<Unit filename="source/Game/Logic/TileRules.vala" />
+		<Unit filename="source/Game/Logic/VersionInfo.vala" />
 		<Unit filename="source/Game/MusicPlayer.vala" />
 		<Unit filename="source/Game/Options.vala" />
 		<Unit filename="source/Game/Rendering/GameRenderView.vala" />

@@ -2,9 +2,10 @@ namespace GameServer
 {
     public abstract class ServerPlayer : Object
     {
-        public ServerPlayer(string name)
+        public ServerPlayer(string name, bool bot)
         {
             this.name = name;
+            this.bot = bot;
         }
 
         public signal void disconnected(ServerPlayer player);
@@ -16,6 +17,8 @@ namespace GameServer
         public State state { get; protected set; }
         public bool ready { get; protected set; }
         public string name { get; private set; }
+        public bool bot { get; private set; }
+        public bool is_disconnected { get; set; }
 
         public enum State
         {
@@ -30,7 +33,7 @@ namespace GameServer
 
         public ServerHumanPlayer(ServerPlayerConnection connection, string name)
         {
-            base(name);
+            base(name, false);
 
             // TODO: Remove this
             ready = true;
@@ -70,12 +73,12 @@ namespace GameServer
 
     class ServerComputerPlayer : ServerPlayer
     {
-        private BotConnection bot;
+        private BotConnection bot_connection;
         private ServerPlayerConnection connection;
 
         public ServerComputerPlayer(Bot bot)
         {
-            base(bot.name);
+            base(bot.name, true);
 
             ready = true;
             state = State.PLAYER;
@@ -86,7 +89,7 @@ namespace GameServer
             server.set_connection(local);
             local.set_connection(server);
 
-            this.bot = new BotConnection(bot, local);
+            bot_connection = new BotConnection(bot, local);
 
             connection = server;
             connection.receive_message.connect(forward_message);
@@ -94,7 +97,7 @@ namespace GameServer
 
         ~ServerComputerPlayer()
         {
-            bot.stop();
+            bot_connection.stop();
             connection.receive_message.disconnect(forward_message);
         }
 
@@ -110,7 +113,7 @@ namespace GameServer
 
         public override void close()
         {
-            bot.stop();
+            bot_connection.stop();
         }
     }
 
@@ -185,6 +188,7 @@ namespace GameServer
         public override void close()
         {
             close_connection_request(this);
+            disconnected();
         }
     }
 

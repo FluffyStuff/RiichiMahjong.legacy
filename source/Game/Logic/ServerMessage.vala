@@ -79,6 +79,16 @@ public class ServerMessageRoundStart : ServerMessage
     public RoundStartInfo info { get; protected set; }
 }
 
+public class ServerMessagePlayerLeft : ServerMessage
+{
+    public ServerMessagePlayerLeft(int player_index)
+    {
+        this.player_index = player_index;
+    }
+
+    public int player_index { get; protected set; }
+}
+
 public class ServerMessageTileAssignment : ServerMessage
 {
     public ServerMessageTileAssignment(int tile_ID, int tile_type, bool dora)

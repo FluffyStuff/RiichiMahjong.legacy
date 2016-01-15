@@ -40,7 +40,7 @@ public class MainWindow : RenderWindow
         main_view.add_child(menu);
     }
 
-    private void game_start(GameStartInfo info, IGameConnection connection, int player_index)
+    private GameController game_start(GameStartInfo info, IGameConnection connection, int player_index)
     {
         /*main_view.remove_child(menu);
         menu = null;*/
@@ -48,6 +48,8 @@ public class MainWindow : RenderWindow
         game_controller = new GameController(game_view, info, connection, player_index, new Options.from_disk());
         game_controller.finished.connect(game_finished);
         game_running = true;
+
+        return game_controller;
     }
 
     private void game_finished()
@@ -61,6 +63,11 @@ public class MainWindow : RenderWindow
             escape_menu = null;
         }
         //create_main_menu();
+    }
+
+    private void leave_game_pressed()
+    {
+        game_controller.finished();
     }
 
     private void restart()
@@ -97,7 +104,7 @@ public class MainWindow : RenderWindow
                     escape_menu = new GameEscapeMenuView();
                     escape_menu.apply_options.connect(apply_options);
                     escape_menu.close_menu.connect(close_menu);
-                    escape_menu.leave_game.connect(game_finished);
+                    escape_menu.leave_game.connect(leave_game_pressed);
                     main_view.add_child(escape_menu);
                 }
                 else

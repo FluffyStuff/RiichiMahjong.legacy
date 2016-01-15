@@ -9,6 +9,11 @@ namespace GameServer
         private ServerNetworking? net = null;
         private ClientMessageParser parser = new ClientMessageParser();
 
+        private ServerPlayer host;
+        private ArrayList<ServerPlayer> players;
+        private ArrayList<ServerPlayer> observers;
+        private GameStartInfo info;
+
         private Mutex mutex = Mutex();
         private bool started = false;
         private bool finished = false;
@@ -84,8 +89,10 @@ namespace GameServer
                 stop_listening();
             }
 
-            ArrayList<ServerPlayer> players = menu.players;
-            ArrayList<ServerPlayer> observers = menu.observers;
+            host = menu.host;
+            players = menu.players;
+            observers = menu.observers;
+            this.info = info;
 
             foreach (ServerPlayer player in players)
             {
@@ -96,16 +103,13 @@ namespace GameServer
             menu = null;
 
             ref(); // Keep alive until graceful shutdown
-            Threading.start3(server_worker, players, observers, info);
+            Threading.start0(server_worker);
 
             mutex.unlock();
         }
 
-        private void server_worker(Object players_obj, Object observers_obj, Object start_info_obj)
+        private void server_worker()
         {
-            ArrayList<ServerPlayer> players = players_obj as ArrayList<ServerPlayer>;
-            ArrayList<ServerPlayer> observers = observers_obj as ArrayList<ServerPlayer>;
-            GameStartInfo info = (GameStartInfo)start_info_obj;
             Rand rnd = new Rand();
 
             server = new Server(players, observers, rnd, info);
@@ -113,12 +117,14 @@ namespace GameServer
 
             while (!finished && !server.finished)
             {
+                mutex.lock();
                 process_messages();
                 server.process((float)timer.elapsed());
+                mutex.unlock();
                 sleep();
             }
 
-            die(players, observers);
+            die();
 
             unref(); // Allow graceful deallocation
         }
@@ -142,10 +148,18 @@ namespace GameServer
 
         private void player_disconnected(ServerPlayer player)
         {
-            finished = true;
+            if (player == host)
+            {
+                kill();
+                return;
+            }
+
+            mutex.lock();
+            server.player_disconnected(player);
+            mutex.unlock();
         }
 
-        private void die(ArrayList<ServerPlayer> players, ArrayList<ServerPlayer> observers)
+        private void die()
         {
             foreach (ServerPlayer player in players)
             {

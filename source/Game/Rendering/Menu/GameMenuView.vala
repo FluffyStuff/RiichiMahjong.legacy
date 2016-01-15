@@ -35,6 +35,7 @@ public class GameMenuView : View2D
     public signal void continue_pressed();
     public signal void void_hand_pressed();
     public signal void display_score_pressed();
+    public signal void score_timer_expired();
 
     private void press_chii() { chii_pressed(); }
     private void press_pon() { pon_pressed(); }
@@ -218,7 +219,7 @@ public class GameMenuView : View2D
         timer.visible = enabled;
     }
 
-    public void display_score(RoundScoreState score, bool timer)
+    public void display_score(RoundScoreState score, bool timer, bool force_game_time)
     {
         if (score_view != null)
         {
@@ -231,14 +232,39 @@ public class GameMenuView : View2D
             }
         }
 
-        score_view = new ScoringView(score, player_index, timer, round_time, hanchan_time, game_time);
+        score_view = new ScoringView(score, player_index, timer, round_time, hanchan_time, game_time, force_game_time);
         add_child(score_view);
+        score_view.timer_expired.connect(do_score_timer_expired);
     }
 
     public void hide_score()
     {
         if (score_view != null)
             score_view.visible = false;
+    }
+
+    public void display_disconnected()
+    {
+        DisconnectedMenuView view = new DisconnectedMenuView();
+        add_child(view);
+        view.ok_pressed.connect(menu_ok_pressed);
+    }
+
+    public void display_player_left(string name)
+    {
+        DisconnectedMenuView view = new DisconnectedMenuView.player(name);
+        add_child(view);
+        view.ok_pressed.connect(menu_ok_pressed);
+    }
+
+    private void menu_ok_pressed(DisconnectedMenuView view)
+    {
+        remove_child(view);
+    }
+
+    private void do_score_timer_expired()
+    {
+        score_timer_expired();
     }
 
     protected override void do_process(DeltaArgs delta)
@@ -253,11 +279,66 @@ public class GameMenuView : View2D
         if (t == decision_time)
             t--;
 
+        if (t < 0)
+        {
+            timer.visible = false;
+            return;
+        }
+
         timer.color = t < 3 ? Color.red() : Color.white();
 
         string str = t.to_string();
 
         if (str != timer.text)
             timer.text = str;
+    }
+
+    private class DisconnectedMenuView : View2D
+    {
+        private string message;
+
+        public signal void ok_pressed(DisconnectedMenuView view);
+
+        public DisconnectedMenuView()
+        {
+            message = "Connection to server lost";
+        }
+
+        public DisconnectedMenuView.player(string name)
+        {
+            message = name + " has left the game";
+        }
+
+        public override void added()
+        {
+            View2D container = new View2D();
+            add_child(container);
+            RectangleControl background = new RectangleControl();
+            container.add_child(background);
+            background.color = Color.with_alpha(0.5f);
+            background.resize_style = ResizeStyle.RELATIVE;
+            background.selectable = true;
+            background.cursor_type = CursorType.NORMAL;
+
+            int padding = 50;
+
+            LabelControl label = new LabelControl();
+            add_child(label);
+            label.text = message;
+            label.font_size = 50;
+            label.inner_anchor = Vec2(0.5f, 0);
+            label.position = Vec2(0, padding / 2);
+
+            MenuTextButton button = new MenuTextButton("MenuButton", "OK");
+            add_child(button);
+            button.inner_anchor = Vec2(0.5f, 1);
+            button.position = Vec2(0, -padding / 2);
+            button.clicked.connect(button_pressed);
+        }
+
+        private void button_pressed()
+        {
+            ok_pressed(this);
+        }
     }
 }

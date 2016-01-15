@@ -16,7 +16,7 @@ class MainMenuView : View2D
     private MenuTextButton options_button;
     private MenuTextButton quit_button;
 
-    public signal void game_start(GameStartInfo info, IGameConnection connection, int player_index);
+    public signal GameController game_start(GameStartInfo info, IGameConnection connection, int player_index);
     public signal void restart();
     public signal void quit();
 
@@ -74,7 +74,7 @@ class MainMenuView : View2D
         clear_all();
 
         lobby_view = new LobbyConnectionView();
-        lobby_view.start_game.connect(menu_game_start);
+        lobby_view.start_game.connect(menu_game_start_controller);
         lobby_view.back.connect(lobby_back);
         add_child(lobby_view);
     }
@@ -163,6 +163,11 @@ class MainMenuView : View2D
     private void menu_game_start(GameStartInfo info, IGameConnection connection, int player_index)
     {
         game_start(info, connection, player_index);
+    }
+
+    private GameController menu_game_start_controller(GameStartInfo info, IGameConnection connection, int player_index)
+    {
+        return game_start(info, connection, player_index);
     }
 
     public override void added()

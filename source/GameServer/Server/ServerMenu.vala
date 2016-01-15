@@ -7,7 +7,6 @@ namespace GameServer
         private Mutex mutex = Mutex();
 
         private ClientMessageParser parser = new ClientMessageParser();
-        private ServerPlayer? host = null;
         private ServerPlayer?[] slots = new ServerPlayer?[4];
         private Rand rnd = new Rand();
 
@@ -237,6 +236,7 @@ namespace GameServer
             return seats;
         }
 
+        public ServerPlayer? host { get; private set; }
         public ArrayList<ServerPlayer> players { get; private set; }
         public ArrayList<ServerPlayer> observers { get; private set; }
     }

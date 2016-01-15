@@ -50,6 +50,7 @@ namespace GameServer
         public Tile default_discard_tile { owned get { return player.get_default_discard_tile(); } }
         public ArrayList<Tile> hand { get { return player.hand; } }
         public bool open { get { return player.open; } }
+        public bool disconnected { get; set; }
     }
 
     public enum PlayerState

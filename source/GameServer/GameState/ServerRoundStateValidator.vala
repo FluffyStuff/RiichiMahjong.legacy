@@ -91,7 +91,7 @@ namespace GameServer
 
             foreach (ServerRoundStatePlayer player in this.players)
             {
-                if (player.index == state.current_player.index)
+                if (player.index == state.current_player.index || player.disconnected)
                     continue;
 
                 if (state.can_ron(player.player) ||

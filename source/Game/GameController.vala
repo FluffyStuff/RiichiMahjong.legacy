@@ -12,6 +12,7 @@ public class GameController : Object
 
     private Options options;
     private bool game_finished = false;
+    private bool is_disconnected = false;
     public signal void finished();
 
     public GameController(Container parent_view, GameStartInfo start_info, IGameConnection connection, int player_index, Options options)
@@ -57,6 +58,11 @@ public class GameController : Object
                 ServerMessageRoundStart start = message as ServerMessageRoundStart;
                 create_round(start.info);
             }
+            else if (message is ServerMessagePlayerLeft && !game.game_is_finished)
+            {
+                ServerMessagePlayerLeft msg = message as ServerMessagePlayerLeft;
+                menu.display_player_left(game.get_player(msg.player_index).name);
+            }
         }
 
         if (!game.round_is_finished)
@@ -64,7 +70,7 @@ public class GameController : Object
             if (round.finished)
             {
                 var result = game.round_finished(round.result);
-                menu.display_score(result, true);
+                menu.display_score(result, true, false);
             }
         }
     }
@@ -135,6 +141,7 @@ public class GameController : Object
         game.start_round(info);
         menu = new GameMenuView(player_index, start_info.decision_time, start_info.round_wait_time, start_info.hanchan_wait_time, start_info.game_wait_time);
         menu.display_score_pressed.connect(display_score_pressed);
+        menu.score_timer_expired.connect(score_timer_expired);
 
         renderer = new GameRenderView(info, player_index, game.round_wind, game.dealer_index, options, game.score);
         parent_view.add_child(renderer);
@@ -152,16 +159,25 @@ public class GameController : Object
     private void display_score_pressed()
     {
         if (menu != null)
-            menu.display_score(game.score, false);
+            menu.display_score(game.score, false, false);
+    }
+
+    private void score_timer_expired()
+    {
+        if (game.game_is_finished || is_disconnected)
+            game_finished = true;
     }
 
     private void disconnected()
     {
-        finish_game();
-    }
+        is_disconnected = true;
 
-    private void finish_game()
-    {
-        game_finished = true;
+        if (menu != null && !game.game_is_finished)
+        {
+            if (round != null)
+                round.disconnected();
+            menu.display_score(game.score, true, true);
+            menu.display_disconnected();
+        }
     }
 }

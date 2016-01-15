@@ -70,6 +70,11 @@ public class ClientRoundState : Object
         parser.execute(message);
     }
 
+    public void disconnected()
+    {
+        decision_finished();
+    }
+
     private void decision_finished()
     {
         action_state = State.DONE;

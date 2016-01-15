@@ -88,6 +88,33 @@ namespace GameServer
                 round.message_received(player, message);
         }
 
+        public void player_disconnected(ServerPlayer player)
+        {
+            player.is_disconnected = true;
+
+            if (finished || action_state == State.GAME_FINISHED)
+                return;
+
+            for (int i = 0; i < players.size; i++)
+            {
+                if (players[i] == player)
+                {
+                    ServerMessagePlayerLeft message = new ServerMessagePlayerLeft(i);
+
+                    foreach (ServerPlayer p in players)
+                        p.send_message(message);
+
+                    foreach (ServerPlayer p in spectators)
+                        p.send_message(message);
+
+                    if (round != null)
+                        round.player_disconnected(i);
+
+                    break;
+                }
+            }
+        }
+
         private void start_round(float time)
         {
             action_state = State.ACTIVE;

@@ -20,7 +20,7 @@ public class LobbyView : View2D
     private bool do_create_game = false;
     private int padding = 80;
 
-    public signal void start_game(GameStartInfo info, IGameConnection connection, int player_index);
+    public signal GameController start_game(GameStartInfo info, IGameConnection connection, int player_index);
     public signal void back();
 
     public LobbyView(LobbyConnection connection)
@@ -181,7 +181,8 @@ public class LobbyView : View2D
     private void do_start_game(GameStartInfo info, IGameConnection connection, int player_index)
     {
         remove_child(server_menu);
-        start_game(info, connection, player_index);
+        GameController controller = start_game(info, connection, player_index);
+        controller.finished.connect(return_to_lobby);
     }
 
     private void game_back()

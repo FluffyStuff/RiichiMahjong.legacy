@@ -252,6 +252,11 @@ public class GameState : Object
         riichi_count++;
     }
 
+    public GameScorePlayer get_player(int index)
+    {
+        return players[index];
+    }
+
     private void calculate_score()
     {
         GameScorePlayer[] ordered_players = new GameScorePlayer[players.length];

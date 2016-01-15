@@ -16,14 +16,16 @@ public class ScoringView : View2D
     private float time;
     private float start_time = 0;
 
-    public ScoringView(RoundScoreState score, int player_index, bool timer, int round_time, int hanchan_time, int game_time)
+    public signal void timer_expired();
+
+    public ScoringView(RoundScoreState score, int player_index, bool timer, int round_time, int hanchan_time, int game_time, bool force_game_time)
     {
         this.score = score;
         display_timer = timer;
         this.player_index = player_index;
         relative_size = Size2(0.9f, 0.9f);
 
-        if (score.game_is_finished)
+        if (score.game_is_finished || force_game_time)
             time = game_time;
         else if (score.hanchan_is_finished)
             time = hanchan_time;
@@ -111,7 +113,16 @@ public class ScoringView : View2D
         if (start_time == 0)
             start_time = delta.time;
 
-        int t = int.max((int)(start_time + time - delta.time), 0);
+        int t = (int)(start_time + time - delta.time);
+
+        if (t < 0)
+        {
+            display_timer = false;
+            time_label.visible = false;
+            timer_expired();
+            return;
+        }
+
         string str = t.to_string();
 
         if (str != time_label.text)

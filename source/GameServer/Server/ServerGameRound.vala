@@ -55,6 +55,9 @@ namespace GameServer
             {
                 GameRoundServerPlayer player = new GameRoundServerPlayer(players[i], i);
                 this.players.add(player);
+
+                if (player.server_player.is_disconnected)
+                    round.set_disconnected(player.index);
             }
 
             /*foreach (ServerPlayer player in spectators)
@@ -86,6 +89,11 @@ namespace GameServer
         public void message_received(ServerPlayer player, ClientMessage message)
         {
             parser.add(player, message);
+        }
+
+        public void player_disconnected(int index)
+        {
+            round.set_disconnected(index);
         }
 
         ///////////////////////
