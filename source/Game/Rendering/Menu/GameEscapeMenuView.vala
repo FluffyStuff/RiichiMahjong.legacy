@@ -17,10 +17,8 @@ public class GameEscapeMenuView : View2D
 
     protected override void added()
     {
-        View2D view = new View2D();
-        add_child(view);
         RectangleControl background = new RectangleControl();
-        view.add_child(background);
+        add_child(background);
         background.color = Color.with_alpha(0.7f);
         background.resize_style = ResizeStyle.RELATIVE;
         background.selectable = true;

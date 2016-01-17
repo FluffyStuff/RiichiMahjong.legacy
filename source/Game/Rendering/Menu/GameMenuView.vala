@@ -311,10 +311,8 @@ public class GameMenuView : View2D
 
         public override void added()
         {
-            View2D container = new View2D();
-            add_child(container);
             RectangleControl background = new RectangleControl();
-            container.add_child(background);
+            add_child(background);
             background.color = Color.with_alpha(0.5f);
             background.resize_style = ResizeStyle.RELATIVE;
             background.selectable = true;

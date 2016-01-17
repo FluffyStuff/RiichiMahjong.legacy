@@ -8,7 +8,6 @@ class GameMenuButton : Control
 
     public GameMenuButton(string name)
     {
-        base();
         this.name = name;
         selectable = true;
     }
@@ -30,7 +29,7 @@ class GameMenuButton : Control
     {
         if (!enabled)
         {
-            button.diffuse_color = Color.with_alpha(0.02f);
+            button.diffuse_color = Color.with_alpha(0.1f);
         }
         else
         {

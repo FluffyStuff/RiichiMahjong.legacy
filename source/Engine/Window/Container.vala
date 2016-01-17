@@ -62,8 +62,6 @@ public abstract class Container : Object
 
         for (int i = 0; i < children.size; i++)
             children[i].render(state, scene);
-
-        state.add_scene(scene);
     }
 
 

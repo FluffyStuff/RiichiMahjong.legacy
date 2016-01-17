@@ -35,12 +35,12 @@ public class ScoringView : View2D
 
     public override void added()
     {
-        View2D container = new View2D();
-        add_child(container);
+        ResetContainer reset = new ResetContainer();
+        add_child(reset);
         rectangle = new RectangleControl();
-        container.add_child(rectangle);
+        reset.add_child(rectangle);
         rectangle.resize_style = ResizeStyle.RELATIVE;
-        rectangle.color = Color.with_alpha(0.5f);
+        rectangle.color = Color.with_alpha(0.7f);
         rectangle.selectable = true;
         rectangle.cursor_type = CursorType.NORMAL;
 

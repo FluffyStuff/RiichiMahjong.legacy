@@ -23,7 +23,7 @@ class MainMenuBackgroundView : View2D
     }
 }
 
-class MainMenuBackgroundImageView : View2D
+class MainMenuBackgroundImageView : ResetContainer
 {
     public override void added()
     {

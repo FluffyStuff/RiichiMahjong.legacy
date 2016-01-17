@@ -19,14 +19,12 @@ class MenuTextButton : Control
         click_sound = store.audio_player.load_sound("click");
         hover_sound = store.audio_player.load_sound("mouse_over");
 
-        View2D container = new View2D();
-        add_child(container);
         button = new ImageControl("Buttons/" + name);
-        container.add_child(button);
+        add_child(button);
         button.resize_style = ResizeStyle.RELATIVE;
 
         label = new LabelControl();
-        container.add_child(label);
+        add_child(label);
         label.text = text;
         selectable = true;
 
@@ -38,8 +36,8 @@ class MenuTextButton : Control
     {
         if (!enabled)
         {
-            button.diffuse_color = Color.with_alpha(0.05f);
-            label.color = Color(1, 1, 1, 0.05f);
+            button.diffuse_color = Color.with_alpha(0.1f);
+            label.color = Color(1, 1, 1, 0.1f);
         }
         else
         {

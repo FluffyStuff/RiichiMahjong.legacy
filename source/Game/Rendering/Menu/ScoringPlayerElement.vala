@@ -24,10 +24,8 @@ class ScoringPlayerElement : Control
     {
         resize_style = ResizeStyle.ABSOLUTE;
 
-        View2D container = new View2D();
-        add_child(container);
         background = new ImageControl("Menu/score_background");
-        container.add_child(background);
+        add_child(background);
         size = background.end_size;
 
         int padding = 10;
