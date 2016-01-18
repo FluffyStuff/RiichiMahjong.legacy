@@ -20,6 +20,11 @@ public struct Vec2
         return Vec2(x + other.x, y + other.y);
     }
 
+    public Vec2 minus(Vec2 other)
+    {
+        return Vec2(x - other.x, y - other.y);
+    }
+
     public Vec2 mul_scalar(float scalar)
     {
         return Vec2(x * scalar, y * scalar);

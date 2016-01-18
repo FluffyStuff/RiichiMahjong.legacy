@@ -11,6 +11,11 @@ public class LabelControl : EndControl
         color = Color.white();
     }
 
+    protected override RenderObject2D get_obj()
+    {
+        return label;
+    }
+
     public Color color
     {
         get
@@ -55,17 +60,6 @@ public class LabelControl : EndControl
             size = end_size;
             //resize();
         }
-    }
-
-    public override void set_end_rect(Rectangle rect)
-    {
-        label.position = rect.position;
-        label.scale = rect.size;
-    }
-
-    public override void render_end(RenderScene2D scene)
-    {
-        scene.add_object(label);
     }
 
     public override Size2 end_size { get { return label.info.size.to_size2(); } }

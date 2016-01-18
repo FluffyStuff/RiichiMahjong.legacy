@@ -7,6 +7,8 @@ public abstract class Container : Object
     private Size2 _relative_size = Size2(1, 1);
     private Rectangle _rect;
     private ResizeStyle _resize_style = ResizeStyle.RELATIVE;
+    private bool _scissor = false;
+    private Rectangle _scissor_box;
     private bool _visible = true;
 
     protected Gee.ArrayList<Container> children = new Gee.ArrayList<Container>();
@@ -251,6 +253,28 @@ public abstract class Container : Object
         {
             _resize_style = value;
             resize();
+        }
+    }
+
+    public bool scissor
+    {
+        get { return _scissor; }
+        set
+        {
+            _scissor = value;
+            foreach (var child in children)
+                child.scissor = value;
+        }
+    }
+
+    public Rectangle scissor_box
+    {
+        get { return _scissor_box; }
+        set
+        {
+            _scissor_box = value;
+            foreach (var child in children)
+                child.scissor_box = value;
         }
     }
 

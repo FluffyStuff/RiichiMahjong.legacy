@@ -147,11 +147,26 @@ public abstract class Control : Container
         Vec2 bottom_left = Vec2(rect.x, rect.y);
         Vec2 top_right = Vec2(rect.x + rect.width, rect.y + rect.height);
 
-        return
-            point.x >= bottom_left.x &&
+        if (!
+           (point.x >= bottom_left.x &&
             point.x <= top_right.x &&
             point.y >= bottom_left.y &&
-            point.y <= top_right.y;
+            point.y <= top_right.y))
+            return false;
+
+        if (scissor)
+        {
+            bottom_left = Vec2(scissor_box.x, scissor_box.y);
+            top_right = Vec2(scissor_box.x + scissor_box.width, scissor_box.y + scissor_box.height);
+
+            return
+                point.x >= bottom_left.x &&
+                point.x <= top_right.x &&
+                point.y >= bottom_left.y &&
+                point.y <= top_right.y;
+        }
+
+        return true;
     }
 
     public bool enabled { get; set; }
@@ -164,22 +179,22 @@ public abstract class Control : Container
 
 public abstract class EndControl : Control
 {
-    protected EndControl()
-    {
-        base();
-    }
+    private RenderObject2D obj;
 
     public override void added()
     {
         on_added();
 
+        obj = get_obj();
         resize_style = ResizeStyle.ABSOLUTE;
         size = end_size;
     }
 
     public override void do_render(RenderState state, RenderScene2D scene)
     {
-        render_end(scene);
+        obj.scissor = scissor;
+        obj.scissor_box = scissor_box;
+        scene.add_object(obj);
     }
 
     public override void resized()
@@ -190,8 +205,15 @@ public abstract class EndControl : Control
         set_end_rect(Rectangle.vec(new_pos, new_scale));
     }
 
+    private void set_end_rect(Rectangle rect)
+    {
+        obj.position = rect.position;
+        obj.scale = rect.size;
+    }
+
     protected virtual void on_added() {}
-    protected abstract void set_end_rect(Rectangle rect);
-    protected abstract void render_end(RenderScene2D scene);
+    //protected abstract void set_end_rect(Rectangle rect);
+    //protected abstract void render_end(RenderScene2D scene);
+    protected abstract RenderObject2D get_obj();
     public abstract Size2 end_size { get; }
 }

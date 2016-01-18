@@ -1,11 +1,27 @@
 public abstract class RenderObject2D : Object
 {
-    public abstract RenderObject2D copy();
+    public RenderObject2D copy()
+    {
+        RenderObject2D obj = copy_new();
+
+        obj.rotation = rotation;
+        obj.position = position;
+        obj.scale = scale;
+        obj.diffuse_color = diffuse_color;
+        obj.scissor = scissor;
+        obj.scissor_box = scissor_box;
+
+        return obj;
+    }
+
+    protected abstract RenderObject2D copy_new();
 
     public float rotation { get; set; }
     public Vec2 position { get; set; }
     public Size2 scale { get; set; }
     public Color diffuse_color { get; set; }
+    public bool scissor { get; set; }
+    public Rectangle scissor_box { get; set; }
 }
 
 public class RenderImage2D : RenderObject2D
@@ -19,15 +35,9 @@ public class RenderImage2D : RenderObject2D
         diffuse_color = Color.with_alpha(1);
     }
 
-    public override RenderObject2D copy()
+    public override RenderObject2D copy_new()
     {
-        RenderImage2D img = new RenderImage2D(texture);
-        img.rotation = rotation;
-        img.position = position;
-        img.scale = scale;
-        img.diffuse_color = diffuse_color;
-
-        return img;
+        return new RenderImage2D(texture);
     }
 
     public RenderTexture? texture { get; set; }
@@ -61,17 +71,13 @@ public class RenderLabel2D : RenderObject2D
         diffuse_color = Color.white();
     }
 
-    public override RenderObject2D copy()
+    public override RenderObject2D copy_new()
     {
         RenderLabel2D img = new RenderLabel2D(handle, reference);
         img.info = info;
         img._font_type = _font_type;
         img._font_size = _font_size;
         img._text = _text;
-        img.rotation = rotation;
-        img.position = position;
-        img.scale = scale;
-        img.diffuse_color = diffuse_color;
 
         return img;
     }
@@ -134,14 +140,8 @@ public class RenderRectangle2D : RenderObject2D
         diffuse_color = Color.black();
     }
 
-    public override RenderObject2D copy()
+    public override RenderObject2D copy_new()
     {
-        RenderRectangle2D rect = new RenderRectangle2D();
-        rect.rotation = rotation;
-        rect.position = position;
-        rect.scale = scale;
-        rect.diffuse_color = diffuse_color;
-
-        return rect;
+        return new RenderRectangle2D();
     }
 }

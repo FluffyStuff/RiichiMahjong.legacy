@@ -87,6 +87,7 @@
 		<Unit filename="source/Engine/Window/Controls/LabelControl.vala" />
 		<Unit filename="source/Engine/Window/Controls/ListControl.vala" />
 		<Unit filename="source/Engine/Window/Controls/RectangleControl.vala" />
+		<Unit filename="source/Engine/Window/Controls/ScrollBarVerticalControl.vala" />
 		<Unit filename="source/Engine/Window/Controls/TextInputControl.vala" />
 		<Unit filename="source/Engine/Window/IWindowTarget.vala" />
 		<Unit filename="source/Engine/Window/MainView.vala" />

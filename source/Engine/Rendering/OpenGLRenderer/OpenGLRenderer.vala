@@ -170,9 +170,26 @@ public class OpenGLRenderer : RenderTarget
         OpenGLShaderProgram2D program = program_2D;
 
         program.apply_scene();
+        bool scissors = false;
 
         foreach (RenderObject2D obj in scene.objects)
         {
+            if (obj.scissor != scissors)
+            {
+                if (obj.scissor)
+                {
+                    glEnable(GL_SCISSOR_TEST);
+                    glScissor((int)Math.round(obj.scissor_box.x),
+                              (int)Math.round(obj.scissor_box.y),
+                              (int)Math.round(obj.scissor_box.width),
+                              (int)Math.round(obj.scissor_box.height));
+                }
+                else
+                    glDisable(GL_SCISSOR_TEST);
+
+                scissors = obj.scissor;
+            }
+
             Type type = obj.get_type();
             if (type == typeof(RenderImage2D))
                 render_image_2D((RenderImage2D)obj, program);
@@ -181,6 +198,9 @@ public class OpenGLRenderer : RenderTarget
             else if (type == typeof(RenderRectangle2D))
                 render_rectangle_2D((RenderRectangle2D)obj, program);
         }
+
+        if (scissors)
+            glDisable(GL_SCISSOR_TEST);
     }
 
     private void render_image_2D(RenderImage2D obj, OpenGLShaderProgram2D program)

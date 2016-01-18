@@ -1,8 +1,11 @@
 public abstract class ListControl : Control
 {
+    private const int SCROLL_SIZE = 38;
+
     private RectangleControl background;
     private ListItemControl? header;
     private ListItemControl[]? items;
+    private ScrollBarVerticalControl? scroll_bar;
     private bool row_selectable;
 
     public signal void selected_index_changed(ListControl list);
@@ -15,12 +18,12 @@ public abstract class ListControl : Control
         this.row_selectable = row_selectable;
     }
 
-    public override void added()
+    protected override void added()
     {
         background = new RectangleControl();
         add_child(background);
         background.resize_style = ResizeStyle.RELATIVE;
-        background.color = Color.with_alpha(0.2f);
+        background.color = Color.with_alpha(0.8f);
 
         selectable = true;
         cursor_type = CursorType.NORMAL;
@@ -41,14 +44,6 @@ public abstract class ListControl : Control
         for (int i = 0; i < columns.length; i++)
             columns[i] = get_column_info(i);
 
-        ListCell[] header_cells = new ListCell[column_count];
-        for (int i = 0; i < column_count; i++)
-            header_cells[i] = new ListCell(columns[i].name, columns[i].style, font_size);
-        header = new ListItemControl.header(header_cells);
-        add_child(header);
-        header.inner_anchor = Vec2(0, 1);
-        header.outer_anchor = Vec2(0, 1);
-
         items = new ListItemControl[row_count];
         for (int i = 0; i < items.length; i++)
         {
@@ -66,13 +61,30 @@ public abstract class ListControl : Control
             item.selected.connect(item_selected);
         }
 
+        ListCell[] header_cells = new ListCell[column_count];
+        for (int i = 0; i < column_count; i++)
+            header_cells[i] = new ListCell(columns[i].name, columns[i].style, font_size);
+        header = new ListItemControl.header(header_cells);
+        add_child(header);
+        header.inner_anchor = Vec2(0, 1);
+        header.outer_anchor = Vec2(0, 1);
+        header.size = Size2(size.width, row_height);
+
+        if (scroll_bar != null)
+            remove_child(scroll_bar);
+        scroll_bar = new ScrollBarVerticalControl();
+        add_child(scroll_bar);
+        scroll_bar.inner_anchor = Vec2(1, 0);
+        scroll_bar.outer_anchor = Vec2(1, 0);
+        scroll_bar.value_changed.connect(value_changed);
+        scroll_bar.maximum = items.length;
+
         resized();
     }
 
     protected override void resized()
     {
-        if (header != null)
-            header.size = Size2(size.width, row_height);
+        scroll_bar.size = Size2(SCROLL_SIZE, size.height - header.size.height);
 
         if (items == null)
             return;
@@ -80,9 +92,13 @@ public abstract class ListControl : Control
         for (int i = 0; i < items.length; i++)
         {
             ListItemControl item = items[i];
-            item.size = Size2(size.width, row_height);
-            item.position = Vec2(0, -(i + 1) * row_height);
+            item.scissor_box = rect;
+            item.scissor = true;
         }
+
+        header.size = Size2(size.width, row_height);
+
+        value_changed();
     }
 
     protected override void on_click(Vec2 pos)
@@ -107,6 +123,45 @@ public abstract class ListControl : Control
         if (!focus)
             item_selected(null);
     }*/
+
+    private void value_changed()
+    {
+        if (items == null)
+        {
+            if (header != null)
+                header.buffer = 0;
+            scroll_bar.visible = false;
+            return;
+        }
+
+        float pos = items.length * row_height - (size.height - header.size.height);
+        float width = size.width;
+
+        if (pos <= 0)
+        {
+            scroll_bar.visible = false;
+            pos = 0;
+
+            if (header != null)
+                header.buffer = 0;
+        }
+        else
+        {
+            scroll_bar.visible = true;
+            pos *= 1 - scroll_bar.fval;
+            width -= SCROLL_SIZE;
+
+            if (header != null)
+                header.buffer = SCROLL_SIZE;
+        }
+
+        for (int i = 0; i < items.length; i++)
+        {
+            ListItemControl item = items[i];
+            item.position = Vec2(0, -(i + 1) * row_height + pos);
+            item.size = Size2(width, row_height);
+        }
+    }
 
     private void item_selected(ListItemControl? control)
     {
@@ -136,6 +191,7 @@ public abstract class ListControl : Control
         private RectangleControl background;
         private ListCell[]? cells;
         private bool is_header;
+        private float _buffer = 0;
 
         public signal void selected(ListItemControl control);
 
@@ -178,7 +234,7 @@ public abstract class ListControl : Control
             if (cells == null)
                 return;
 
-            float rest_width = size.width;
+            float rest_width = size.width - buffer;
             float relative_width = 0;
 
             foreach (ListCell cell in cells)
@@ -242,6 +298,15 @@ public abstract class ListControl : Control
 
         public int index { get; private set; }
         public bool is_selected { get; set; }
+        public float buffer
+        {
+            get { return _buffer; }
+            set
+            {
+                _buffer = value;
+                resized();
+            }
+        }
     }
 
     private class ListCell : Control
