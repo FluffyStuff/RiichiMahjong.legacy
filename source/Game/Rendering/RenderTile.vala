@@ -45,7 +45,7 @@ public class RenderTile
 
     private static RenderTexture get_texture(IResourceStore store, TileType tile_type, bool dora)
     {
-        string name = "Tiles/" + get_tile_type_name(tile_type);
+        string name = "Tiles/Regular/" + get_tile_type_name(tile_type);
 
         if (dora)
         {
