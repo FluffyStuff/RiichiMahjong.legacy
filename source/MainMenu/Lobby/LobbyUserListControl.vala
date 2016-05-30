@@ -11,7 +11,7 @@ public class LobbyUserListControl : ListControl
         row_height = 35;
     }
 
-    public void set_users(ClientLobbyUser[] users)
+    public void set_users(ClientLobbyUser[]? users)
     {
         this.users = users;
         refresh_data();

@@ -50,7 +50,7 @@ class RenderSceneManager : Object
         camera = new Camera();
     }
 
-    public void added(IResourceStore store)
+    public void added(ResourceStore store)
     {
         slide_sound = audio.load_sound("slide");
         flip_sound = audio.load_sound("flip");
@@ -64,11 +64,12 @@ class RenderSceneManager : Object
         chii_sound = audio.load_sound("chii");
         reveal_sound = audio.load_sound("reveal");
 
-        float tile_scale = 1.67f;
+        float tile_scale = 1.74f;
         string extension = Options.quality_enum_to_string(options.model_quality);
 
-        RenderModel tile = store.load_model("tile_" + extension, true);
-        tile_size = tile.size.mul_scalar(tile_scale);
+        RenderGeometry3D tile = store.load_geometry_3D("tile_" + extension, false);
+        tile_size = ((RenderBody3D)tile.geometry[0]).model.size;
+        tile_size = Vec3(tile_size.x, tile_size.y + ((RenderBody3D)tile.geometry[1]).model.size.y, tile_size.z).mul_scalar(tile_scale);
 
         table = new RenderTable(store, extension, tile_size, round_wind, -(float)player_index / 2, score);
 
@@ -77,7 +78,12 @@ class RenderSceneManager : Object
         float wall_offset = (tile_size.x * 19 + tile_size.z) / 2;
 
         for (int i = 0; i < tiles.length; i++)
-            tiles[i] = new RenderTile(store, extension, new Tile(i, TileType.BLANK, false), tile_scale);
+        {
+            RenderTile t = new RenderTile(store, extension, options.tile_textures, new Tile(i, TileType.BLANK, false), tile_scale);
+            t.front_color = options.tile_fore_color;
+            t.back_color = options.tile_back_color;
+            tiles[i] = t;
+        }
 
         wall = new RenderWall(tiles, tile_size, center, wall_offset, dealer, wall_index);
 
@@ -108,12 +114,18 @@ class RenderSceneManager : Object
         position_lights((float)observer.seat / 2);
     }
 
-    public void load_options(IResourceStore store, Options options)
+    public void load_options(ResourceStore store, Options options)
     {
+        this.options = options;
+
         string extension = Options.quality_enum_to_string(options.model_quality);
 
         foreach (RenderTile tile in tiles)
-            tile.reload(store, extension);
+        {
+            tile.reload(store, extension, options.tile_textures);
+            tile.front_color = options.tile_fore_color;
+            tile.back_color = options.tile_back_color;
+        }
         table.reload(store, extension);
     }
 

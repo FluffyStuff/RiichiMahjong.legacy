@@ -27,7 +27,7 @@ public class OpenGLRenderer : RenderTarget
     public OpenGLRenderer(IWindowTarget window)
     {
         base(window);
-        store = new OpenGLResourceStore(this);
+        store = new ResourceStore(this);
     }
 
     protected override bool init()
@@ -112,21 +112,57 @@ public class OpenGLRenderer : RenderTarget
 
         int last_texture_handle = -1;
         int last_array_handle = -1;
-        foreach (RenderObject3D obj in scene.objects)
+
+        Mat4 mat = new Mat4();
+
+        foreach (Transformable3D obj in scene.objects)
         {
-            if (obj is RenderBody3D)
-                render_body_3D(obj as RenderBody3D, program, ref last_texture_handle, ref last_array_handle);
+            if (obj is RenderGeometry3D)
+                render_geometry_3D(obj as RenderGeometry3D, mat, program, ref last_texture_handle, ref last_array_handle);
+            else if (obj is RenderBody3D)
+                render_body_3D(obj as RenderBody3D, mat, program, ref last_texture_handle, ref last_array_handle);
             else if (obj is RenderLabel3D)
-                render_label_3D(obj as RenderLabel3D, program, ref last_texture_handle, ref last_array_handle);
+                render_label_3D(obj as RenderLabel3D, mat, program, ref last_texture_handle, ref last_array_handle);
         }
     }
 
-    private void render_body_3D(RenderBody3D obj, OpenGLShaderProgram3D program, ref int last_texture_handle, ref int last_array_handle)
+    private void render_geometry_3D(RenderGeometry3D geometry, Mat4 transform, OpenGLShaderProgram3D program, ref int last_texture_handle, ref int last_array_handle)
     {
-        OpenGLTextureResourceHandle texture_handle = (OpenGLTextureResourceHandle)get_texture(obj.texture.handle);
+        Mat4 mat = transform.mul_mat(geometry.transform);
+
+        foreach (Transformable3D obj in geometry.geometry)
+        {
+            if (obj is RenderGeometry3D)
+                render_geometry_3D(obj as RenderGeometry3D, mat, program, ref last_texture_handle, ref last_array_handle);
+            else if (obj is RenderBody3D)
+                render_body_3D(obj as RenderBody3D, mat, program, ref last_texture_handle, ref last_array_handle);
+            else if (obj is RenderLabel3D)
+                render_label_3D(obj as RenderLabel3D, mat, program, ref last_texture_handle, ref last_array_handle);
+        }
+    }
+
+    private void render_body_3D(RenderBody3D obj, Mat4 transform, OpenGLShaderProgram3D program, ref int last_texture_handle, ref int last_array_handle)
+    {
+        if (obj.material.alpha <= 0)
+            return;
+
+        bool use_texture = false;
+
+        OpenGLTextureResourceHandle? texture_handle = null;
+        if (obj.texture != null)
+        {
+            texture_handle = (OpenGLTextureResourceHandle?)get_texture(obj.texture.handle);
+            use_texture = true;
+        }
+
         OpenGLModelResourceHandle model_handle = (OpenGLModelResourceHandle)get_model(obj.model.handle);
 
-        if (last_texture_handle != texture_handle.handle)
+        if (texture_handle == null)
+        {
+            last_texture_handle = -1;
+            glBindTexture(GL_TEXTURE_2D, -1);
+        }
+        else if (last_texture_handle != texture_handle.handle)
         {
             last_texture_handle = (int)texture_handle.handle;
             glBindTexture(GL_TEXTURE_2D, texture_handle.handle);
@@ -138,14 +174,13 @@ public class OpenGLRenderer : RenderTarget
             OpenGLFunctions.glBindVertexArray(model_handle.array_handle);
         }
 
-        Mat4 model_transform = Calculations.get_model_matrix(obj.position, obj.rotation, obj.scale);
-
-        program.render_object(model_handle.triangle_count, model_transform, obj.light_multiplier, obj.diffuse_color);
+        Mat4 model_transform = transform.mul_mat(obj.transform);
+        program.render_object(model_handle.triangle_count, model_transform, obj.material, use_texture);
     }
 
-    private void render_label_3D(RenderLabel3D label, OpenGLShaderProgram3D program, ref int last_texture_handle, ref int last_array_handle)
+    private void render_label_3D(RenderLabel3D label, Mat4 transform, OpenGLShaderProgram3D program, ref int last_texture_handle, ref int last_array_handle)
     {
-        OpenGLLabelResourceHandle label_handle = (OpenGLLabelResourceHandle)get_label(label.handle);
+        OpenGLLabelResourceHandle label_handle = (OpenGLLabelResourceHandle)get_label(label.reference.handle);
         OpenGLModelResourceHandle model_handle = (OpenGLModelResourceHandle)get_model(label.model.handle);
 
         if (last_texture_handle != label_handle.handle)
@@ -160,9 +195,8 @@ public class OpenGLRenderer : RenderTarget
             OpenGLFunctions.glBindVertexArray(model_handle.array_handle);
         }
 
-        Mat4 model_transform = Calculations.get_model_matrix(label.position, label.rotation, label.end_scale);
-
-        program.render_object(model_handle.triangle_count, model_transform, label.light_multiplier, label.diffuse_color);
+        Mat4 model_transform = transform.mul_mat(label.transform);
+        program.render_object(model_handle.triangle_count, model_transform, label.material, true);
     }
 
     private void render_scene_2D(RenderScene2D scene)
@@ -215,7 +249,7 @@ public class OpenGLRenderer : RenderTarget
 
     private void render_label_2D(RenderLabel2D label, OpenGLShaderProgram2D program, Size2i screen_size)
     {
-        OpenGLLabelResourceHandle label_handle = (OpenGLLabelResourceHandle)get_label(label.handle);
+        OpenGLLabelResourceHandle label_handle = (OpenGLLabelResourceHandle)get_label(label.reference.handle);
         glBindTexture(GL_TEXTURE_2D, label_handle.handle);
 
         Vec2 p = label.position;
@@ -306,11 +340,11 @@ public class OpenGLRenderer : RenderTarget
         glBindTexture(GL_TEXTURE_2D, tex[0]);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB_ALPHA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, (GLvoid[])texture.data);
 
-        if (!texture.tile)
+        /*if (!texture.tile)
         {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        }
+        }*/
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -396,4 +430,38 @@ public class OpenGLRenderer : RenderTarget
         secondary_buffer.resize(view_width, view_height);
         render_buffer.resize(view_width, view_height);*/
     }
+}
+
+public class OpenGLModelResourceHandle : IModelResourceHandle, Object
+{
+    public OpenGLModelResourceHandle(uint handle, int triangle_count, uint array_handle)
+    {
+        this.handle = handle;
+        this.triangle_count = triangle_count;
+        this.array_handle = array_handle;
+    }
+
+    public uint handle { get; private set; }
+    public int triangle_count { get; private set; }
+    public uint array_handle { get; private set; }
+}
+
+public class OpenGLTextureResourceHandle : ITextureResourceHandle, Object
+{
+    public OpenGLTextureResourceHandle(uint handle)
+    {
+        this.handle = handle;
+    }
+
+    public uint handle { get; private set; }
+}
+
+public class OpenGLLabelResourceHandle : ILabelResourceHandle
+{
+    public OpenGLLabelResourceHandle()
+    {
+        created = false;
+    }
+
+    public uint handle { get; set; }
 }

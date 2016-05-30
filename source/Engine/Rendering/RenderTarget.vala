@@ -1,6 +1,6 @@
 using Gee;
 
-public abstract class RenderTarget : Object, IRenderTarget
+public abstract class RenderTarget : Object
 {
     private const bool SINGLE_THREADED = true;
 
@@ -28,7 +28,7 @@ public abstract class RenderTarget : Object, IRenderTarget
     private string saved_shader_2D;
 
     protected IWindowTarget window;
-    protected IResourceStore store;
+    protected ResourceStore store;
 
     public RenderTarget(IWindowTarget window)
     {
@@ -114,7 +114,7 @@ public abstract class RenderTarget : Object, IRenderTarget
     protected IModelResourceHandle? get_model(uint handle)
     {
         resource_mutex.lock();
-        IModelResourceHandle ret = (handle > handles_models.size) ? null : handles_models[(int)handle - 1];
+        IModelResourceHandle ret = (handle > handles_models.size || handle <= 0) ? null : handles_models[(int)handle - 1];
         resource_mutex.unlock();
 
         return ret;
@@ -123,7 +123,7 @@ public abstract class RenderTarget : Object, IRenderTarget
     protected ITextureResourceHandle? get_texture(uint handle)
     {
         resource_mutex.lock();
-        ITextureResourceHandle? ret = (handle > handles_textures.size) ? null : handles_textures[(int)handle - 1];
+        ITextureResourceHandle? ret = (handle > handles_textures.size || handle <= 0) ? null : handles_textures[(int)handle - 1];
         resource_mutex.unlock();
 
         return ret;
@@ -132,7 +132,7 @@ public abstract class RenderTarget : Object, IRenderTarget
     protected ILabelResourceHandle? get_label(uint handle)
     {
         resource_mutex.lock();
-        ILabelResourceHandle? ret = (handle > handles_labels.size) ? null : handles_labels[(int)handle - 1];
+        ILabelResourceHandle? ret = (handle > handles_labels.size || handle <= 0) ? null : handles_labels[(int)handle - 1];
         resource_mutex.unlock();
 
         return ret;
@@ -235,11 +235,10 @@ public abstract class RenderTarget : Object, IRenderTarget
                 RenderScene2D s = scene as RenderScene2D;
                 foreach (RenderObject2D obj in s.objects)
                 {
-                    //Type obj_type = obj.get_type();
                     if (obj is RenderLabel2D)
                     {
                         RenderLabel2D label = obj as RenderLabel2D;
-                        ILabelResourceHandle handle = get_label(label.handle);
+                        ILabelResourceHandle handle = get_label(label.reference.handle);
 
                         bool invalid = false;
                         if (!handle.created ||
@@ -264,12 +263,12 @@ public abstract class RenderTarget : Object, IRenderTarget
             else if (scene is RenderScene3D)
             {
                 RenderScene3D s = scene as RenderScene3D;
-                foreach (RenderObject3D obj in s.objects)
+                foreach (Transformable3D obj in s.objects)
                 {
                     if (obj is RenderLabel3D)
                     {
                         RenderLabel3D label = obj as RenderLabel3D;
-                        ILabelResourceHandle handle = get_label(label.handle);
+                        ILabelResourceHandle handle = get_label(label.reference.handle);
 
                         bool invalid = false;
                         if (!handle.created ||
@@ -321,7 +320,7 @@ public abstract class RenderTarget : Object, IRenderTarget
     protected abstract bool change_shader_3D(string name);
     protected abstract bool change_shader_2D(string name);
 
-    public IResourceStore resource_store { get { return store; } }
+    public ResourceStore resource_store { get { return store; } }
     public bool v_sync { get; set; }
     public bool anisotropic_filtering { get; set; }
     public string shader_3D { get; set; }

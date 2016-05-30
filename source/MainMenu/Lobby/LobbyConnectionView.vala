@@ -21,7 +21,7 @@ public class LobbyConnectionView : View2D
     private bool processed;
     private int padding = 80;
 
-    public signal GameController start_game(GameStartInfo info, IGameConnection connection, int player_index);
+    public signal GameController start_game(GameStartInfo info, ServerSettings settings, IGameConnection connection, int player_index);
     public signal void back();
 
     protected override void added()
@@ -209,9 +209,9 @@ public class LobbyConnectionView : View2D
         lobby_view.back.connect(lobby_back_clicked);
     }
 
-    private GameController do_start_game(GameStartInfo info, IGameConnection connection, int player_index)
+    private GameController do_start_game(GameStartInfo info, ServerSettings settings, IGameConnection connection, int player_index)
     {
-        return start_game(info, connection, player_index);
+        return start_game(info, settings, connection, player_index);
     }
 
     private void lobby_back_clicked()

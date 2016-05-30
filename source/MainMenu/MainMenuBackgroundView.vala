@@ -1,7 +1,12 @@
 class MainMenuBackgroundView : View2D
 {
-    private MainMenuBackgroundTileView tile_view = new MainMenuBackgroundTileView();
+    private TileMenuView tile_view;
     private ImageControl text;
+
+    public MainMenuBackgroundView(string tile_textures, Color tile_fore_color, Color tile_back_color)
+    {
+        tile_view = new TileMenuView(tile_textures, tile_fore_color, tile_back_color);
+    }
 
     public override void added()
     {
@@ -40,21 +45,16 @@ class MainMenuBackgroundTileView : View3D
     private LightSource light1 = new LightSource();
     private LightSource light2 = new LightSource();
 
-    public MainMenuBackgroundTileView()
-    {
-        base();
-    }
-
     public override void added()
     {
         resize_style = ResizeStyle.ABSOLUTE;
 
         string extension = "high";
+        string texture_type = "Regular";
         float tile_scale = 4f;
 
         Tile t = new Tile(0, TileType.PIN1, false);
-        tile = new RenderTile(store, extension, t, tile_scale);
-        tile.set_absolute_location(Vec3(0, 0, 0), Vec3(0, 0, 0));
+        tile = new RenderTile(store, extension, texture_type, t, tile_scale);
 
         float len = 3;
         camera.focal_length = 0.8f;
@@ -73,7 +73,7 @@ class MainMenuBackgroundTileView : View3D
     public override void do_process(DeltaArgs delta)
     {
         float r = delta.time;
-        tile.set_absolute_location(Vec3(0, 0, 0), Vec3(-0.2f, r * 0.1f, 0));
+        tile.set_absolute_location(Vec3.empty(), new Quat.from_euler_vec(Vec3(r * -0.2f, r * 0.1f, r * 0.0812f)));
     }
 
     public override void do_render_3D(RenderState state)

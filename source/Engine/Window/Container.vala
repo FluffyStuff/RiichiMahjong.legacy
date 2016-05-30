@@ -171,7 +171,7 @@ public abstract class Container : Object
     protected virtual void do_text_input(TextInputArgs text) { }
     protected virtual void do_text_edit(TextEditArgs text) { }
 
-    protected IResourceStore store { get { return parent_window.store; } }
+    protected ResourceStore store { get { return parent_window.store; } }
 
     protected Rectangle parent_rect
     {

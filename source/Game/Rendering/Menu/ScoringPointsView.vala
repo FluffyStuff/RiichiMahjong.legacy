@@ -18,7 +18,6 @@ public class ScoringPointsView : View2D
 
     public ScoringPointsView(RoundScoreState score, float total_time)
     {
-        base();
         this.score = score;
         this.total_time = total_time;
     }
@@ -176,6 +175,7 @@ public class ScoringPointsView : View2D
         scoring_control.outer_anchor = Vec2(0.5f, 0);
 
         score_selected(score.result.winner_indices[score_index]);
+        resized();
     }
 
     private void prev_score()

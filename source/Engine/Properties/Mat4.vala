@@ -137,6 +137,17 @@ public class Mat4
         return mat;
     }
 
+    public float get(int i)
+    {
+        Vec4 v = {};
+        int a = i / 4;
+             if (a == 0) v = v1;
+        else if (a == 1) v = v2;
+        else if (a == 2) v = v3;
+        else if (a == 3) v = v4;
+        return v[i % 4];
+    }
+
     // From Mesa 3D Graphics Library
     private static bool gluInvertMatrix(float *m, float *invOut)
     {

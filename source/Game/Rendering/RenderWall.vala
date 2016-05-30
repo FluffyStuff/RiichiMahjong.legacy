@@ -241,7 +241,7 @@ public class RenderWall : Object
 
                 pos = Calculations.rotate_y(Vec3.empty(), -(float)rotation / 2, pos).plus(position);
 
-                Vec3 rot = Vec3
+                Quat rot = new Quat.from_euler
                 (
                     1,
                     (float)rotation / 2 + 1,
@@ -295,8 +295,8 @@ public class RenderWall : Object
             doras.add(t);
             ura_doras.add(tiles[dora_index + 1]);
 
-            Vec3 rot = t.rotation;
-            rot = { 0, rot.y, rot.z };
+            Quat rot = t.rotation;
+            rot = new Quat.from_euler(1, 0, 0).mul(rot);
 
             t.animate_towards(t.position, rot);
 
@@ -323,7 +323,9 @@ public class RenderWall : Object
             {
                 RenderTile tile = ura_doras[i];
                 int rotation = this.rotation;
-                float dir = -0.001f;
+                float dir = 1.000f;
+                if (rotation % 2 == 0)
+                    dir = -dir;
                 if (split >= 7)
                     rotation--;
                 if (3 + i <= split)
@@ -332,11 +334,17 @@ public class RenderWall : Object
                     dir = -dir;
                 }
 
+                // TODO: Fix rotation direction
+                /*print("-----------------\n");
+                print("rotation: " + rotation.to_string() + "\n");
+                print("split: " + split.to_string() + "\n");
+                print("dir: " + dir.to_string() + "\n");*/
+
                 Vec3 pos = Vec3(0, 0, -tile_size.z / 2);
                 pos = Calculations.rotate_y(Vec3.empty(), -(float)rotation / 2, pos).plus(tile.position);
 
-                Vec3 rot = tile.rotation;
-                rot = Vec3(dir, rot.y, rot.z); // Not 0, so it flips in the right direction
+                Quat rot = tile.rotation;
+                rot = new Quat.from_euler(dir, 0, 0).mul(rot);
                 tile.animate_towards(pos, rot);
             }
         }
@@ -356,7 +364,7 @@ public class RenderWall : Object
 
             pos = tiles[tiles.size - 1].position.plus(pos);
 
-            Vec3 rot = Vec3
+            Quat rot = new Quat.from_euler
             (
                 1,
                 (float)rotation / 2 + 1,

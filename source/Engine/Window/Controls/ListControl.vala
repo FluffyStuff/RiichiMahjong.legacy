@@ -5,7 +5,7 @@ public abstract class ListControl : Control
     private RectangleControl background;
     private ListItemControl? header;
     private ListItemControl[]? items;
-    private ScrollBarVerticalControl? scroll_bar;
+    private ScrollBarControl? scroll_bar;
     private bool row_selectable;
 
     public signal void selected_index_changed(ListControl list);
@@ -72,7 +72,7 @@ public abstract class ListControl : Control
 
         if (scroll_bar != null)
             remove_child(scroll_bar);
-        scroll_bar = new ScrollBarVerticalControl();
+        scroll_bar = new ScrollBarControl(true);
         add_child(scroll_bar);
         scroll_bar.inner_anchor = Vec2(1, 0);
         scroll_bar.outer_anchor = Vec2(1, 0);

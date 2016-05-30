@@ -33,6 +33,11 @@ public struct Vec3
         return Vec3(x * scalar, y * scalar, z * scalar);
     }
 
+    public Vec3 div_scalar(float scalar)
+    {
+        return Vec3(x / scalar, y / scalar, z / scalar);
+    }
+
     public float dot(Vec3 other)
     {
         return x * other.x + y * other.y + z * other.z;

@@ -5,20 +5,18 @@ public class Camera
         focal_length = 1;
     }
 
-    public Mat4 get_view_transform(bool b)
+    public Mat4 get_view_transform()
     {
-        float pi = (float)Math.PI;
-        Mat4 x = Calculations.rotation_matrix(Vec3(1, 0, 0), pi * pitch);
-        Mat4 y = Calculations.rotation_matrix(Vec3(0, 1, 0), pi * yaw);
-        Mat4 z = Calculations.rotation_matrix(Vec3(0, 0, 1), pi * roll);
+        Quat rot = new Quat.from_euler(pitch, yaw, 0).mul(new Quat.from_euler(0, 0, roll)); // Apply roll last
+        Mat4 r = Calculations.rotation_matrix_quat(rot);
         Mat4 p = Calculations.translation_matrix(position.negate());
 
-        return p.mul_mat(y).mul_mat(x).mul_mat(z);
+        return p.mul_mat(r);
     }
 
+    public float roll { get; set; }
     public float pitch { get; set; }
     public float yaw { get; set; }
-    public float roll { get; set; }
 
     public Vec3 position { get; set; }
     public float focal_length { get; set; }

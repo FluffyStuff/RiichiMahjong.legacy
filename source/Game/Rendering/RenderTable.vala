@@ -5,15 +5,15 @@ public class RenderTable
     private Wind round_wind;
     private RoundScoreState score;
 
-    private RenderBody3D table;
-    private RenderBody3D field;
+    private RenderGeometry3D table;
+    private RenderGeometry3D? field;
 
-    private RenderBody3D center_piece;
+    private RenderGeometry3D center_piece;
 
     private RenderLabel3D round_wind_label;
     private RenderTablePlayerNameField[] names;
 
-    public RenderTable(IResourceStore store, string extension, Vec3 tile_size, Wind round_wind, float field_rotation, RoundScoreState score)
+    public RenderTable(ResourceStore store, string extension, Vec3 tile_size, Wind round_wind, float field_rotation, RoundScoreState score)
     {
         this.tile_size = tile_size;
         this.field_rotation = field_rotation;
@@ -34,42 +34,40 @@ public class RenderTable
             name.render(scene);
     }
 
-    public void reload(IResourceStore store, string extension)
+    public void reload(ResourceStore store, string extension)
     {
-        table = store.load_body_3D("table_" + extension);
-        center_piece = store.load_body_3D("table_center");
+        table = store.load_geometry_3D("table_" + extension, true);
+        center_piece = store.load_geometry_3D("table_center", true);
 
         float scale = tile_size.x * 2.9f;
-        center_piece.scale = { scale, scale, scale };
+        center_piece.scale = Vec3(scale, scale, scale);
 
-        string dir = FileLoader.get_user_dir() + "Custom/";
+        string dir = Environment.get_user_dir() + "Custom/";
 
-        RenderModel? model = null;
-        RenderTexture? texture = null;
+        RenderTexture? texture = store.load_texture_dir(dir, "field");
 
-        texture = store.load_texture_dir(dir, "field", true);
         if (texture != null)
-            model = store.load_model_dir(dir, "field", false);
+            field = store.load_geometry_3D_dir(dir, "field", false);
         else
-            texture = store.load_texture("field_" + extension, true);
+            texture = store.load_texture("field_" + extension);
 
-        if (model == null)
-            model = store.load_model("field", false);
+        if (field == null)
+            field = store.load_geometry_3D("field", false);
 
-        field = new RenderBody3D(model, texture);
+        ((RenderBody3D)field.geometry[0]).texture = texture;
 
         table.position = Vec3(0, -0.163f, 0);
         table.scale = Vec3(10, 10, 10);
         field.position = Vec3(0, 0, 0);
         field.scale = Vec3(9.6f, 1, 9.6f);
-        field.rotation = Vec3(0, field_rotation, 0);
+        field.rotation = new Quat.from_euler_vec(Vec3(0, field_rotation, 0));
 
         center = Vec3(0, field.position.y, 0);
         player_offset = field.scale.z - 0.3f - (tile_size.x / 2 + tile_size.z);
 
         names = new RenderTablePlayerNameField[score.players.length];
 
-        Vec3 center_size = center_piece.model.size.mul_scalar(scale);
+        Vec3 center_size = ((RenderBody3D)center_piece.geometry[0]).model.size.mul_scalar(scale);
         center_size = Vec3(center_size.x, center_size.y * 1.1f, center_size.z);
 
         for (int i = 0; i < names.length; i++)
@@ -77,7 +75,7 @@ public class RenderTable
 
         round_wind_label = store.create_label_3D();
         round_wind_label.bold = true;
-        round_wind_label.rotation = Vec3(0, field_rotation, 0);
+        round_wind_label.rotation = new Quat.from_euler_vec(Vec3(0, field_rotation, 0));
         round_wind_label.text = WIND_TO_STRING(round_wind);
         round_wind_label.color = Color.blue();
         round_wind_label.size = scale * 2;
@@ -96,14 +94,14 @@ private class RenderTablePlayerNameField
     private RenderLabel3D name_label;
     private RenderLabel3D score_label;
 
-    public RenderTablePlayerNameField(IResourceStore store, Vec3 center_size, float scale, float rotation, string name, Wind wind, int score)
+    public RenderTablePlayerNameField(ResourceStore store, Vec3 center_size, float scale, float rotation, string name, Wind wind, int score)
     {
         float dist = 0.5f;
         scale *= 0.8f;
 
         wind_label = store.create_label_3D();
         wind_label.bold = true;
-        wind_label.rotation = Vec3(0, rotation, 0);
+        wind_label.rotation = new Quat.from_euler_vec(Vec3(0, rotation, 0));
         wind_label.text = WIND_TO_STRING(wind);
         wind_label.color = Color.blue();
         wind_label.size = scale;
@@ -114,7 +112,7 @@ private class RenderTablePlayerNameField
 
         name_label = store.create_label_3D();
         name_label.bold = true;
-        name_label.rotation = Vec3(0, rotation, 0);
+        name_label.rotation = new Quat.from_euler_vec(Vec3(0, rotation, 0));
         name_label.text = name;
         name_label.size = wind_label.size * 0.6f;
         name_label.font_size = wind_label.font_size * 0.6f;
@@ -125,7 +123,7 @@ private class RenderTablePlayerNameField
 
         score_label = store.create_label_3D();
         score_label.bold = true;
-        score_label.rotation = Vec3(0, rotation, 0);
+        score_label.rotation = new Quat.from_euler_vec(Vec3(0, rotation, 0));
         score_label.text = score.to_string();
         score_label.size = wind_label.size * 0.6f;
         name_label.font_size = wind_label.font_size * 0.6f;

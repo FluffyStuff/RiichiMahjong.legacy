@@ -40,9 +40,9 @@ public class ClientRoundState : Object
     public signal void game_pon(int player_index, int discard_player_index, int tile_ID, int tile_1_ID, int tile_2_ID);
     public signal void game_chii(int player_index, int discard_player_index, int tile_ID, int tile_1_ID, int tile_2_ID);
 
-    public ClientRoundState(RoundStartInfo info, int player_index, Wind round_wind, int dealer_index, bool[] can_riichi)
+    public ClientRoundState(RoundStartInfo info, ServerSettings settings, int player_index, Wind round_wind, int dealer_index, bool[] can_riichi)
     {
-        state = new RoundState(player_index, round_wind, dealer_index, info.wall_index, can_riichi);
+        state = new RoundState(settings, player_index, round_wind, dealer_index, info.wall_index, can_riichi);
         state.start();
         action_state = State.DONE;
 
@@ -363,6 +363,7 @@ public class ClientRoundState : Object
 
                 set_riichi_state(false);
                 set_tsumo_state(false);
+                set_void_hand_state(false);
                 set_tile_select_groups(selection_groups);
             }
         }
@@ -400,6 +401,7 @@ public class ClientRoundState : Object
 
                 set_kan_state(false);
                 set_tsumo_state(false);
+                set_void_hand_state(false);
                 set_tile_select_groups(selection_groups);
             }
         }

@@ -4,6 +4,7 @@ public class Threading
     public delegate void Del1Arg(Object arg1);
     public delegate void Del2Arg(Object arg1, Object arg2);
     public delegate void Del3Arg(Object arg1, Object arg2, Object arg3);
+    public delegate void Del4Arg(Object arg1, Object arg2, Object arg3, Object arg4);
 
     private Threading() {} // Instead of static class
 
@@ -30,6 +31,11 @@ public class Threading
     public static void start3(Del3Arg function, Object arg1, Object arg2, Object arg3)
     {
         start_thread(new Thread3(function, arg1, arg2, arg3));
+    }
+
+    public static void start4(Del4Arg function, Object arg1, Object arg2, Object arg3, Object arg4)
+    {
+        start_thread(new Thread4(function, arg1, arg2, arg3, arg4));
     }
 
     private abstract class Thread
@@ -120,6 +126,33 @@ public class Threading
         public override Object? start()
         {
             func(arg1, arg2, arg3);
+            self = null;
+            return null;
+        }
+    }
+
+    private class Thread4 : Thread
+    {
+        private Thread? self;
+        private unowned Threading.Del4Arg func;
+        private Object arg1;
+        private Object arg2;
+        private Object arg3;
+        private Object arg4;
+
+        public Thread4(Del4Arg func, Object arg1, Object arg2, Object arg3, Object arg4)
+        {
+            self = this;
+            this.func = func;
+            this.arg1 = arg1;
+            this.arg2 = arg2;
+            this.arg3 = arg3;
+            this.arg4 = arg4;
+        }
+
+        public override Object? start()
+        {
+            func(arg1, arg2, arg3, arg4);
             self = null;
             return null;
         }

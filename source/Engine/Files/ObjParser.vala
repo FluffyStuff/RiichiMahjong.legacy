@@ -1,52 +1,98 @@
 using Gee;
 
-public /*static*/ class ObjParser
+public class ObjParser
 {
-    public static ModelData? parse(string[] file)
+    // TODO: Add curve parsing
+    public static GeometryData? parse(string path, string filename)
     {
-        // TODO: Add curve/mtl/multi-object parsing
+        string[]? file = FileLoader.load(path + filename + ".obj");
+        if (file == null)
+            return null;
+
+        ArrayList<ModelData> models = new ArrayList<ModelData>();
+
+        string? name = null;
+        string? material = null;
+        ArrayList<string> mtl = new ArrayList<string>();
+        ArrayList<string> v = new ArrayList<string>();
+        ArrayList<string> vt = new ArrayList<string>();
+        ArrayList<string> vn = new ArrayList<string>();
+        ArrayList<string> f = new ArrayList<string>();
+
+        foreach (string line in file)
+        {
+            string[] lines = line.split(" ", 2);
+            if (lines[0] == "o")
+            {
+                if (name != null)
+                {
+                    ModelData? model = process_model_data(name, material, v, vt, vn, f);
+                    if (model != null)
+                        models.add(model);
+                    f.clear();
+
+                    material = null;
+                }
+
+                name = lines[1];
+            }
+            else if (lines[0] == "usemtl")
+                material = lines[1];
+            else if (lines[0] == "mtllib")
+                mtl.add(lines[1]);
+            else if (lines[0] == "v")
+                v.add(lines[1]);
+            else if (lines[0] == "vt")
+                vt.add(lines[1]);
+            else if (lines[0] == "vn")
+                vn.add(lines[1]);
+            else if (lines[0] == "f")
+                f.add(lines[1]);
+        }
+
+        if (name != null)
+        {
+            ModelData? model = process_model_data(name, material, v, vt, vn, f);
+            if (model != null)
+                models.add(model);
+        }
+
+        ArrayList<MaterialData> mats = new ArrayList<MaterialData>();
+
+        foreach (string mat in mtl)
+            mats.add_all(load_material(path + mat));
+
+        return new GeometryData(models, mats);
+    }
+
+    private static ModelData? process_model_data
+    (
+        string? name,
+        string? material,
+        ArrayList<string> v,
+        ArrayList<string> vt,
+        ArrayList<string> vn,
+        ArrayList<string> f
+    )
+    {
         try
         {
-            ArrayList<string> v = new ArrayList<string>();
-            ArrayList<string> vt = new ArrayList<string>();
-            ArrayList<string> vn = new ArrayList<string>();
-            //ArrayList<string> vp = new ArrayList<string>();
-            ArrayList<string> f = new ArrayList<string>();
-
-            foreach (string line in file)
-            {
-                string[] lines = line.split(" ", 2);
-                if (lines[0] == "v")
-                    v.add(lines[1]);
-                else if (lines[0] == "vt")
-                    vt.add(lines[1]);
-                else if (lines[0] == "vn")
-                    vn.add(lines[1]);
-                //else if (lines[0] == "vp")
-                //    vp.add(lines[1]);
-                else if (lines[0] == "f")
-                    f.add(lines[1]);
-            }
-
             ModelVertex[] vertices = new ModelVertex[v.size];
             ModelUV[] uvs = new ModelUV[vt.size];
             ModelNormal[] normals = new ModelNormal[vn.size];
-            //ModelParameter[] parameters = new ModelParameter[vp.size];
 
             for (int i = 0; i < v.size; i++)
-                vertices[i] = parseVertex(v[i]);
+                vertices[i] = parse_vertex(v[i]);
             for (int i = 0; i < vt.size; i++)
-                uvs[i] = parseUV(vt[i]);
+                uvs[i] = parse_uv(vt[i]);
             for (int i = 0; i < vn.size; i++)
-                normals[i] = parseNormal(vn[i]);
-            //for (int i = 0; i < vp.size; i++)
-            //    parameters[i] = parseParameter(vp[i]);
+                normals[i] = parse_normal(vn[i]);
 
             Triangles[] data = new Triangles[f.size];
 
             for (int n = 0; n < f.size; n++)
             {
-                ModelDataIndex[] indices = parseFace(f[n]);
+                ModelDataIndex[] indices = parse_face(f[n]);
                 ModelTriangle[] triangles = new ModelTriangle[indices.length - 2];
 
                 for (int i = 2; i < indices.length; i++)
@@ -93,7 +139,7 @@ public /*static*/ class ObjParser
                 for (int t = 0; t < data[i].triangles.length; t++)
                     triangles[a++] = data[i].triangles[t];
 
-            return new ModelData(triangles);
+            return new ModelData(name, material, triangles);
         }
         catch (ParsingError e)
         {
@@ -101,7 +147,7 @@ public /*static*/ class ObjParser
         }
     }
 
-    private static ModelVertex parseVertex(string line) throws ParsingError
+    private static ModelVertex parse_vertex(string line) throws ParsingError
     {
         string[] parts = line.split(" ");
 
@@ -116,14 +162,13 @@ public /*static*/ class ObjParser
         if (parts.length >= 4)
             parsed &= double.try_parse(parts[3], out w);
 
-        parsed = true;
         if (!parsed)
             throw new ParsingError.PARSING("Invalid double value in vertex line.");
 
         return ModelVertex() { x = (float)x, y = (float)y, z = (float)z, w = (float)w };
     }
 
-    private static ModelUV parseUV(string line) throws ParsingError
+    private static ModelUV parse_uv(string line) throws ParsingError
     {
         string[] parts = line.split(" ");
 
@@ -148,7 +193,7 @@ public /*static*/ class ObjParser
         return ModelUV() { u = (float)u, v = (float)v, w = (float)w };
     }
 
-    private static ModelNormal parseNormal(string line) throws ParsingError
+    private static ModelNormal parse_normal(string line) throws ParsingError
     {
         string[] parts = line.split(" ");
 
@@ -160,34 +205,13 @@ public /*static*/ class ObjParser
         parsed &= double.try_parse(parts[1], out j);
         parsed &= double.try_parse(parts[2], out k);
 
-        parsed = true;
         if (!parsed)
             throw new ParsingError.PARSING("Invalid double value in normal line.");
 
         return ModelNormal() { i = (float)i, j = (float)j, k = (float)k };
     }
 
-    /*private static ModelParameter parseParameter(string line) throws ParsingError
-    {
-        string[] parts = line.split(" ");
-
-        if (parts.length != 2 && parts.length != 3)
-            throw new ParsingError.PARSING("Invalid number of parameter line args.");
-
-        double u, v, w = 1;
-        bool parsed = double.try_parse(parts[0], out u);
-        parsed &= double.try_parse(parts[1], out v);
-
-        if (parts.length >= 3)
-            parsed &= double.try_parse(parts[2], out w);
-
-        if (!parsed)
-            throw new ParsingError.PARSING("Invalid double value in parameter line.");
-
-        return ModelParameter() { u = (float)u, v = (float)v, w = (float)w };
-    }*/
-
-    private static ModelDataIndex[] parseFace(string line) throws ParsingError
+    private static ModelDataIndex[] parse_face(string line) throws ParsingError
     {
         string[] parts = line.split(" ");
 
@@ -235,7 +259,6 @@ public /*static*/ class ObjParser
                 }
             }
 
-            parsed = true;
             if (!parsed)
                 throw new ParsingError.PARSING("Invalid double value in face line part.");
 
@@ -243,6 +266,151 @@ public /*static*/ class ObjParser
         }
 
         return index;
+    }
+
+    private static ArrayList<MaterialData> load_material(string name)
+    {
+        string[] data = FileLoader.load(name);
+        return parse_material(data);
+    }
+
+    private static ArrayList<MaterialData> parse_material(string[] data)
+    {
+        ArrayList<MaterialData> materials = new ArrayList<MaterialData>();
+
+        try
+        {
+            string? name = null;
+            string? Ns = null;
+            string? Ka = null;
+            string? Kd = null;
+            string? Ks = null;
+            string? d = null;
+            string? illum = null;
+            bool newmat = false;
+
+            for (int i = 0; i < data.length; i++)
+            {
+                string[] lines = data[i].split(" ", 2);
+
+                if (lines.length < 2)
+                {
+                    if (!newmat)
+                        continue;
+
+                    materials.add(
+                    new MaterialData
+                    (
+                        name,
+                        parse_float(Ns),
+                        parse_vec3(Ka),
+                        parse_vec3(Kd),
+                        parse_vec3(Ks),
+                        parse_float(d),
+                        parse_int(illum)
+                    ));
+
+                    newmat = false;
+                    continue;
+                }
+
+                if (lines[0] == "newmtl")
+                {
+                    name = lines[1];
+                    Ns = "0.0";
+                    Ka = "0.0 0.0 0.0";
+                    Kd = "0.0 0.0 0.0";
+                    Ks = "0.0 0.0 0.0";
+                    d = "0.0";
+                    illum = "0";
+
+                    newmat = true;
+                }
+                else if (!newmat)
+                    continue;
+                else if (lines[0] == "Ns")
+                    Ns = lines[1];
+                else if (lines[0] == "Ka")
+                    Ka = lines[1];
+                else if (lines[0] == "Kd")
+                    Kd = lines[1];
+                else if (lines[0] == "Ks")
+                    Ks = lines[1];
+                else if (lines[0] == "d")
+                    d = lines[1];
+                else if (lines[0] == "illum")
+                    illum = lines[1];
+            }
+
+            if (newmat)
+            {
+                materials.add(
+                new MaterialData
+                (
+                    name,
+                    parse_float(Ns),
+                    parse_vec3(Ka),
+                    parse_vec3(Kd),
+                    parse_vec3(Ks),
+                    parse_float(d),
+                    parse_int(illum)
+                ));
+            }
+        }
+        catch {}
+
+        return materials;
+    }
+
+    private static Vec3 parse_vec3(string v) throws ParsingError
+    {
+        string[] parts = v.split(" ");
+
+        if (parts.length != 3)
+            throw new ParsingError.PARSING("Invalid number of material Vec3 line args.");
+
+        double x, y, z;
+        bool parsed = double.try_parse(parts[0], out x);
+        parsed &= double.try_parse(parts[1], out y);
+        parsed &= double.try_parse(parts[2], out z);
+
+        if (!parsed)
+            throw new ParsingError.PARSING("Invalid double value in material Vec3 line.");
+
+        return Vec3((float)x, (float)y, (float)z);
+    }
+
+    private static float parse_float(string f) throws ParsingError
+    {
+        string[] parts = f.split(" ");
+
+        if (parts.length != 1)
+            throw new ParsingError.PARSING("Invalid number of material float line args.");
+
+        double x;
+        bool parsed = double.try_parse(parts[0], out x);
+
+        if (!parsed)
+            throw new ParsingError.PARSING("Invalid float value in material float line.");
+
+        return (float)x;
+    }
+
+    private static int parse_int(string i) throws ParsingError
+    {
+        string[] parts = i.split(" ");
+
+        if (parts.length != 1)
+            throw new ParsingError.PARSING("Invalid number of material int line args.");
+
+        int x;
+        //bool parsed = int32.try_parse(parts[0], out x); Has been removed for some reason...
+        x = int.parse(parts[0]);
+
+        //if (!parsed)
+        //    throw new ParsingError.PARSING("Invalid int value in material int line.");
+
+        return x;
     }
 
     private struct ModelDataIndex
@@ -287,10 +455,25 @@ class Triangles
     public ModelTriangle[] triangles { get; private set; }
 }
 
+public class GeometryData
+{
+    public GeometryData(ArrayList<ModelData> models, ArrayList<MaterialData> materials)
+    {
+        this.models = models;
+        this.materials = materials;
+    }
+
+    public ArrayList<ModelData> models { get; private set; }
+    public ArrayList<MaterialData> materials { get; private set; }
+}
+
 public class ModelData
 {
-    public ModelData(ModelTriangle[] triangles)
+    public ModelData(string? name, string? material_name, ModelTriangle[] triangles)
     {
+        this.name = name;
+        this.material_name = material_name;
+
         points = calc_points(triangles);
         Vec3 s, c;
         calc(points, out s, out c);
@@ -366,9 +549,49 @@ public class ModelData
         center = Vec3((max.x + min.x) / 2, (max.y + min.y) / 2, (max.z + min.z) / 2);
     }
 
+    public string? name { get; private set; }
+    public string? material_name { get; private set; }
     public ModelPoint[] points { get; private set; }
     public Vec3 center { get; private set; }
     public Vec3 size { get; private set; }
+}
+
+public class MaterialData
+{
+    public MaterialData
+    (
+        string name,
+        float ns,
+        Vec3 Ka,
+        Vec3 Kd,
+        Vec3 Ks,
+        float d,
+        float illum
+    )
+    {
+        this.name = name;
+        specular_exponent = ns;
+        ambient_color = Ka;
+        diffuse_color = Kd;
+        specular_color = Ks;
+        alpha = 1 - d;
+        illumination_model = (IlluminationModel)illum;
+    }
+
+    public string name { get; set; }
+    public Vec3 ambient_color { get; set; }
+    public Vec3 diffuse_color { get; set; }
+    public Vec3 specular_color { get; set; }
+    public float specular_exponent { get; set; }
+    public float alpha { get; set; }
+    public IlluminationModel illumination_model { get; set; }
+}
+
+public enum IlluminationModel
+{
+    COLOR_ON_AMBIENT_OFF = 0,
+    COLOR_ON_AMBIENT_ON = 1,
+    HIGHLIGHT_ON = 2,
 }
 
 public struct ModelPoint

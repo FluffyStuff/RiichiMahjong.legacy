@@ -21,8 +21,17 @@ public class OpenGLShaderProgram3D
     private int un_view_transform_attrib = -1;
     private int un_model_transform_attrib = -1;
     private int light_count_attrib = -1;
-    private int light_multi_attrib = -1;
+
+    private int use_texture_attrib = -1;
+    private int ambient_color_attrib = -1;
     private int diffuse_color_attrib = -1;
+    private int specular_color_attrib = -1;
+    private int ambient_material_attrib = -1;
+    private int diffuse_material_attrib = -1;
+    private int specular_material_attrib = -1;
+
+    private int specular_exponent_attrib = -1;
+    private int alpha_attrib = -1;
 
     public OpenGLShaderProgram3D(string name, int max_lights, int vert_position_attribute, int vert_texture_attribute, int vert_normal_attribute)
     {
@@ -70,8 +79,17 @@ public class OpenGLShaderProgram3D
         un_view_transform_attrib = glGetUniformLocation(program, "un_view_transform");
         un_model_transform_attrib = glGetUniformLocation(program, "un_model_transform");
         light_count_attrib = glGetUniformLocation(program, "light_count");
-        light_multi_attrib = glGetUniformLocation(program, "light_multiplier");
+
+        use_texture_attrib = glGetUniformLocation(program, "use_texture");
+        ambient_color_attrib = glGetUniformLocation(program, "ambient_color");
         diffuse_color_attrib = glGetUniformLocation(program, "diffuse_color");
+        specular_color_attrib = glGetUniformLocation(program, "specular_color");
+        ambient_material_attrib = glGetUniformLocation(program, "ambient_material_multiplier");
+        diffuse_material_attrib = glGetUniformLocation(program, "diffuse_material_multiplier");
+        specular_material_attrib = glGetUniformLocation(program, "specular_material_multiplier");
+
+        specular_exponent_attrib = glGetUniformLocation(program, "specular_exponent");
+        alpha_attrib = glGetUniformLocation(program, "alpha");
 
         for (int i = 0; i < lights.length; i++)
             lights[i].init(program);
@@ -105,12 +123,21 @@ public class OpenGLShaderProgram3D
             this.lights[i].apply(lights[i].position, lights[i].color, lights[i].intensity);
     }
 
-    public void render_object(int triangle_count, Mat4 model_transform, float light_multiplier, Color diffuse_color)
+    public void render_object(int triangle_count, Mat4 model_transform, RenderMaterial material, bool use_texture)
     {
         glUniformMatrix4fv(model_transform_attrib, 1, false, model_transform.get_data());
         glUniformMatrix4fv(un_model_transform_attrib, 1, false, model_transform.inverse().get_data());
-        glUniform1f(light_multi_attrib, light_multiplier);
-        glUniform4f(diffuse_color_attrib, diffuse_color.r, diffuse_color.g, diffuse_color.b, diffuse_color.a);
+
+        glUniform1i(use_texture_attrib, (int)use_texture);
+        glUniform4f(ambient_color_attrib, material.ambient_color.r, material.ambient_color.g, material.ambient_color.b, material.ambient_color.a);
+        glUniform4f(diffuse_color_attrib, material.diffuse_color.r, material.diffuse_color.g, material.diffuse_color.b, material.diffuse_color.a);
+        glUniform4f(specular_color_attrib, material.specular_color.r, material.specular_color.g, material.specular_color.b, material.specular_color.a);
+        glUniform1f(ambient_material_attrib, material.ambient_material_strength);
+        glUniform1f(diffuse_material_attrib, material.diffuse_material_strength);
+        glUniform1f(specular_material_attrib, material.specular_material_strength);
+
+        glUniform1f(specular_exponent_attrib, material.specular_exponent);
+        glUniform1f(alpha_attrib, material.alpha);
 
         glDrawArrays(GL_TRIANGLES, 0, triangle_count);
     }

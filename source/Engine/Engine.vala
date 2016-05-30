@@ -27,6 +27,9 @@ public class Engine : Object
 
     public void set_multisampling(int multisampling)
     {
+        if (!initialized)
+            return;
+
         int s = (int)Math.pow(2, multisampling);
         SDL.GL.set_attribute(SDL.GLattr.MULTISAMPLEBUFFERS, 1);
         SDL.GL.set_attribute(SDL.GLattr.MULTISAMPLESAMPLES, s);

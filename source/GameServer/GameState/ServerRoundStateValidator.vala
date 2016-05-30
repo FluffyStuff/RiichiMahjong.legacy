@@ -6,10 +6,13 @@ namespace GameServer
     {
         private RoundState state;
         private ActionState action_state = ActionState.STARTING;
+        private ServerSettings settings;
 
-        public ServerRoundStateValidator(int dealer, int wall_index, Rand rnd, Wind round_wind, bool[] can_riichi)
+        public ServerRoundStateValidator(ServerSettings settings, int dealer, int wall_index, Rand rnd, Wind round_wind, bool[] can_riichi)
         {
-            state = new RoundState.server(round_wind, dealer, wall_index, rnd, can_riichi);
+            this.settings = settings;
+
+            state = new RoundState.server(settings, round_wind, dealer, wall_index, rnd, can_riichi);
 
             players = new ServerRoundStatePlayer[4];
 
@@ -154,7 +157,9 @@ namespace GameServer
 
         public bool riichi(bool open)
         {
-            open = false; // Disable open riichi for now
+            if (open && settings.open_riichi != Options.OnOffEnum.ON)
+                return false;
+
             return state.riichi(open);
         }
 
@@ -282,6 +287,17 @@ namespace GameServer
                 }
             }
 
+            if (ron_players.size > 1)
+            {
+                if (ron_players.size == 3 && settings.triple_ron_draw == Options.OnOffEnum.ON) {} // Empty
+                else if (settings.multiple_ron != Options.OnOffEnum.ON)
+                {
+                    var p = ron_players[0];
+                    ron_players.clear();
+                    ron_players.add(p);
+                }
+            }
+
             CallResult? result = null;
 
             if (ron_players.size > 0)
@@ -294,7 +310,7 @@ namespace GameServer
                     null,
                     CallDecisionType.RON,
                     state.riichi_return_index,
-                    ron_players.size >= 3
+                    ron_players.size >= 3 && settings.triple_ron_draw == Options.OnOffEnum.ON
                 );
             }
             else

@@ -2,6 +2,7 @@ using Gee;
 
 public class RoundState : Object
 {
+    private ServerSettings settings;
     private int current_index;
     private int player_index;
     private int[] winner_indices;
@@ -12,18 +13,19 @@ public class RoundState : Object
     private int turn_counter = 1;
     private bool rinshan = false;
 
-    public RoundState(int player_index, Wind round_wind, int dealer, int wall_index, bool[] can_riichi)
+    public RoundState(ServerSettings settings, int player_index, Wind round_wind, int dealer, int wall_index, bool[] can_riichi)
     {
-        init(false, player_index, round_wind, dealer, wall_index, null, can_riichi, false);
+        init(false, settings, player_index, round_wind, dealer, wall_index, null, can_riichi, false);
     }
 
-    public RoundState.server(Wind round_wind, int dealer, int wall_index, Rand rnd, bool[] can_riichi)
+    public RoundState.server(ServerSettings settings, Wind round_wind, int dealer, int wall_index, Rand rnd, bool[] can_riichi)
     {
-        init(true, -1, round_wind, dealer, wall_index, rnd, can_riichi, true);
+        init(true, settings, -1, round_wind, dealer, wall_index, rnd, can_riichi, true);
     }
 
-    private void init(bool shuffled, int player_index, Wind round_wind, int dealer, int wall_index, Rand? rnd, bool[] can_riichi, bool revealed)
+    private void init(bool shuffled, ServerSettings settings, int player_index, Wind round_wind, int dealer, int wall_index, Rand? rnd, bool[] can_riichi, bool revealed)
     {
+        this.settings = settings;
         this.player_index = player_index;
         this.round_wind = round_wind;
         this.dealer = current_index = dealer;
@@ -33,6 +35,19 @@ public class RoundState : Object
             /* For testing purposes
             TileType[] p1 = new TileType[]
             {
+                TileType.MAN2,
+                TileType.MAN2,
+                TileType.MAN4,
+                TileType.MAN4,
+                TileType.PIN5,
+                TileType.PIN5,
+                TileType.PIN5,
+                TileType.SOU3,
+                TileType.SOU3,
+                TileType.SOU5,
+                TileType.SOU5,
+                TileType.SOU9,
+                TileType.SOU9,
             };
 
             TileType[] p2 = new TileType[]
@@ -50,6 +65,16 @@ public class RoundState : Object
 
             TileType[] draw_wall = new TileType[]
             {
+                TileType.BLANK,
+                TileType.MAN2,
+                TileType.BLANK,
+                TileType.MAN4,
+                TileType.BLANK,
+                TileType.BLANK,
+                TileType.PIN5,
+                TileType.SOU3,
+                TileType.SOU5,
+                TileType.SOU9,
             };
 
 
@@ -57,9 +82,9 @@ public class RoundState : Object
             {
             };
 
-            wall = new RoundStateWall.seeded(dealer, wall_index, true, rnd, p1, p2, p3, p4, draw_wall, dead_wall);
+            wall = new RoundStateWall.seeded(dealer, wall_index, settings.aka_dora == Options.OnOffEnum.ON, true, rnd, p1, p2, p3, p4, draw_wall, dead_wall);
             /*/
-            wall = new RoundStateWall.shuffled(dealer, wall_index, rnd);
+            wall = new RoundStateWall.shuffled(dealer, wall_index, settings.aka_dora == Options.OnOffEnum.ON, rnd);
             //*/
         }
         else
@@ -659,6 +684,7 @@ public class RoundStatePlayer
 
         ArrayList<Tile> tiles = new ArrayList<Tile>();
         tiles.add(tile);
+        int discarder_index = index;
 
         foreach (RoundStateCall call in calls)
         {
@@ -667,11 +693,12 @@ public class RoundStatePlayer
                 {
                     calls.remove(call);
                     tiles.add_all(call.tiles);
+                    discarder_index = call.discarder_index;
                     break;
                 }
         }
 
-        calls.add(new RoundStateCall(RoundStateCall.CallType.LATE_KAN, tiles, tile));
+        calls.add(new RoundStateCall(RoundStateCall.CallType.LATE_KAN, tiles, tile, discarder_index));
         return tiles;
     }
 
@@ -685,7 +712,7 @@ public class RoundStatePlayer
         foreach (Tile tile in tiles)
             hand.remove(tile);
 
-        calls.add(new RoundStateCall(RoundStateCall.CallType.CLOSED_KAN, tiles, null));
+        calls.add(new RoundStateCall(RoundStateCall.CallType.CLOSED_KAN, tiles, null, index));
         return tiles;
     }
 
@@ -701,7 +728,7 @@ public class RoundStatePlayer
         tiles.add(tile_2);
         tiles.add(tile_3);
 
-        RoundStateCall new_call = new RoundStateCall(RoundStateCall.CallType.OPEN_KAN, tiles, discard_tile);
+        RoundStateCall new_call = new RoundStateCall(RoundStateCall.CallType.OPEN_KAN, tiles, discard_tile, discarder_index);
         if (TileRules.is_sekinin(calls, new_call, discard_tile))
             sekinin_index = discarder_index;
         sekinin_rinshan_index = discarder_index;
@@ -719,7 +746,7 @@ public class RoundStatePlayer
         tiles.add(tile_1);
         tiles.add(tile_2);
 
-        RoundStateCall new_call = new RoundStateCall(RoundStateCall.CallType.PON, tiles, discard_tile);
+        RoundStateCall new_call = new RoundStateCall(RoundStateCall.CallType.PON, tiles, discard_tile, discarder_index);
         if (TileRules.is_sekinin(calls, new_call, discard_tile))
             sekinin_index = discarder_index;
 
@@ -737,7 +764,7 @@ public class RoundStatePlayer
         tiles.add(tile_1);
         tiles.add(tile_2);
 
-        RoundStateCall new_call = new RoundStateCall(RoundStateCall.CallType.CHII, tiles, discard_tile);
+        RoundStateCall new_call = new RoundStateCall(RoundStateCall.CallType.CHII, tiles, discard_tile, discarder_index);
         if (TileRules.is_sekinin(calls, new_call, discard_tile))
             sekinin_index = discarder_index;
 
@@ -984,6 +1011,7 @@ public class RoundStatePlayer
 
         return new PlayerStateContext
         (
+            index,
             hand,
             pond,
             calls,
@@ -1019,20 +1047,20 @@ class RoundStateWall
 
     public RoundStateWall(int dealer, int wall_index)
     {
-        init(dealer, wall_index, null, false, false, null, null, null, null, null, null);
+        init(dealer, wall_index, false, null, false, false, null, null, null, null, null, null);
     }
 
-    public RoundStateWall.shuffled(int dealer, int wall_index, Rand rnd)
+    public RoundStateWall.shuffled(int dealer, int wall_index, bool aka_dora, Rand rnd)
     {
-        init(dealer, wall_index, rnd, true, false, null, null, null, null, null, null);
+        init(dealer, wall_index, aka_dora, rnd, true, false, null, null, null, null, null, null);
     }
 
-    public RoundStateWall.seeded(int dealer, int wall_index, bool shuffle, Rand? rnd, TileType[] p1_tiles, TileType[] p2_tiles, TileType[] p3_tiles, TileType[] p4_tiles, TileType[] draw_tiles, TileType[] dead_wall)
+    public RoundStateWall.seeded(int dealer, int wall_index, bool aka_dora, bool shuffle, Rand? rnd, TileType[] p1_tiles, TileType[] p2_tiles, TileType[] p3_tiles, TileType[] p4_tiles, TileType[] draw_tiles, TileType[] dead_wall)
     {
-        init(dealer, wall_index, rnd, shuffle, true, p1_tiles, p2_tiles, p3_tiles, p4_tiles, draw_tiles, dead_wall);
+        init(dealer, wall_index, aka_dora, rnd, shuffle, true, p1_tiles, p2_tiles, p3_tiles, p4_tiles, draw_tiles, dead_wall);
     }
 
-    private void init(int dealer, int wall_index, Rand? rnd, bool shuffled, bool seeded, TileType[]? p1_tiles, TileType[]? p2_tiles, TileType[]? p3_tiles, TileType[]? p4_tiles, TileType[]? draw_tiles, TileType[]? dead_wall)
+    private void init(int dealer, int wall_index, bool aka_dora, Rand? rnd, bool shuffled, bool seeded, TileType[]? p1_tiles, TileType[]? p2_tiles, TileType[]? p3_tiles, TileType[]? p4_tiles, TileType[]? draw_tiles, TileType[]? dead_wall)
     {
         tiles = new Tile[136];
         dora = new ArrayList<Tile>();
@@ -1052,7 +1080,7 @@ class RoundStateWall
         else if (shuffled)
             shuffle(tiles, rnd);
 
-        if (shuffled || seeded)
+        if ((shuffled || seeded) && aka_dora)
         {
             ArrayList<Tile> five_man = new ArrayList<Tile>();
             ArrayList<Tile> five_pin = new ArrayList<Tile>();
@@ -1236,6 +1264,9 @@ class RoundStateWall
 
     private static void replace(Tile[] tiles, TileType tile_type, ArrayList<TileType> unassigned, int index)
     {
+        if (tile_type == TileType.BLANK)
+            return;
+
         index = index % tiles.length;
 
         for (int i = 0; i < unassigned.size; i++)
@@ -1266,7 +1297,6 @@ public enum GameDrawType
     FOUR_KANS,
     FOUR_RIICHI,
     VOID_HAND,
-    // TODO: Implement multiple ron
     TRIPLE_RON
 }
 

@@ -16,10 +16,12 @@ namespace GameServer
         {
             players = new ArrayList<ServerPlayer>();
             observers = new ArrayList<ServerPlayer>();
+            settings = new ServerSettings.default();
 
             parser.connect(client_game_start, typeof(ClientMessageMenuGameStart));
             parser.connect(client_add_bot, typeof(ClientMessageMenuAddBot));
             parser.connect(client_kick_player, typeof(ClientMessageMenuKickPlayer));
+            parser.connect(client_settings, typeof(ClientMessageMenuSettings));
         }
 
         public bool player_connected(ServerPlayer player)
@@ -37,6 +39,7 @@ namespace GameServer
                         if (slots[j] != null)
                             player.send_message(new ServerMessageMenuSlotAssign(j, slots[j].name));
 
+                    player.send_message(new ServerMessageMenuSettings(FileLoader.array_to_string(settings.to_string())));
                     players.add(player);
 
                     player.receive_message.connect(message_received);
@@ -90,6 +93,13 @@ namespace GameServer
                 player.send_message(message);
         }
 
+        private void send_settings()
+        {
+            ServerMessageMenuSettings message = new ServerMessageMenuSettings(FileLoader.array_to_string(settings.to_string()));
+            foreach (ServerPlayer player in players)
+                player.send_message(message);
+        }
+
         private void client_game_start(ServerPlayer player, ClientMessage message)
         {
             if (player != host)
@@ -122,7 +132,7 @@ namespace GameServer
             int starting_dealer = 0;
             int starting_score = 25000;
             int decision_time = 10 + 1; // Add a second so the indicator counts down to 0
-            int round_wait_time = 15;
+            int round_wait_time = 1500;
             int hanchan_wait_time = 30;
             int game_wait_time = 60;
             int round_count = 8;
@@ -218,6 +228,17 @@ namespace GameServer
             p.close();
         }
 
+        private void client_settings(ServerPlayer player, ClientMessage message)
+        {
+            if (player != host)
+                return;
+
+            var s = (ClientMessageMenuSettings)message;
+            settings.load_string(s.settings);
+
+            send_settings();
+        }
+
         private int[] random_seats(Rand rnd, int count)
         {
             int[] seats = new int[count];
@@ -239,5 +260,6 @@ namespace GameServer
         public ServerPlayer? host { get; private set; }
         public ArrayList<ServerPlayer> players { get; private set; }
         public ArrayList<ServerPlayer> observers { get; private set; }
+        public ServerSettings settings { get; private set; }
     }
 }

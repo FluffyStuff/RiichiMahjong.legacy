@@ -7,7 +7,7 @@ public abstract class RenderWindow
     private GLib.Timer timer;
     private float last_time = 0;
 
-    public RenderWindow(IWindowTarget window, IRenderTarget renderer)
+    public RenderWindow(IWindowTarget window, RenderTarget renderer)
     {
         this.window = window;
         this.renderer = renderer;
@@ -202,8 +202,8 @@ public abstract class RenderWindow
     }
 
     protected virtual void shown() {}
-    public IRenderTarget renderer { get; private set; }
-    public IResourceStore store { get; private set; }
+    public RenderTarget renderer { get; private set; }
+    public ResourceStore store { get; private set; }
     public MainView main_view { get; private set; }
     public bool fullscreen { get { return window.fullscreen; } set { window.fullscreen = value; } }
     public Color back_color { get; set; }

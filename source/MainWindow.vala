@@ -11,7 +11,7 @@ public class MainWindow : RenderWindow
     private bool game_running = false;
     private MusicPlayer music;
 
-    public MainWindow(IWindowTarget window, IRenderTarget renderer)
+    public MainWindow(IWindowTarget window, RenderTarget renderer)
     {
         base(window, renderer);
         back_color = Color(0, 0.01f, 0.02f, 1);
@@ -40,12 +40,12 @@ public class MainWindow : RenderWindow
         main_view.add_child(menu);
     }
 
-    private GameController game_start(GameStartInfo info, IGameConnection connection, int player_index)
+    private GameController game_start(GameStartInfo info, ServerSettings settings, IGameConnection connection, int player_index)
     {
         /*main_view.remove_child(menu);
         menu = null;*/
         menu.visible = false;
-        game_controller = new GameController(game_view, info, connection, player_index, new Options.from_disk());
+        game_controller = new GameController(game_view, info, settings, connection, player_index, new Options.from_disk());
         game_controller.finished.connect(game_finished);
         game_running = true;
 

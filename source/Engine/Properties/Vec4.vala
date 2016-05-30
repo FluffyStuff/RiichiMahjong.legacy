@@ -30,4 +30,13 @@ public struct Vec4
     {
         return Vec4(x - other.x, y - other.y, z - other.z, w - other.w);
     }
+
+    public float get(int i)
+    {
+        if (i == 0) return x;
+        if (i == 1) return y;
+        if (i == 2) return z;
+        if (i == 3) return w;
+        return 0;
+    }
 }

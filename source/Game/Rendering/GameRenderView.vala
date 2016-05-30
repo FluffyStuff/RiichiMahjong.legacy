@@ -248,6 +248,10 @@ public class GameRenderView : View3D, IGameRenderer
             buffer_action(new RenderActionSetActive(active));
         else
             scene.active = active;
+
+        if (!active)
+            foreach (RenderTile tile in tiles)
+                tile.indicated = false;
     }
 
     /////////////////////
@@ -361,7 +365,7 @@ public class GameRenderView : View3D, IGameRenderer
         float focal_length = camera.focal_length;
 
         Mat4 projection_matrix = parent_window.renderer.get_projection_matrix(focal_length, aspect_ratio);
-        Mat4 view_matrix = camera.get_view_transform(false);
+        Mat4 view_matrix = camera.get_view_transform();
         Vec3 ray = Calculations.get_ray(projection_matrix, view_matrix, position, Size2i((int)size.width, (int)size.height));
 
         float shortest = 0;
@@ -370,7 +374,7 @@ public class GameRenderView : View3D, IGameRenderer
         for (int i = 0; i < tiles.size; i++)
         {
             RenderTile tile = tiles.get(i);
-            float collision_distance = Calculations.get_collision_distance(tile.tile, camera.position, ray);
+            float collision_distance = Calculations.get_collision_distance(camera.position, ray, tile.model_size.mul_scalar(1.0f), tile.tile.transform);
 
             if (collision_distance >= 0)
                 if (shortest_tile == null || collision_distance < shortest)
@@ -385,6 +389,15 @@ public class GameRenderView : View3D, IGameRenderer
 
     public void set_tile_select_groups(ArrayList<TileSelectionGroup>? groups)
     {
+        foreach (RenderTile tile in tiles)
+            tile.indicated = false;
+
         select_groups = groups;
+
+        if (groups != null)
+            foreach (TileSelectionGroup group in groups)
+                if (group.group_type != TileSelectionGroup.GroupType.DISCARD)
+                    foreach (Tile tile in group.highlight_tiles)
+                        tiles[tile.ID].indicated = true;
     }
 }

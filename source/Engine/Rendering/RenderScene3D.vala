@@ -4,7 +4,7 @@ public abstract class RenderScene : Object {}
 
 public class RenderScene3D : RenderScene
 {
-    ArrayList<RenderObject3D> objs = new ArrayList<RenderObject3D>();
+    ArrayList<Transformable3D> objs = new ArrayList<Transformable3D>();
     ArrayList<LightSource> _lights = new ArrayList<LightSource>();
 
     public RenderScene3D(Size2i screen_size, float scene_aspect_ratio, Rectangle rect)
@@ -32,7 +32,7 @@ public class RenderScene3D : RenderScene
         set_camera(new Camera());
     }
 
-    public void add_object(RenderObject3D object)
+    public void add_object(Transformable3D object)
     {
         objs.add(object.copy());
     }
@@ -44,12 +44,12 @@ public class RenderScene3D : RenderScene
 
     public void set_camera(Camera camera)
     {
-        view_transform = camera.get_view_transform(true);
+        view_transform = camera.get_view_transform();
         camera_position = camera.position;
         focal_length = camera.focal_length;
     }
 
-    public ArrayList<RenderObject3D> objects { get { return objs; } }
+    public ArrayList<Transformable3D> objects { get { return objs; } }
     public ArrayList<LightSource> lights { get { return _lights; } }
     public Mat4 scene_transform { get; private set; }
     public Mat4 view_transform { get; set; }

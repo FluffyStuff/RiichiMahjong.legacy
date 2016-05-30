@@ -10,7 +10,7 @@ class ImageControl : EndControl
 
     public override void on_added()
     {
-        RenderTexture texture = store.load_texture(name, false);
+        RenderTexture texture = store.load_texture(name);
         image = new RenderImage2D(texture);
     }
 

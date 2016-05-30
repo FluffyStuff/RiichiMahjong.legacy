@@ -5,6 +5,7 @@ public class GameMenuView : View2D
     private ScoringView? score_view = null;
     private ArrayList<MenuTextButton> buttons = new ArrayList<MenuTextButton>();
 
+    private ServerSettings settings;
     private int player_index;
     private int decision_time;
     private int round_time;
@@ -40,15 +41,28 @@ public class GameMenuView : View2D
     private void press_chii() { chii_pressed(); }
     private void press_pon() { pon_pressed(); }
     private void press_kan() { kan_pressed(); }
-    private void press_riichi() { riichi_pressed(false); }
-    private void press_open_riichi() { riichi_pressed(true); }
+    private void press_riichi()
+    {
+        bool state = open_riichi.enabled;
+        riichi_pressed(false);
+        if (state)
+            open_riichi.enabled = false;
+    }
+    private void press_open_riichi()
+    {
+        bool state = riichi.enabled;
+        riichi_pressed(true);
+        if (state)
+            riichi.enabled = false;
+    }
     private void press_tsumo() { tsumo_pressed(); }
     private void press_ron() { ron_pressed(); }
     private void press_continue() { continue_pressed(); }
     private void press_void_hand() { void_hand_pressed(); }
 
-    public GameMenuView(int player_index, int decision_time, int round_time, int hanchan_time, int game_time)
+    public GameMenuView(ServerSettings settings, int player_index, int decision_time, int round_time, int hanchan_time, int game_time)
     {
+        this.settings = settings;
         this.player_index = player_index;
         this.decision_time = decision_time;
         this.round_time = round_time;
@@ -119,7 +133,7 @@ public class GameMenuView : View2D
         }
 
         void_hand.visible = false;
-        open_riichi.visible = false; // Disable open riichi for now
+        open_riichi.visible = settings.open_riichi == Options.OnOffEnum.ON;
         position_buttons();
     }
 

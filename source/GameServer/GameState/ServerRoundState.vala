@@ -30,9 +30,9 @@ namespace GameServer
         private float timeout;
         private float current_time;
 
-        public ServerRoundState(Wind round_wind, int dealer, int wall_index, Rand rnd, bool[] can_riichi, int decision_time)
+        public ServerRoundState(ServerSettings settings, Wind round_wind, int dealer, int wall_index, Rand rnd, bool[] can_riichi, int decision_time)
         {
-            validator = new ServerRoundStateValidator(dealer, wall_index, rnd, round_wind, can_riichi);
+            validator = new ServerRoundStateValidator(settings, dealer, wall_index, rnd, round_wind, can_riichi);
             this.decision_time = decision_time;
         }
 

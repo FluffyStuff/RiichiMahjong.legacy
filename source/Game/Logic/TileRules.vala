@@ -760,16 +760,18 @@ public class TileRules
 
 public class RoundStateCall : Object
 {
-    public RoundStateCall(CallType type, ArrayList<Tile> tiles, Tile? call_tile)
+    public RoundStateCall(CallType call_type, ArrayList<Tile> tiles, Tile? call_tile, int discarder_index)
     {
-        call_type = type;
+        this.call_type = call_type;
         this.tiles = tiles;
         this.call_tile = call_tile;
+        this.discarder_index = discarder_index;
     }
 
     public CallType call_type { get; private set; }
     public ArrayList<Tile> tiles { get; private set; }
     public Tile? call_tile { get; private set; }
+    public int discarder_index { get; private set; }
 
     public enum CallType
     {
@@ -844,6 +846,7 @@ public class PlayerStateContext : Object
 {
     public PlayerStateContext
     (
+        int index,
         ArrayList<Tile> hand, // Without the winning tile
         ArrayList<Tile> pond,
         ArrayList<RoundStateCall> calls,
@@ -858,6 +861,7 @@ public class PlayerStateContext : Object
         int sekinin_index
     )
     {
+        this.index = index;
         this.hand = hand;
         this.pond = pond;
         this.calls = calls;
@@ -875,6 +879,7 @@ public class PlayerStateContext : Object
     public string to_string()
     {
         string str =
+        "index: " + index.to_string() + "\n" +
         "wind: " + wind.to_string() + "\n" +
         "dealer: " + dealer.to_string() + "\n" +
         "in_riichi: " + in_riichi.to_string() + "\n" +
@@ -896,6 +901,7 @@ public class PlayerStateContext : Object
         return str;
     }
 
+    public int index { get; private set; }
     public ArrayList<Tile> hand { get; private set; }
     public ArrayList<Tile> pond { get; private set; }
     public ArrayList<RoundStateCall> calls { get; private set; }
@@ -997,6 +1003,27 @@ public class HandReading : Object
         return true;
     }
 
+    public string to_string()
+    {
+        string str =
+
+        "tiles:\n";
+        foreach (Tile tile in tiles)
+            str += "\t" + tile.to_string() + "\n";
+        str += "melds:";
+        foreach (TileMeld meld in melds)
+            str += meld.to_string() + "\n";
+        str += "pairs:";
+        foreach (TilePair pair in pairs)
+            str += pair.to_string() + "\n";
+
+        str +=
+        "is_kokushi: " + is_kokushi.to_string() + "\n" +
+        "valid_keishkiki: " + valid_keishiki.to_string();
+
+        return str;
+    }
+
     public ArrayList<Tile> tiles { get; private set; }
     public ArrayList<TileMeld> melds { get; private set; }
     public ArrayList<TilePair> pairs { get; private set; }
@@ -1051,6 +1078,21 @@ public class TileMeld : Object
         else
             return null;
     }*/
+
+    public string to_string()
+    {
+        string str =
+
+        "tile_1: " + tile_1.to_string() + "\n" +
+        "tile_2: " + tile_2.to_string() + "\n" +
+        "tile_3: " + tile_3.to_string() + "\n" +
+        "tile_4: " + (tile_4 == null ? "(null)" : tile_2.to_string()) + "\n" +
+        "is_triplet: " + is_triplet.to_string() + "\n" +
+        "is_kan: " + is_kan.to_string() + "\n" +
+        "is_closed: " + is_closed.to_string();
+
+        return str;
+    }
 }
 
 public class TilePair : Object
@@ -1073,6 +1115,16 @@ public class TilePair : Object
         else
             return null;
     }*/
+
+    public string to_string()
+    {
+        string str =
+
+        "tile_1: " + tile_1.to_string() + "\n" +
+        "tile_2: " + tile_2.to_string();
+
+        return str;
+    }
 }
 
 public class Scoring : Object
@@ -1099,7 +1151,7 @@ public class Scoring : Object
             yakuman += y.yakuman;
             han += y.han;
 
-            if (y.yaku_type == YakuType.RIICHI)
+            if (y.yaku_type == YakuType.RIICHI || y.yaku_type == YakuType.OPEN_RIICHI)
                 riichi = true;
         }
 
@@ -1378,6 +1430,33 @@ public class Scoring : Object
     public int yakuman { get; private set; }
     public ScoreType score_type { get; private set; }
 
+    public string to_string()
+    {
+        string str =
+
+        "valid: " + valid.to_string() + "\n" +
+        "hand: " + hand.to_string() + "\n" +
+        "round: " + round.to_string() + "\n" +
+        "player: " + player.to_string() + "\n";
+
+        foreach (Yaku y in yaku)
+            str += "yaku: " + y.to_string() + "\n";
+
+        str +=
+        "ron: " + ron.to_string() + "\n" +
+        "dealer: " + dealer.to_string() + "\n" +
+        "tsumo_points_lower: " + tsumo_points_lower.to_string() + "\n" +
+        "tsumo_points_higher: " + tsumo_points_higher.to_string() + "\n" +
+        "ron_points: " + ron_points.to_string() + "\n" +
+        "total_points: " + total_points.to_string() + "\n" +
+        "han: " + han.to_string() + "\n" +
+        "fu: " + fu.to_string() + "\n" +
+        "yakuman: " + yakuman.to_string() + "\n" +
+        "score_type: " + score_type.to_string();
+
+        return str;
+    }
+
     public enum ScoreType
     {
         NONE,
@@ -1407,6 +1486,17 @@ public class Yaku : Object
         this.yaku_type = yaku_type;
         this.han = han;
         this.yakuman = yakuman;
+    }
+
+    public string to_string()
+    {
+        string str =
+
+        "yaku_type: " + yaku_type.to_string() + "\n" +
+        "han: " + han.to_string() + "\n" +
+        "yakuman: " + yakuman.to_string();
+
+        return str;
     }
 
     public YakuType yaku_type { get; private set; }

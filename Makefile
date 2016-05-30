@@ -31,18 +31,19 @@ PKGS  = \
 	--pkg SOIL \
 	--pkg pangoft2 \
 	--pkg sfml-audio-2 \
-	--pkg sfml-system-2
+	--pkg sfml-system-2 \
+	--pkg portaudio
 
 WLIBS = \
 	-X lib/SOIL/libSOIL.a \
-	-X lib/SDL/SDL2_net.lib \
 	-X lib/SDL/SDL2_image.lib \
 	-X lib/SDL/SDL2.lib \
 	-X lib/GLEW/libglew32.a \
 	-X lib/GL/libopengl32.a \
 	-X lib/GEE/libgee.dll.a \
 	-X lib/SFML/libcsfml-audio.a \
-	-X lib/SFML/libcsfml-system.a
+	-X lib/SFML/libcsfml-system.a \
+	-X lib/PORTAUDIO/libportaudio.dll.a
 
 MLIBS = \
 	-X lib/SOIL/libSOIL.mac.a \
@@ -104,6 +105,19 @@ clean:
 
 WindowsDebug:
 	$(eval SHELL = C:/Windows/System32/cmd.exe)
+#	$(VALAC) $(DEBUG) $(O) $(VAPI) -X -w \
+#	source/main.vala \
+#	source/Engine/Audio/MusicGenerator.vala \
+#	source/Engine/Helper/Threading.vala \
+#	source/Engine/Helper/Networking.vala \
+#	--thread \
+#	--target-glib 2.32 \
+#	--pkg gio-2.0 \
+#	--pkg gee-0.8 \
+#	--pkg portaudio \
+#	-X lib/GEE/libgee.dll.a \
+#	-X lib/PORTAUDIO/libportaudio.dll.a
+
 	$(VALAC) $(DEBUG) $(O) $(DIRS) $(PKGS) $(WLIBS) $(VAPI) $(OTHER)
 
 WindowsRelease:

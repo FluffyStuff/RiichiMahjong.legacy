@@ -45,19 +45,12 @@ public class RenderImage2D : RenderObject2D
 
 public class RenderLabel2D : RenderObject2D
 {
-    private LabelResourceReference reference;
     private string _font_type;
     private float _font_size;
     private string _text;
 
-    ~RenderLabel2D()
+    public RenderLabel2D(LabelResourceReference reference)
     {
-        reference.delete();
-    }
-
-    public RenderLabel2D(uint handle, LabelResourceReference reference)
-    {
-        this.handle = handle;
         this.reference = reference;
 
         rotation = 0;
@@ -73,7 +66,7 @@ public class RenderLabel2D : RenderObject2D
 
     public override RenderObject2D copy_new()
     {
-        RenderLabel2D img = new RenderLabel2D(handle, reference);
+        RenderLabel2D img = new RenderLabel2D(reference);
         img.info = info;
         img._font_type = _font_type;
         img._font_size = _font_size;
@@ -87,8 +80,8 @@ public class RenderLabel2D : RenderObject2D
         info = reference.update(font_type, font_size, text);
     }
 
-    public uint handle { get; private set; }
     public LabelInfo? info { get; private set; }
+    public LabelResourceReference reference { get; private set; }
 
     public string font_type
     {

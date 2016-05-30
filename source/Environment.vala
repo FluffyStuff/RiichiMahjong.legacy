@@ -32,6 +32,7 @@ public class Environment
         typeof(ServerMessageAcceptJoin).class_ref();
         typeof(ServerMessageMenuSlotAssign).class_ref();
         typeof(ServerMessageMenuSlotClear).class_ref();
+        typeof(ServerMessageMenuSettings).class_ref();
         typeof(ServerMessageDraw).class_ref();
 
         typeof(Lobby.LobbyInformation).class_ref();
@@ -101,6 +102,11 @@ public class Environment
     {
         int chars = sanitize_name(name).char_count();
         return chars >= MIN_NAME_LENGTH && chars <= MAX_NAME_LENGTH;
+    }
+
+    public static string get_user_dir()
+    {
+        return GLib.Environment.get_user_config_dir() + "/RiichiMahjong/";
     }
 
     public static VersionInfo version_info { get; private set; }

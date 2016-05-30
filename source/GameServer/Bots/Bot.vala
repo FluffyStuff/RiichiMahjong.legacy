@@ -5,14 +5,16 @@ public abstract class Bot : Object
     private bool active = false;
     private Mutex mutex = Mutex();
     private int player_index;
+    private ServerSettings settings;
 
     protected GameState game_state;
     protected RoundState? round_state;
 
-    public void init_game(GameStartInfo info, int player_index)
+    public void init_game(GameStartInfo info, ServerSettings settings, int player_index)
     {
-        game_state = new GameState(info);
+        game_state = new GameState(info, settings);
         this.player_index = player_index;
+        this.settings = settings;
         active = true;
         Threading.start0(logic);
     }
@@ -23,7 +25,7 @@ public abstract class Bot : Object
             mutex.lock();
 
         game_state.start_round(info);
-        round_state = new RoundState(player_index, game_state.round_wind, game_state.dealer_index, info.wall_index, game_state.can_riichi());
+        round_state = new RoundState(settings, player_index, game_state.round_wind, game_state.dealer_index, info.wall_index, game_state.can_riichi());
         round_state.start();
 
         if (use_lock)

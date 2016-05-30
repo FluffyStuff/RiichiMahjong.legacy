@@ -6,6 +6,7 @@ namespace GameServer
     {
         private GameState state;
         private GameStartInfo start_info;
+        private ServerSettings settings;
         private State action_state;
         private ServerGameRound? round = null;
         private unowned Rand rnd;
@@ -14,12 +15,13 @@ namespace GameServer
         private ArrayList<ServerPlayer> players = new ArrayList<ServerPlayer>();
         private ArrayList<ServerPlayer> spectators = new ArrayList<ServerPlayer>();
 
-        public Server(ArrayList<ServerPlayer> players, ArrayList<ServerPlayer> spectators, Rand rnd, GameStartInfo start_info)
+        public Server(ArrayList<ServerPlayer> players, ArrayList<ServerPlayer> spectators, Rand rnd, GameStartInfo start_info, ServerSettings settings)
         {
             this.players = new ArrayList<ServerPlayer>();
             this.spectators = spectators;
             this.rnd = rnd;
             this.start_info = start_info;
+            this.settings = settings;
 
             for (int i = 0; i < players.size; i++)
             {
@@ -30,7 +32,7 @@ namespace GameServer
                 player.send_message(start);
             }
 
-            state = new GameState(start_info);
+            state = new GameState(start_info, settings);
 
             start_round(0);
         }
@@ -123,7 +125,7 @@ namespace GameServer
             RoundStartInfo info = new RoundStartInfo(wall_index);
             state.start_round(info);
 
-            round = new ServerGameRound(info, players, spectators, state.round_wind, state.dealer_index, rnd, state.can_riichi(), start_info.decision_time);
+            round = new ServerGameRound(info, settings, players, spectators, state.round_wind, state.dealer_index, rnd, state.can_riichi(), start_info.decision_time);
             round.declare_riichi.connect(state.declare_riichi);
             round.start(time);
         }

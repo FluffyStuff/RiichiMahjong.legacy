@@ -123,6 +123,16 @@ public class ClientMessageMenuKickPlayer : ClientMessage
     public int slot { get; protected set; }
 }
 
+public class ClientMessageMenuSettings : ClientMessage
+{
+    public ClientMessageMenuSettings(string settings)
+    {
+        this.settings = settings;
+    }
+
+    public string settings { get; protected set; }
+}
+
 public class ClientMessageTileDiscard : ClientMessage
 {
     public ClientMessageTileDiscard(int tile_ID)

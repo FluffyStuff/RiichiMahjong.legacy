@@ -1,5 +1,6 @@
 public class OptionItemControl : View2D
 {
+    private bool can_control;
     private string name;
     private string[] options;
 
@@ -8,10 +9,11 @@ public class OptionItemControl : View2D
     private GameMenuButton next_button;
     private GameMenuButton prev_button;
 
-    public OptionItemControl(string name, string[] options, int index)
+    public OptionItemControl(bool can_control, string name, string[] options, int index)
     {
         base();
 
+        this.can_control = can_control;
         this.name = name;
         this.options = options;
         this.index = index;
@@ -23,8 +25,12 @@ public class OptionItemControl : View2D
     public override void added()
     {
         int width = 350;
-        prev_button = new GameMenuButton("Prev");
-        next_button = new GameMenuButton("Next");
+
+        if (can_control)
+        {
+            prev_button = new GameMenuButton("Prev");
+            next_button = new GameMenuButton("Next");
+        }
 
         name_label = new LabelControl();
         add_child(name_label);
@@ -32,12 +38,15 @@ public class OptionItemControl : View2D
         name_label.inner_anchor = Vec2(0, 0.5f);
         name_label.outer_anchor = Vec2(0, 0.5f);
 
-        add_child(prev_button);
-        prev_button.inner_anchor = Vec2(0, 0.5f);
-        prev_button.outer_anchor = Vec2(1, 0.5f);
-        prev_button.position = Vec2(-width, 0);
-        prev_button.selectable = true;
-        prev_button.clicked.connect(prev);
+        if (can_control)
+        {
+            add_child(prev_button);
+            prev_button.inner_anchor = Vec2(0, 0.5f);
+            prev_button.outer_anchor = Vec2(1, 0.5f);
+            prev_button.position = Vec2(-width, 0);
+            prev_button.selectable = true;
+            prev_button.clicked.connect(prev);
+        }
 
         text_label = new LabelControl();
         add_child(text_label);
@@ -46,11 +55,14 @@ public class OptionItemControl : View2D
         text_label.outer_anchor = Vec2(1, 0.5f);
         text_label.position = Vec2(-width / 2, 0);
 
-        add_child(next_button);
-        next_button.inner_anchor = Vec2(1, 0.5f);
-        next_button.outer_anchor = Vec2(1, 0.5f);
-        next_button.selectable = true;
-        next_button.clicked.connect(next);
+        if (can_control)
+        {
+            add_child(next_button);
+            next_button.inner_anchor = Vec2(1, 0.5f);
+            next_button.outer_anchor = Vec2(1, 0.5f);
+            next_button.selectable = true;
+            next_button.clicked.connect(next);
+        }
 
         set_options();
     }
@@ -69,21 +81,24 @@ public class OptionItemControl : View2D
 
     private void set_options()
     {
-        if (index >= options.length - 1)
+        if (can_control)
         {
-            index = options.length - 1;
-            next_button.enabled = false;
-        }
-        else
-            next_button.enabled = true;
+            if (index >= options.length - 1)
+            {
+                index = options.length - 1;
+                next_button.enabled = false;
+            }
+            else
+                next_button.enabled = true;
 
-        if (index <= 0)
-        {
-            index = 0;
-            prev_button.enabled = false;
+            if (index <= 0)
+            {
+                index = 0;
+                prev_button.enabled = false;
+            }
+            else
+                prev_button.enabled = true;
         }
-        else
-            prev_button.enabled = true;
 
         text_label.text = options[index];
     }

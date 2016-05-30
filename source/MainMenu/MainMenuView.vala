@@ -3,7 +3,7 @@ using GameServer;
 
 class MainMenuView : View2D
 {
-    private MainMenuBackgroundView background_view = new MainMenuBackgroundView();
+    private MainMenuBackgroundView background_view;
     private ServerMenuView server_view;
     private ServerOptionsView server_options_view;
     private JoinMenuView join_view;
@@ -16,9 +16,15 @@ class MainMenuView : View2D
     private MenuTextButton options_button;
     private MenuTextButton quit_button;
 
-    public signal GameController game_start(GameStartInfo info, IGameConnection connection, int player_index);
+    public signal GameController game_start(GameStartInfo info, ServerSettings settings, IGameConnection connection, int player_index);
     public signal void restart();
     public signal void quit();
+
+    public MainMenuView()
+    {
+        Options options = new Options.from_disk();
+        background_view = new MainMenuBackgroundView(options.tile_textures, options.tile_fore_color, options.tile_back_color);
+    }
 
     ~MainMenuView()
     {
@@ -160,14 +166,14 @@ class MainMenuView : View2D
         add_child(server_view);
     }
 
-    private void menu_game_start(GameStartInfo info, IGameConnection connection, int player_index)
+    private void menu_game_start(GameStartInfo info, ServerSettings settings, IGameConnection connection, int player_index)
     {
-        game_start(info, connection, player_index);
+        game_start(info, settings, connection, player_index);
     }
 
-    private GameController menu_game_start_controller(GameStartInfo info, IGameConnection connection, int player_index)
+    private GameController menu_game_start_controller(GameStartInfo info, ServerSettings settings, IGameConnection connection, int player_index)
     {
-        return game_start(info, connection, player_index);
+        return game_start(info, settings, connection, player_index);
     }
 
     public override void added()

@@ -296,3 +296,13 @@ public class ServerMessageMenuSlotClear : ServerMessage
 
     public int slot { get; protected set; }
 }
+
+public class ServerMessageMenuSettings : ServerMessage
+{
+    public ServerMessageMenuSettings(string settings)
+    {
+        this.settings = settings;
+    }
+
+    public string settings { get; protected set; }
+}

@@ -7,6 +7,7 @@ public class GameController : Object
 
     private unowned Container parent_view;
     private GameStartInfo start_info;
+    private ServerSettings settings;
     private IGameConnection connection;
     private int player_index;
 
@@ -15,10 +16,11 @@ public class GameController : Object
     private bool is_disconnected = false;
     public signal void finished();
 
-    public GameController(Container parent_view, GameStartInfo start_info, IGameConnection connection, int player_index, Options options)
+    public GameController(Container parent_view, GameStartInfo start_info, ServerSettings settings, IGameConnection connection, int player_index, Options options)
     {
         this.parent_view = parent_view;
         this.start_info = start_info;
+        this.settings = settings;
         this.connection = connection;
         this.player_index = player_index;
 
@@ -28,7 +30,7 @@ public class GameController : Object
         string quality = Options.quality_enum_to_string(options.shader_quality);
         parent_view.window.renderer.shader_3D = "open_gl_shader_3D_" + quality;
 
-        game = new GameState(start_info);
+        game = new GameState(start_info, settings);
     }
 
     ~GameController()
@@ -87,7 +89,7 @@ public class GameController : Object
 
     private void create_round_state(RoundStartInfo round_start)
     {
-        round = new ClientRoundState(round_start, player_index, game.round_wind, game.dealer_index, game.can_riichi());
+        round = new ClientRoundState(round_start, settings, player_index, game.round_wind, game.dealer_index, game.can_riichi());
         round.send_message.connect(connection.send_message);
         round.set_chii_state.connect(menu.set_chii);
         round.set_pon_state.connect(menu.set_pon);
@@ -139,7 +141,7 @@ public class GameController : Object
             parent_view.remove_child(menu);
 
         game.start_round(info);
-        menu = new GameMenuView(player_index, start_info.decision_time, start_info.round_wait_time, start_info.hanchan_wait_time, start_info.game_wait_time);
+        menu = new GameMenuView(settings, player_index, start_info.decision_time, start_info.round_wait_time, start_info.hanchan_wait_time, start_info.game_wait_time);
         menu.display_score_pressed.connect(display_score_pressed);
         menu.score_timer_expired.connect(score_timer_expired);
 

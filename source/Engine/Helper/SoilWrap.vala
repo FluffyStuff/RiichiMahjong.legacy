@@ -5,7 +5,7 @@ public class SoilWrap : Object
 
     private SoilWrap() {}
 
-    public static SoilImage load_image(string name)
+    public static ImageData load_image(string name)
     {
         int width, height;
 
@@ -13,20 +13,10 @@ public class SoilWrap : Object
         uchar *image = SOIL.load_image(name, out width, out height, null, SOIL.LoadFlags.RGBA);
         mutex.unlock();
 
-        return new SoilImage((char*)image, width, height);
-    }
-}
+        uchar[] data = new uchar[width * height * 4];
+        Memory.copy(data, image, sizeof(uchar) * data.length);
+        delete image;
 
-public class SoilImage
-{
-    public SoilImage(char *data, int width, int height)
-    {
-        this.data = data;
-        this.width = width;
-        this.height = height;
+        return new ImageData(data, Size2i(width, height));
     }
-
-    public char *data { get; private set; }
-    public int width { get; private set; }
-    public int height { get; private set; }
 }

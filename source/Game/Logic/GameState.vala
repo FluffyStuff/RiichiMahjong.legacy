@@ -7,7 +7,7 @@ public class GameState : Object
     private int uma_higher;
     private int uma_lower;
 
-    public GameState(GameStartInfo info)
+    public GameState(GameStartInfo info, ServerSettings settings) // TODO: Remove settings if we don't need them
     {
         starting_score = info.starting_score;
         uma_higher = info.uma_higher;

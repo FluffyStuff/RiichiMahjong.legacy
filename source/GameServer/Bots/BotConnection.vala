@@ -3,6 +3,7 @@ class BotConnection : Object
     private Bot bot;
     private IGameConnection connection;
     private ServerMessageParser parser = new ServerMessageParser();
+    private ServerSettings settings = new ServerSettings.from_disk();
 
     public BotConnection(Bot bot, IGameConnection connection)
     {
@@ -63,7 +64,7 @@ class BotConnection : Object
             if (message is ServerMessageGameStart)
             {
                 ServerMessageGameStart start = message as ServerMessageGameStart;
-                bot.init_game(start.info, start.player_index);
+                bot.init_game(start.info, settings, start.player_index);
             }
             else if (message is ServerMessageRoundStart)
             {
@@ -71,6 +72,10 @@ class BotConnection : Object
                 var start = message as ServerMessageRoundStart;
                 bot.start_round(true, start.info);
                 break;
+            }
+            else if (message is ServerMessageMenuSettings)
+            {
+                server_settings(message);
             }
         }
     }
@@ -80,6 +85,12 @@ class BotConnection : Object
         ServerMessage? message;
         while ((message = connection.dequeue_message()) != null)
             parser.execute(message);
+    }
+
+    private void server_settings(ServerMessage message)
+    {
+        ServerMessageMenuSettings settings = message as ServerMessageMenuSettings;
+        this.settings.load_string(settings.settings);
     }
 
     private void round_start(ServerMessage message)

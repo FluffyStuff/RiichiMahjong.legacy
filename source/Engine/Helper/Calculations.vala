@@ -79,13 +79,13 @@ public class Calculations
 
         // TODO: Why is this the unview matrix?
         Mat4 unview_matrix = view_matrix.mul_mat(projection_matrix.inverse());
-        Vec4 vec = {x, y, 0, 1};
+        Vec4 vec = Vec4(x, y, 0, 1);
         Vec4 ray_dir = unview_matrix.mul_vec(vec);
 
         return Vec3(ray_dir.x, ray_dir.y, ray_dir.z).normalize();
     }
 
-    public static float get_collision_distance(RenderBody3D obj, Vec3 origin, Vec3 ray)
+    /*public static float get_collision_distance(RenderBody3D obj, Vec3 origin, Vec3 ray)
     {
         float x_size = obj.model.size.x / 2 * obj.scale.x;
         float y_size = obj.model.size.y / 2 * obj.scale.y;
@@ -117,78 +117,199 @@ public class Calculations
         dist = calc_dist(dist, collision_surface_distance(origin, ray, yz_neg, yz_dir, xy_dir, xz_dir, z_size, y_size));
 
         return dist;
+
+        return -1;
+    }*/
+
+    public static float get_collision_distance
+    (
+        Vec3 ray_origin,
+        Vec3 ray_direction,
+        Vec3 model_obb,
+        Mat4 model_matrix
+    )
+    {
+        return get_collision_distance_box(ray_origin, ray_direction, model_obb.mul_scalar(-0.5f), model_obb.mul_scalar(0.5f), model_matrix);
     }
 
-    private static float calc_dist(float dist, float val)
+    public static float get_collision_distance_box
+    (
+        Vec3 ray_origin,        // Ray origin, in world space
+        Vec3 ray_direction,     // Ray direction (NOT target position!), in world space. Must be normalize()'d.
+        Vec3 aabb_min,          // Minimum X,Y,Z coords of the mesh when not transformed at all.
+        Vec3 aabb_max,          // Maximum X,Y,Z coords. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
+        Mat4 model_matrix       // Transformation applied to the mesh (which will thus be also applied to its bounding box)
+    )
     {
-        if (val >= 0 && (dist < 0 || val < dist))
-            dist = val;
-        return dist;
-    }
+        // Intersection method from Real-Time Rendering and Essential Mathematics for Games
+        // Licensed under WTF public license (the best license)
 
-    private static float collision_surface_distance(Vec3 line_offset, Vec3 line_direction, Vec3 plane_offset, Vec3 plane_direction, Vec3 ortho1, Vec3 ortho2, float width, float height)
-    {
-        Vec3 point = collision(line_offset, line_direction, plane_offset, plane_direction);
-        if (point.x.is_nan() || point.y.is_nan() || point.z.is_nan())
-            return -1;
+        float tMin = 0.0f;
+        float tMax = 100000.0f;
 
-        Vec3 width_col = proj(point, ortho1, plane_offset);
-        float width_dist = plane_offset.dist_sq(width_col);
-        if (width * width < width_dist)
-            return -1;
+        Vec3 OBBposition_worldspace = Vec3(model_matrix[12], model_matrix[13], model_matrix[14]);
+        Vec3 delta = OBBposition_worldspace.minus(ray_origin);
 
-        float height_dist = point.dist_sq(width_col);
-        if (height * height < height_dist)
-            return -1;
-
-        return point.dist_sq(line_offset);
-    }
-
-    public static Vec3 collision(Vec3 line_offset, Vec3 line_direction, Vec3 plane_offset, Vec3 plane_direction)
-    {
-        Vec3 n1 = line_offset;
-        Vec3 n2 = line_offset.plus(line_direction);
-
-        Vec3 nv = plane_offset.minus(n1);
-        Vec3 dv = n2.minus(n1);
-
-        float n = plane_direction.dot(nv);
-        float d = plane_direction.dot(dv);
-
-        if (d == 0)
-            return Vec3(float.NAN, float.NAN, float.NAN);
-
-        float u = n / d;
-
-        Vec3 p = n1.plus(dv.mul_scalar(u));
-        return p;
-    }
-
-    private static Vec3 proj(Vec3 plane_position, Vec3 normal, Vec3 point)
-    {
-        Vec3 p = plane_position;
-        Vec3 n = normal.normalize();
-        Vec3 q = point;
-
-        return q.minus(n.mul_scalar(q.minus(p).dot(n)));
-    }
-
-    public static Mat4 rotation_matrix(Vec3 axis, float angle)
-    {
-        axis = axis.normalize();
-        float s = (float)Math.sin(angle);
-        float c = (float)Math.cos(angle);
-        float oc = 1 - c;
-
-        float[] vals =
+        // Test intersection with the 2 planes perpendicular to the OBB's X axis
         {
-            oc * axis.x * axis.x + c,          oc * axis.x * axis.y - axis.z * s, oc * axis.z * axis.x + axis.y * s,  0,
-            oc * axis.x * axis.y + axis.z * s, oc * axis.y * axis.y + c,          oc * axis.y * axis.z - axis.x * s,  0,
-            oc * axis.z * axis.x - axis.y * s, oc * axis.y * axis.z + axis.x * s, oc * axis.z * axis.z + c,           0,
-            0,                                 0,                                 0,                                  1
-        };
+            Vec3 xaxis = Vec3(model_matrix[0], model_matrix[1], model_matrix[2]);
+            float e = xaxis.dot(delta);
+            float f = ray_direction.dot(xaxis);
+            float l = xaxis.length();
+            l *= l;
 
-        return new Mat4.with_array(vals);
+            if (Math.fabsf(f) > 0.001f)
+            {
+                // Standard case
+                float t1 = (e + aabb_min.x * l) / f; // Intersection with the "left" plane
+                float t2 = (e + aabb_max.x * l) / f; // Intersection with the "right" plane
+                // t1 and t2 now contain distances betwen ray origin and ray-plane intersections
+
+                // We want t1 to represent the nearest intersection,
+                // so if it's not the case, invert t1 and t2
+                if (t1 > t2)
+                {
+                    // swap t1 and t2
+                    float w = t1;
+                    t1 = t2;
+                    t2 = w;
+                }
+
+                // tMax is the nearest "far" intersection (amongst the X,Y and Z planes pairs)
+                if (t2 < tMax)
+                    tMax = t2;
+                // tMin is the farthest "near" intersection (amongst the X,Y and Z planes pairs)
+                if (t1 > tMin)
+                    tMin = t1;
+
+                // And here's the trick :
+                // If "far" is closer than "near", then there is NO intersection.
+                // See the images in the tutorials for the visual explanation.
+                if (tMax < tMin)
+                    return -1;
+            }
+            else
+            {
+                // Rare case : the ray is almost parallel to the planes, so they don't have any "intersection"
+                if (-e + aabb_min.x > 0.0f || -e + aabb_max.x < 0.0f)
+                    return -1;
+            }
+        }
+
+        // Test intersection with the 2 planes perpendicular to the OBB's Y axis
+        // Exactly the same thing as above.
+        {
+            Vec3 yaxis = Vec3(model_matrix[4], model_matrix[5], model_matrix[6]);
+            float e = yaxis.dot(delta);
+            float f = ray_direction.dot(yaxis);
+            float l = yaxis.length();
+            l *= l;
+
+            if (Math.fabsf(f) > 0.001f)
+            {
+                float t1 = (e + aabb_min.y * l) / f;
+                float t2 = (e + aabb_max.y * l) / f;
+
+                if (t1 > t2)
+                {
+                    float w = t1;
+                    t1 = t2;
+                    t2 = w;
+                }
+
+                if (t2 < tMax)
+                    tMax = t2;
+                if (t1 > tMin)
+                    tMin = t1;
+
+                if (tMax < tMin)
+                    return -1;
+
+            }
+            else
+            {
+                if (-e + aabb_min.y > 0.0f || -e + aabb_max.y < 0.0f)
+                    return -1;
+            }
+        }
+
+        // Test intersection with the 2 planes perpendicular to the OBB's Z axis
+        // Exactly the same thing as above.
+        {
+            Vec3 zaxis = Vec3(model_matrix[8], model_matrix[9], model_matrix[10]);
+            float e = zaxis.dot(delta);
+            float f = ray_direction.dot(zaxis);
+            float l = zaxis.length();
+            l *= l;
+
+            if (Math.fabsf(f) > 0.001f)
+            {
+                float t1 = (e + aabb_min.z * l) / f;
+                float t2 = (e + aabb_max.z * l) / f;
+
+                if (t1 > t2)
+                {
+                    float w = t1;
+                    t1 = t2;
+                    t2 = w;
+                }
+
+                if (t2 < tMax)
+                    tMax = t2;
+                if (t1 > tMin)
+                    tMin = t1;
+
+                if (tMax < tMin)
+                    return -1;
+
+            }
+            else
+            {
+                if (-e + aabb_min.z > 0.0f || -e + aabb_max.z < 0.0f)
+                    return -1;
+            }
+        }
+
+        return tMin;
+    }
+
+    public static Mat4 rotation_matrix_quat(Quat quat)
+    {
+        float x2 = quat.x + quat.x;
+        float y2 = quat.y + quat.y;
+        float z2 = quat.z + quat.z;
+        float xx = quat.x * x2;
+        float xy = quat.x * y2;
+        float xz = quat.x * z2;
+        float yy = quat.y * y2;
+        float yz = quat.y * z2;
+        float zz = quat.z * z2;
+        float wx = quat.w * x2;
+        float wy = quat.w * y2;
+        float wz = quat.w * z2;
+
+        float m[16];
+        m[ 0] = 1 - (yy + zz);
+        m[ 1] = xy - wz;
+        m[ 2] = xz + wy;
+        m[ 3] = 0;
+
+        m[ 4] = xy + wz;
+        m[ 5] = 1 - (xx + zz);
+        m[ 6] = yz - wx;
+        m[ 7] = 0;
+
+        m[ 8] = xz - wy;
+        m[ 9] = yz + wx;
+        m[10] = 1 - (xx + yy);
+        m[11] = 0;
+
+        m[12] = 0;
+        m[13] = 0;
+        m[14] = 0;
+        m[15] = 1;
+
+        return new Mat4.with_array(m);
     }
 
     public static Mat4 translation_matrix(Vec3 vec)
@@ -217,7 +338,7 @@ public class Calculations
         return new Mat4.with_array(vals);
     }
 
-    public static Mat4 get_model_matrix(Vec3 position, Vec3 rotation, Vec3 scale)
+    /*public static Mat4 get_model_matrix(Vec3 position, Vec3 rotation, Vec3 scale)
     {
         float pi = (float)Math.PI;
         Mat4 x = rotation_matrix(Vec3(1, 0, 0), pi * rotation.x);
@@ -231,7 +352,7 @@ public class Calculations
         Mat4 rotate = x.mul_mat(y).mul_mat(z);
 
         return scale_matrix(scale).mul_mat(rotate).mul_mat(translation_matrix(position));
-    }
+    }*/
 
     public static Mat3 rotation_matrix_3(float angle)
     {

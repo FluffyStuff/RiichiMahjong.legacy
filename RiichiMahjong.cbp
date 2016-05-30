@@ -48,6 +48,7 @@
 		<Unit filename="source/Engine/Files/ObjParser.vala" />
 		<Unit filename="source/Engine/Helper/Calculations.vala" />
 		<Unit filename="source/Engine/Helper/Helper.vala" />
+		<Unit filename="source/Engine/Helper/ImageLoader.vala" />
 		<Unit filename="source/Engine/Helper/Keys.vala" />
 		<Unit filename="source/Engine/Helper/LabelLoader.vala" />
 		<Unit filename="source/Engine/Helper/Networking.vala" />
@@ -56,6 +57,7 @@
 		<Unit filename="source/Engine/Properties/Color.vala" />
 		<Unit filename="source/Engine/Properties/Mat3.vala" />
 		<Unit filename="source/Engine/Properties/Mat4.vala" />
+		<Unit filename="source/Engine/Properties/Quat.vala" />
 		<Unit filename="source/Engine/Properties/Rectangle.vala" />
 		<Unit filename="source/Engine/Properties/Size2.vala" />
 		<Unit filename="source/Engine/Properties/Size2i.vala" />
@@ -66,7 +68,6 @@
 		<Unit filename="source/Engine/Rendering/Camera.vala" />
 		<Unit filename="source/Engine/Rendering/IRenderTarget.vala" />
 		<Unit filename="source/Engine/Rendering/IResourceHandle.vala" />
-		<Unit filename="source/Engine/Rendering/IResourceStore.vala" />
 		<Unit filename="source/Engine/Rendering/LightSource.vala" />
 		<Unit filename="source/Engine/Rendering/OpenGLRenderer/OpenGLFrameBuffer.vala" />
 		<Unit filename="source/Engine/Rendering/OpenGLRenderer/OpenGLRenderBuffer.vala" />
@@ -75,19 +76,22 @@
 		<Unit filename="source/Engine/Rendering/OpenGLRenderer/OpenGLShader.vala" />
 		<Unit filename="source/Engine/Rendering/OpenGLRenderer/OpenGLShaderProgram2D.vala" />
 		<Unit filename="source/Engine/Rendering/OpenGLRenderer/OpenGLShaderProgram3D.vala" />
+		<Unit filename="source/Engine/Rendering/RenderGeometry3D.vala" />
+		<Unit filename="source/Engine/Rendering/RenderMaterial.vala" />
 		<Unit filename="source/Engine/Rendering/RenderObject2D.vala" />
 		<Unit filename="source/Engine/Rendering/RenderObject3D.vala" />
 		<Unit filename="source/Engine/Rendering/RenderScene2D.vala" />
 		<Unit filename="source/Engine/Rendering/RenderScene3D.vala" />
 		<Unit filename="source/Engine/Rendering/RenderState.vala" />
 		<Unit filename="source/Engine/Rendering/RenderTarget.vala" />
+		<Unit filename="source/Engine/Rendering/ResourceStore.vala" />
 		<Unit filename="source/Engine/Window/Container.vala" />
 		<Unit filename="source/Engine/Window/Control.vala" />
 		<Unit filename="source/Engine/Window/Controls/ImageControl.vala" />
 		<Unit filename="source/Engine/Window/Controls/LabelControl.vala" />
 		<Unit filename="source/Engine/Window/Controls/ListControl.vala" />
 		<Unit filename="source/Engine/Window/Controls/RectangleControl.vala" />
-		<Unit filename="source/Engine/Window/Controls/ScrollBarVerticalControl.vala" />
+		<Unit filename="source/Engine/Window/Controls/ScrollBarControl.vala" />
 		<Unit filename="source/Engine/Window/Controls/TextInputControl.vala" />
 		<Unit filename="source/Engine/Window/IWindowTarget.vala" />
 		<Unit filename="source/Engine/Window/MainView.vala" />

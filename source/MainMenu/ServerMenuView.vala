@@ -8,11 +8,17 @@ public class ServerMenuView : View2D
     private string name;
     private bool host = false;
     private bool can_control;
+    private ServerSettings settings = new ServerSettings.from_disk();
+    //private string settings = null;
 
+    private ServerSettingsView settings_view;
     private ServerPlayerFieldView[] players = new ServerPlayerFieldView[4];
     private MenuTextButton start_button;
+    private MenuTextButton settings_button;
+    private MenuTextButton back_button;
+    private LabelControl label;
 
-    public signal void start(GameStartInfo info, IGameConnection connection, int player_index);
+    public signal void start(GameStartInfo info, ServerSettings settings, IGameConnection connection, int player_index);
     public signal void back();
 
     public ServerMenuView.create_server(string name)
@@ -53,11 +59,13 @@ public class ServerMenuView : View2D
         server.add_player(player);
 
         server.start_listening(1337);
+
+        send_settings(settings);
     }
 
     protected override void added()
     {
-        LabelControl label = new LabelControl();
+        label = new LabelControl();
         add_child(label);
         label.text = "Server";
         label.font_size = 40;
@@ -67,22 +75,30 @@ public class ServerMenuView : View2D
 
         int padding = 50;
 
+        settings_button = new MenuTextButton("MenuButton", "Settings");
+        add_child(settings_button);
+        settings_button.outer_anchor = Vec2(0.5f, 0);
+        settings_button.inner_anchor = Vec2(0.5f, 0);
+        settings_button.position = Vec2(0, padding);
+        settings_button.clicked.connect(settings_clicked);
+        settings_button.enabled = false; // Disable until we receive the settings from the server
+
         if (can_control)
         {
             start_button = new MenuTextButton("MenuButton", "Start");
             add_child(start_button);
             start_button.outer_anchor = Vec2(0.5f, 0);
             start_button.inner_anchor = Vec2(1, 0);
-            start_button.position = Vec2(-padding, padding);
+            start_button.position = Vec2(-padding - settings_button.size.width / 2, padding);
             start_button.clicked.connect(start_clicked);
             start_button.enabled = false;
         }
 
-        MenuTextButton back_button = new MenuTextButton("MenuButton", "Back");
+        back_button = new MenuTextButton("MenuButton", "Back");
         add_child(back_button);
         back_button.outer_anchor = Vec2(0.5f, 0);
         back_button.inner_anchor = Vec2(0, 0);
-        back_button.position = Vec2(padding, padding);
+        back_button.position = Vec2(padding + settings_button.size.width / 2, padding);
         back_button.clicked.connect(back_clicked);
 
         for (int i = 3; i >= 0; i--)
@@ -115,11 +131,55 @@ public class ServerMenuView : View2D
         connection.send_message(new ClientMessageMenuGameStart());
     }
 
+    private void settings_clicked()
+    {
+        if (settings == null)
+            return;
+
+        toggle_elements(false);
+
+        settings_view = new ServerSettingsView(can_control, settings);
+        settings_view.apply_clicked.connect(apply_server_settings);
+        settings_view.back_clicked.connect(settings_finished);
+
+        add_child(settings_view);
+    }
+
     private void back_clicked()
     {
         if (host && server != null)
             server.kill();
         back();
+    }
+
+    private void apply_server_settings()
+    {
+        send_settings(settings_view.settings);
+        settings_finished();
+    }
+
+    private void settings_finished()
+    {
+        remove_child(settings_view);
+        toggle_elements(true);
+        settings_view = null;
+    }
+
+    private void send_settings(ServerSettings settings)
+    {
+        string s = FileLoader.array_to_string(settings.to_string());
+        connection.send_message(new ClientMessageMenuSettings(s));
+    }
+
+    private void toggle_elements(bool visible)
+    {
+        for (int i = 0; i < players.length; i++)
+            players[i].visible = visible;
+        if (start_button != null)
+            start_button.visible = visible;
+        settings_button.visible = visible;
+        back_button.visible = visible;
+        label.visible = visible;
     }
 
     private void disconnected()
@@ -140,6 +200,8 @@ public class ServerMenuView : View2D
                 assign_message(message as ServerMessageMenuSlotAssign);
             else if (message is ServerMessageMenuSlotClear)
                 clear_message(message as ServerMessageMenuSlotClear);
+            else if (message is ServerMessageMenuSettings)
+                settings_message(message as ServerMessageMenuSettings);
         }
         mutex.unlock();
     }
@@ -147,7 +209,7 @@ public class ServerMenuView : View2D
     private void start_message(ServerMessageGameStart message)
     {
         connection.received_message.disconnect(received_message);
-        start(message.info, connection, message.player_index);
+        start(message.info, settings, connection, message.player_index);
     }
 
     private void assign_message(ServerMessageMenuSlotAssign message)
@@ -160,6 +222,12 @@ public class ServerMenuView : View2D
     {
         players[message.slot].unassign();
         check_can_start();
+    }
+
+    private void settings_message(ServerMessageMenuSettings message)
+    {
+        settings.load_string(message.settings);
+        settings_button.enabled = true;
     }
 
     private void check_can_start()

@@ -26,8 +26,8 @@ class MenuTextButton : Control
         label = new LabelControl();
         add_child(label);
         label.text = text;
-        selectable = true;
 
+        selectable = true;
         resize_style = ResizeStyle.ABSOLUTE;
         size = button.end_size;
     }

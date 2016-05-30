@@ -18,7 +18,7 @@ public class FileLoader
             var dis = new DataInputStream(file.read());
             string line;
             while ((line = dis.read_line (null)) != null)
-                lines.add(line);
+                lines.add(line.replace("\r", "")); // Remove windows line ending part
         }
         catch {}
 
@@ -38,7 +38,13 @@ public class FileLoader
             if (file.query_exists())
                 file.delete();
             else
-                file.get_parent().make_directory_with_parents();
+            {
+                try
+                {
+                    file.get_parent().make_directory_with_parents();
+                }
+                catch {} // Directory might already exist
+            }
 
             FileOutputStream stream = file.create (FileCreateFlags.REPLACE_DESTINATION);
 
@@ -47,7 +53,7 @@ public class FileLoader
 
             stream.close();
         }
-        catch
+        catch (Error e)
         {
             return false;
         }
@@ -85,8 +91,8 @@ public class FileLoader
         return files.to_array();
     }
 
-    public static string get_user_dir()
+    public static string array_to_string(string[] lines)
     {
-        return GLib.Environment.get_user_config_dir() + "/RiichiMahjong/";
+        return string.joinv("\n", lines);
     }
 }

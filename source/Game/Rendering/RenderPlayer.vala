@@ -14,9 +14,9 @@ public class RenderPlayer
     private RenderPond pond;
     private RenderCalls calls;
     private RenderRiichi render_riichi;
-    private RenderBody3D? wind_indicator = null;
+    private RenderGeometry3D? wind_indicator = null;
 
-    public RenderPlayer(IResourceStore store, Vec3 center, bool dealer, int seat, float player_offset, float wall_offset, Vec3 tile_size, bool observed, Wind round_wind)
+    public RenderPlayer(ResourceStore store, Vec3 center, bool dealer, int seat, float player_offset, float wall_offset, Vec3 tile_size, bool observed, Wind round_wind)
     {
         this.center = center;
         this.player_offset = player_offset;
@@ -57,15 +57,15 @@ public class RenderPlayer
             else
                 wind_string = "East";
 
-            RenderModel? model = store.load_model("wind_indicator", true);
-            RenderTexture? texture = store.load_texture("WindIndicators/" + wind_string, false);
-            wind_indicator = new RenderBody3D(model, texture);
+            wind_indicator = store.load_geometry_3D("wind_indicator", false);
+            RenderBody3D body = ((RenderBody3D)wind_indicator.geometry[0]);
+            body.texture = store.load_texture("WindIndicators/" + wind_string);
 
-            pos = Vec3(this.player_offset - model.size.x / 2 - (tile_size.x * 2.5f + tile_size.z), 0, this.player_offset);
+            pos = Vec3(this.player_offset - body.model.size.x / 2 - (tile_size.x * 2.5f + tile_size.z), 0, this.player_offset);
             pos = Calculations.rotate_y(Vec3.empty(), (float)seat / 2, pos);
             pos = center.plus(pos);
-            wind_indicator.position = Vec3(pos.x, pos.y + model.size.y / 2, pos.z);
-            wind_indicator.rotation = Vec3(0, -(float)seat / 2, 0);
+            wind_indicator.position = Vec3(pos.x, pos.y + body.model.size.y / 2, pos.z);
+            wind_indicator.rotation = new Quat.from_euler_vec(Vec3(0, -(float)seat / 2, 0));
         }
     }
 
@@ -332,19 +332,12 @@ private class RenderHand
         pos = Calculations.rotate_y(Vec3.empty(), (float)seat / 2, pos);
         pos = position.plus(pos);
 
-        Vec3 rot = Vec3
-        (
-            0.5f - view_angle,
-            1 - (float)seat / 2,
-            0
-        );
+        Quat rot = new Quat.from_euler(0.5f - view_angle, 0, 0).mul(new Quat.from_euler(0, 1 - (float)seat / 2, 0));
 
         if (animate)
             tile.animate_towards(pos, rot);
         else
-        {
             tile.set_absolute_location(pos, rot);
-        }
     }
 
     private void order_draw_tile(RenderTile tile)
@@ -366,14 +359,10 @@ private class RenderHand
         pos = Calculations.rotate_y({}, (float)seat / 2, pos);
         pos = position.plus(pos);
 
-        Vec3 rot = Vec3
-        (
-            0.5f - view_angle,
-            1 - (float)seat / 2,
-            -0.5f
-        );
-
-        //rot = Calculations.rotate_y({}, (float)seat / 2, rot);
+        Quat rot =
+        new Quat.from_euler(0, -0.5f, 0).mul(
+        new Quat.from_euler(0.5f - view_angle, 0, 0).mul(
+        new Quat.from_euler(0, 1 - (float)seat / 2, 0)));
 
         tile.animate_towards(pos, rot);
     }
@@ -477,13 +466,7 @@ private class RenderPond
 
             pos = Calculations.rotate_y({}, (float)seat / 2, pos);
             pos = position.plus(pos);
-
-            Vec3 rot = Vec3
-            (
-                0,
-                1 - (float)seat / 2 + r,
-                0
-            );
+            Quat rot = new Quat.from_euler(0, 1 - (float)seat / 2 + r, 0);
 
             tile.animate_towards(pos, rot);
         }
@@ -570,11 +553,12 @@ public class RenderCalls
     {
         public abstract void arrange(Vec3 position, Vec3 x_dir, Vec3 z_dir, float y_rotation);
         public abstract float height { get; }
+        public abstract float width { get; }
+        public ArrayList<RenderTile> tiles { get; protected set; }
     }
 
     public class RenderCallLateKan : RenderCall
     {
-        private ArrayList<RenderTile> tiles;
         private Vec3 tile_size;
         private Alignment alignment;
 
@@ -640,18 +624,18 @@ public class RenderCalls
                 pos = pos.plus(z_dir.mul_scalar(-z));
                 pos = pos.plus({0, tile_size.y / 2, 0});
                 pos = position.plus(pos);
-                Vec3 rot = Vec3(0, rotation, 0);
+                Quat rot = new Quat.from_euler(0, rotation, 0);
 
                 tile.animate_towards(pos, rot);
             }
         }
 
         public override float height { get { return float.max(tile_size.z, 2 * tile_size.x); } }
+        public override float width { get { return tile_size.x * 2 + tile_size.z; } }
     }
 
     public class RenderCallClosedKan : RenderCall
     {
-        private ArrayList<RenderTile> tiles;
         private Vec3 tile_size;
 
         public RenderCallClosedKan(ArrayList<RenderTile> tiles, Vec3 tile_size)
@@ -673,19 +657,19 @@ public class RenderCalls
                 Vec3 pos = x_dir.mul_scalar(-tile_size.x * i);
                 pos = pos.plus(Vec3(0, tile_size.y / 2, 0));
                 pos = position.plus(pos);
-                Vec3 rot = Vec3(rotation, y_rotation, 0);
+                Quat rot = new Quat.from_euler(rotation, y_rotation, 0);
 
                 tile.animate_towards(pos, rot);
             }
         }
 
         public override float height { get { return tile_size.z; } }
+        public override float width { get { return tile_size.x * 4; } }
     }
 
 
     public class RenderCallOpenKan : RenderCall
     {
-        private ArrayList<RenderTile> tiles;
         private Vec3 tile_size;
         private Alignment alignment;
 
@@ -712,7 +696,7 @@ public class RenderCalls
                 n = 1;
                 break;
             case Alignment.LEFT:
-                n = 2;
+                n = 3;
                 break;
             }
 
@@ -744,13 +728,14 @@ public class RenderCalls
                 pos = pos.plus(z_dir.mul_scalar(-z));
                 pos = pos.plus(Vec3(0, tile_size.y / 2, 0));
                 pos = position.plus(pos);
-                Vec3 rot = {0, rotation, 0};
+                Quat rot = new Quat.from_euler(0, rotation, 0);
 
                 tile.animate_towards(pos, rot);
             }
         }
 
         public override float height { get { return tile_size.z; } }
+        public override float width { get { return tile_size.x * 3 + tile_size.z; } }
     }
 
     public class RenderCallPon : RenderCall
@@ -813,20 +798,19 @@ public class RenderCalls
                 pos = pos.plus(Vec3(0, tile_size.y / 2, 0));
                 pos = position.plus(pos);
 
-                Vec3 rot = Vec3(0, rotation, 0);
+                Quat rot = new Quat.from_euler(0, rotation, 0);
 
                 tile.animate_towards(pos, rot);
             }
         }
 
         public override float height { get { return tile_size.z; } }
-        public ArrayList<RenderTile> tiles { get; private set; }
+        public override float width { get { return tile_size.x * 2 + tile_size.z; } }
         public Alignment alignment { get; private set; }
     }
 
     public class RenderCallChii : RenderCall
     {
-        private ArrayList<RenderTile> tiles;
         private Vec3 tile_size;
         private Alignment alignment;
 
@@ -906,26 +890,28 @@ public class RenderCalls
                 pos = pos.plus(z_dir.mul_scalar(-z));
                 pos = pos.plus(Vec3(0, tile_size.y / 2, 0));
                 pos = position.plus(pos);
-                Vec3 rot = Vec3(0, rotation, 0);
+                Quat rot = new Quat.from_euler(0, rotation, 0);
 
                 tile.animate_towards(pos, rot);
             }
         }
 
         public override float height { get { return tile_size.z; } }
+        public override float width { get { return tile_size.x * 2 + tile_size.z; } }
     }
 
     public enum Alignment
     {
-        LEFT,
-        CENTER,
-        RIGHT
+        SELF = 0,
+        RIGHT = 1,
+        CENTER = 2,
+        LEFT = 3
     }
 }
 
 class RenderRiichi
 {
-    private RenderBody3D stick;
+    private RenderGeometry3D stick;
     private bool visible = false;
 
     private bool return_animation;
@@ -937,19 +923,19 @@ class RenderRiichi
     private float animation_start_time = 0;
     private float animation_end_time = 0;
 
-    public RenderRiichi(IResourceStore store, Vec3 tile_size, int seat, Vec3 center, float start_offset, float end_offset)
+    public RenderRiichi(ResourceStore store, Vec3 tile_size, int seat, Vec3 center, float start_offset, float end_offset)
     {
-        RenderModel model = store.load_model("stick", true);
-        RenderTexture texture = store.load_texture("Sticks/Stick1000", false);
+        stick = store.load_geometry_3D("stick", false);
+        RenderBody3D body = ((RenderBody3D)stick.geometry[0]);
+        body.texture = store.load_texture("Sticks/Stick1000");
 
-        stick = new RenderBody3D(model, texture);
-        stick.rotation = Vec3(0, (float)seat / 2, 0);
+        stick.rotation = new Quat.from_euler_vec(Vec3(0, (float)seat / 2, 0));
 
-        animation_start_position = center.plus(Calculations.rotate_y(Vec3.empty(), (float)seat / 2, Vec3(0, model.size.y / 2, start_offset )));
-        animation_end_position = center.plus(Calculations.rotate_y(Vec3.empty(), (float)seat / 2, Vec3(0, model.size.y / 2, end_offset )));
+        animation_start_position = center.plus(Calculations.rotate_y(Vec3.empty(), (float)seat / 2, Vec3(0, body.model.size.y / 2, start_offset )));
+        animation_end_position = center.plus(Calculations.rotate_y(Vec3.empty(), (float)seat / 2, Vec3(0, body.model.size.y / 2, end_offset )));
 
         float scale = tile_size.x * 0.6f;
-        stick.scale = { scale, scale, scale };
+        stick.scale = Vec3(scale, scale, scale);
     }
 
     public void process(DeltaArgs args)
@@ -970,12 +956,12 @@ class RenderRiichi
             if (return_animation)
             {
                 stick.position = animation_start_position;
-                stick.diffuse_color = Color.with_alpha(0);
+                //stick.diffuse_color = Color.with_alpha(0);
             }
             else
             {
                 stick.position = animation_end_position;
-                stick.diffuse_color = Color.with_alpha(1);
+                //stick.diffuse_color = Color.with_alpha(1);
             }
 
             return;
@@ -991,7 +977,7 @@ class RenderRiichi
         Vec3 pos = Vec3.lerp(animation_start_position, animation_end_position, lerp);
 
         stick.position = pos;
-        stick.diffuse_color = Color.with_alpha(lerp);
+        //stick.diffuse_color = Color.with_alpha(lerp);
     }
 
     public void render(RenderScene3D scene)

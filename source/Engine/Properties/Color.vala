@@ -21,6 +21,8 @@ public struct Color
         this.a = a;
     }
 
+    public Color.none() {}
+
     public Color.black()
     {
         r = 0;

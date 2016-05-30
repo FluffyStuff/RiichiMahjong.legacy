@@ -12,6 +12,7 @@ namespace GameServer
         private ServerPlayer host;
         private ArrayList<ServerPlayer> players;
         private ArrayList<ServerPlayer> observers;
+        private ServerSettings settings;
         private GameStartInfo info;
 
         private Mutex mutex = Mutex();
@@ -92,6 +93,7 @@ namespace GameServer
             host = menu.host;
             players = menu.players;
             observers = menu.observers;
+            settings = menu.settings;
             this.info = info;
 
             foreach (ServerPlayer player in players)
@@ -112,7 +114,7 @@ namespace GameServer
         {
             Rand rnd = new Rand();
 
-            server = new Server(players, observers, rnd, info);
+            server = new Server(players, observers, rnd, info, settings);
             Timer timer = new Timer();
 
             while (!finished && !server.finished)
