@@ -14,6 +14,7 @@ namespace GameServer
         public RoundFinishResult result { get; private set; }
 
         public signal void declare_riichi(int player_index);
+        public signal void log(string message);
 
         public ServerGameRound(RoundStartInfo info, ServerSettings settings, ArrayList<ServerPlayer> players, ArrayList<ServerPlayer> spectators, Wind round_wind, int dealer, Rand rnd, bool[] can_riichi, int decision_time)
         {
@@ -32,6 +33,7 @@ namespace GameServer
             parser.connect(client_chii, typeof(ClientMessageChii));
 
             round = new ServerRoundState(settings, round_wind, dealer, info.wall_index, rnd, can_riichi, decision_time);
+            round.log.connect(do_log);
             round.game_initial_draw.connect(game_initial_draw);
             round.game_draw_tile.connect(game_draw_tile);
             round.game_discard_tile.connect(game_discard_tile);
@@ -65,6 +67,11 @@ namespace GameServer
                 GameRoundServerPlayer p = new GameRoundServerPlayer(player, -1);
                 this.players.add(p);
             }*/
+        }
+
+        private void do_log(string message)
+        {
+            log(message);
         }
 
         public void start(float time)

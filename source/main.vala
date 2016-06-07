@@ -15,14 +15,14 @@ public static int main(string[] args)
         var wnd = engine.create_window("RiichiMahjong", 1280, 720, fullscreen);
         if (wnd == null)
         {
-            print("main: Could not create window!\n");
+            Environment.log(LogType.ERROR, "Main", "Could not create window");
             return -1;
         }
 
         var context = engine.create_context(wnd);
         if (context == null)
         {
-            print("main: Could not create graphics context!\n");
+            Environment.log(LogType.ERROR, "Main", "Could not create graphics context");
             return -1;
         }
 
@@ -31,13 +31,18 @@ public static int main(string[] args)
         MainWindow window = new MainWindow(sdlWindow, renderer);
 
         if (!renderer.start())
+        {
+            Environment.log(LogType.ERROR, "Main", "Could not start renderer");
             return -1;
+        }
 
         window.show();
 
         if (!window.do_restart)
             break;
     }
+
+    Environment.log(LogType.INFO, "Main", "Application stopped normally");
 
     return 0;
 }

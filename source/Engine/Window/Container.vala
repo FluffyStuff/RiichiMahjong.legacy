@@ -15,7 +15,7 @@ public abstract class Container : Object
     protected weak RenderWindow? parent_window;
     private weak Container? parent;
 
-    public void add_child(Container child)
+    public void add_child(Container? child)
     {
         child.set_parent(this);
         child.added();

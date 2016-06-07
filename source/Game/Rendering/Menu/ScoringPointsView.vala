@@ -7,8 +7,11 @@ public class ScoringPointsView : View2D
     private GameMenuButton next_button;
     private GameMenuButton prev_button;
     private ScoringScoreControl? scoring_control = null;
+    private ScoringDoraView? dora;
+    private ScoringDoraView? ura;
     private int score_index = 0;
 
+    private int padding = 20;
     private int switches;
     private float delay;
     private float total_time;
@@ -108,6 +111,24 @@ public class ScoringPointsView : View2D
             return;
         }
 
+        var s = score.result.scores[0];
+        var d = s.round.dora;
+        var u = s.round.ura_dora;
+        dora = new ScoringDoraView(d, 2 - d.size / 2, 4 - d.size / 2);
+        ura = new ScoringDoraView(u, 2 - (u.size - 1) / 2, 4 - (u.size - 1) / 2);
+        add_child(dora);
+        add_child(ura);
+
+        dora.visible = s.dora;
+        ura.visible = s.dora; // Optional s.ura_dora?
+        dora.inner_anchor = Vec2(ura.visible ? 0 : 0.5f, 0);
+        dora.outer_anchor = Vec2(ura.visible ? 0 : 0.5f, 0);
+        ura.inner_anchor = Vec2(1, 0);
+        ura.outer_anchor = Vec2(1, 0);
+
+        dora.size = Size2(1, 60);
+        ura.size = dora.size;
+
         score_label.inner_anchor = Vec2(0.5f, 1);
         score_label.outer_anchor = Vec2(0.5f, 1);
 
@@ -173,6 +194,7 @@ public class ScoringPointsView : View2D
         scoring_control.resize_style = ResizeStyle.ABSOLUTE;
         scoring_control.inner_anchor = Vec2(0.5f, 0);
         scoring_control.outer_anchor = Vec2(0.5f, 0);
+        scoring_control.position = Vec2(0, dora.size.height);
 
         score_selected(score.result.winner_indices[score_index]);
         resized();
@@ -194,8 +216,13 @@ public class ScoringPointsView : View2D
 
     protected override void resized()
     {
+        if (dora != null)
+            dora.size = Size2(ura.visible ? (size.width - padding) / 2 : size.width, dora.size.height);
+        if (ura != null)
+            ura.size  = Size2((size.width - padding) / 2,  ura.size.height);
+
         if (scoring_control != null)
-            scoring_control.size = Size2(size.width, size.height - score_label.size.height);
+            scoring_control.size = Size2(size.width, size.height - score_label.size.height - dora.size.height);
     }
 
     private class ScoringScoreControl : Control
@@ -217,7 +244,7 @@ public class ScoringPointsView : View2D
             hand = new ScoringHandView(scoring);
             add_child(hand);
             hand.outer_anchor = Vec2(0.5f, 1);
-            hand.size = Size2(size.width, 80);
+            hand.size = Size2(size.width, 120);
             hand.position = Vec2(0, -hand.size.height / 2);
 
             int han = 0;
@@ -247,7 +274,14 @@ public class ScoringPointsView : View2D
                 string str;
 
                 if (yaku.yakuman > 0)
-                    str = yaku.yakuman.to_string() + " yakuman";
+                {
+                    str = "Yakuman";
+
+                    if (yaku.yakuman == 2)
+                        str = "Double " + str;
+                    else if (yaku.yakuman > 2)
+                        str = yaku.yakuman.to_string() + " " + str;
+                }
                 else
                     str = yaku.han.to_string() + " han";
 

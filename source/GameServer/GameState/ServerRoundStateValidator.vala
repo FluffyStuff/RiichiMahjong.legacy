@@ -383,15 +383,8 @@ namespace GameServer
         }
 
         public Tile newest_dora { get { return state.newest_dora; } }
-
-        public ArrayList<Tile> ura_dora
-        {
-            get
-            {
-                return state.ura_dora;
-            }
-        }
-
+        public ArrayList<Tile> ura_dora{ get { return state.ura_dora; } }
+        public Tile[] tiles { get { return state.tiles; } }
         public bool game_over { get { return state.game_over; } }
         public bool game_draw { get { return state.game_draw_type != GameDrawType.NONE; } }
         public GameDrawType game_draw_type { get { return state.game_draw_type; } }

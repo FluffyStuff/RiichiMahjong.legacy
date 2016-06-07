@@ -11,6 +11,8 @@ public class ScoringView : View2D
     private ScoringPlayerElement right;
     private ScoringPlayerElement top;
     private ScoringPlayerElement left;
+    private ScoringStickNumberView riichi_view;
+    private ScoringStickNumberView renchan_view;
     private int padding = 10;
     private bool display_timer;
     private float time;
@@ -97,6 +99,22 @@ public class ScoringView : View2D
         left.position = Vec2(padding, 0);
         left.show_score = score.hanchan_is_finished;
 
+        riichi_view = new ScoringStickNumberView("1000", true);
+        add_child(riichi_view);
+        riichi_view.size = Size2(200, 20);
+        riichi_view.inner_anchor = Vec2(0, 0);
+        riichi_view.outer_anchor = Vec2(0, 0);
+        riichi_view.position = Vec2(left.size.width + left.position.x, bottom.size.height + bottom.position.y);
+        riichi_view.number = score.riichi_count;
+
+        renchan_view = new ScoringStickNumberView("100", false);
+        add_child(renchan_view);
+        renchan_view.size = riichi_view.size;
+        renchan_view.inner_anchor = Vec2(1, 0);
+        renchan_view.outer_anchor = Vec2(1, 0);
+        renchan_view.position = Vec2(-right.size.width + right.position.x, bottom.size.height + bottom.position.y);
+        renchan_view.number = score.renchan;
+
         if (score.round_is_finished)
         {
             view = new ScoringPointsView(score, time);
@@ -132,7 +150,15 @@ public class ScoringView : View2D
     protected override void resized()
     {
         if (view != null)
-            view.size = Size2(right.rect.x - (left.rect.x + left.size.width) - padding * 2, top.rect.y - (bottom.rect.y + bottom.rect.height) - padding * 2);
+        {
+            view.size = Size2(right.rect.x - (left.rect.x + left.size.width) - padding * 2, top.rect.y - (bottom.rect.y + bottom.rect.height) - riichi_view.size.height - padding * 2);
+            view.position = Vec2(0, riichi_view.size.height / 2);
+        }
+
+        /*if (riichi_view != null)
+            riichi_view.size = Size2((right.rect.x - (left.rect.x + left.size.width)) / 2, riichi_view.size.height);
+        if (renchan_view != null)
+            renchan_view.size = Size2((right.rect.x - (left.rect.x + left.size.width)) / 2, renchan_view.size.height);*/
     }
 
     private void score_selected(int player_index)

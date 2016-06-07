@@ -14,6 +14,14 @@ namespace GameServer
 
         private ArrayList<ServerPlayer> players = new ArrayList<ServerPlayer>();
         private ArrayList<ServerPlayer> spectators = new ArrayList<ServerPlayer>();
+        private Logger logger;
+
+        //public signal void log(string message);
+
+        public void log(string message)
+        {
+            logger.log(LogType.GAME, "Server", message);
+        }
 
         public Server(ArrayList<ServerPlayer> players, ArrayList<ServerPlayer> spectators, Rand rnd, GameStartInfo start_info, ServerSettings settings)
         {
@@ -33,6 +41,26 @@ namespace GameServer
             }
 
             state = new GameState(start_info, settings);
+
+            logger = Environment.open_game_log();
+
+            log("Starting game(" +
+            "starting_dealer:" + start_info.starting_dealer.to_string() + "," +
+            "starting_score:" + start_info.starting_score.to_string() + "," +
+            "round_count:" + start_info.round_count.to_string()+ ","  +
+            "hanchan_count:" + start_info.hanchan_count.to_string()+ ","  +
+            "decision_time:" + start_info.decision_time.to_string()+ ","  +
+            "round_wait_time:" + start_info.round_wait_time.to_string()+ ","  +
+            "hanchan_wait_time:" + start_info.hanchan_wait_time.to_string()+ ","  +
+            "game_wait_time:" + start_info.game_wait_time.to_string() + "," +
+            "uma_higher:" + start_info.uma_higher.to_string() + ","  +
+            "uma_lower:" + start_info.uma_lower.to_string() + "," +
+            "open_riichi:" + settings.open_riichi.to_string() + "," +
+            "aka_dora:" + settings.aka_dora.to_string() + "," +
+            "multiple_ron:" + settings.multiple_ron.to_string() + "," +
+            "triple_ron_draw:" + settings.triple_ron_draw.to_string() +
+            ")");
+            //state.log.connect(do_log);
 
             start_round(0);
         }
@@ -127,7 +155,13 @@ namespace GameServer
 
             round = new ServerGameRound(info, settings, players, spectators, state.round_wind, state.dealer_index, rnd, state.can_riichi(), start_info.decision_time);
             round.declare_riichi.connect(state.declare_riichi);
+            round.log.connect(do_log);
             round.start(time);
+        }
+
+        private void do_log(string message)
+        {
+            log(message);
         }
 
         public bool finished { get; private set; }

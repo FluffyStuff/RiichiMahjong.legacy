@@ -8,6 +8,7 @@ public class ScoringHandView : View3D
     private Camera camera = new Camera();
     private LightSource light1 = new LightSource();
     private LightSource light2 = new LightSource();
+    private float width = 1;
 
     public ScoringHandView(Scoring score)
     {
@@ -21,15 +22,15 @@ public class ScoringHandView : View3D
     {
         Options options = new Options.from_disk();
 
-        string extension = "high";
+        string extension = Options.quality_enum_to_string(options.model_quality);
         string texture_type = options.tile_textures;
-        float tile_scale = 0.9f;
+        float tile_scale = 0.75f;
 
         RenderGeometry3D model = store.load_geometry_3D("tile_" + extension, false);
         Vec3 tile_size = ((RenderBody3D)model.geometry[0]).model.size;
         tile_size = Vec3(tile_size.x, tile_size.y + ((RenderBody3D)model.geometry[1]).model.size.y, tile_size.z).mul_scalar(tile_scale);
 
-        float width = (score.player.hand.size + 2) * tile_size.x;
+        width = (score.player.hand.size + 2) * tile_size.x;
 
         ArrayList<RenderCalls.RenderCall> calls = new ArrayList<RenderCalls.RenderCall>();
 
@@ -93,7 +94,7 @@ public class ScoringHandView : View3D
 
         Vec3 pos = Vec3(0, len, len / 5);
         camera.position = pos;
-        camera.pitch = -0.4385f;
+        camera.pitch = -0.435f;
         camera.roll = 0;
 
         light1.color = Color.white();
@@ -112,10 +113,11 @@ public class ScoringHandView : View3D
         foreach (Tile t in call.tiles)
         {
             RenderTile tl = new RenderTile(store, extension, texture_type, t, tile_scale);
-            tiles.add(tl);
 
-            if (call.call_tile != null && t.ID == call.call_tile.ID)
+            if (call.call_type == RoundStateCall.CallType.CHII && call.call_tile != null && t.ID == call.call_tile.ID)
                 call_tile = tl;
+            else
+                tiles.add(tl);
         }
 
         RenderCalls.RenderCall? c = null;
@@ -148,7 +150,7 @@ public class ScoringHandView : View3D
 
     public override void do_render_3D(RenderState state)
     {
-        RenderScene3D scene = new RenderScene3D(state.screen_size, 11, rect);
+        RenderScene3D scene = new RenderScene3D(state.screen_size, 1.81f * width, rect);
 
         scene.set_camera(camera);
         scene.add_light_source(light1);

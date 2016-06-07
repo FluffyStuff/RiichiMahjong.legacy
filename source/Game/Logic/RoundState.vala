@@ -35,19 +35,19 @@ public class RoundState : Object
             /* For testing purposes
             TileType[] p1 = new TileType[]
             {
-                TileType.MAN2,
-                TileType.MAN2,
-                TileType.MAN4,
-                TileType.MAN4,
-                TileType.PIN5,
-                TileType.PIN5,
-                TileType.PIN5,
-                TileType.SOU3,
-                TileType.SOU3,
+                TileType.MAN6,
+                TileType.MAN6,
+                TileType.MAN7,
+                TileType.MAN8,
+                TileType.PIN7,
+                TileType.PIN8,
+                TileType.PIN9,
                 TileType.SOU5,
-                TileType.SOU5,
-                TileType.SOU9,
-                TileType.SOU9,
+                TileType.SOU6,
+                TileType.SOU7,
+                TileType.HATSU,
+                TileType.HATSU,
+                TileType.HATSU,
             };
 
             TileType[] p2 = new TileType[]
@@ -66,20 +66,29 @@ public class RoundState : Object
             TileType[] draw_wall = new TileType[]
             {
                 TileType.BLANK,
-                TileType.MAN2,
-                TileType.BLANK,
-                TileType.MAN4,
+                TileType.HATSU,
                 TileType.BLANK,
                 TileType.BLANK,
-                TileType.PIN5,
-                TileType.SOU3,
-                TileType.SOU5,
-                TileType.SOU9,
+                TileType.BLANK,
+                TileType.PIN1,
             };
 
 
             TileType[] dead_wall = new TileType[]
             {
+                TileType.BLANK,
+                TileType.BLANK,
+                TileType.BLANK,
+                TileType.BLANK,
+                TileType.BLANK,
+                TileType.BLANK,
+                TileType.BLANK,
+                TileType.BLANK,
+                TileType.HAKU,
+                TileType.BLANK,
+                TileType.BLANK,
+                TileType.BLANK,
+                TileType.PIN1,
             };
 
             wall = new RoundStateWall.seeded(dealer, wall_index, settings.aka_dora == Options.OnOffEnum.ON, true, rnd, p1, p2, p3, p4, draw_wall, dead_wall);
@@ -559,6 +568,7 @@ public class RoundState : Object
     public Wind round_wind { get; private set; }
     public bool game_over { get; private set; }
     public GameDrawType game_draw_type { get; private set; }
+    public Tile[] tiles { get { return wall.tiles; } }
     public Tile newest_dora { get { return wall.newest_dora; } }
     public ArrayList<Tile> ura_dora { get { return wall.ura_dora; } }
     public bool tiles_empty { get { return wall.empty; } }

@@ -8,6 +8,11 @@ public class VersionInfo : Serializable
         this.revis = revis;
     }
 
+    public string to_string()
+    {
+        return major.to_string() + "." + minor.to_string() + "." + patch.to_string() + "." + revis.to_string();
+    }
+
     public int major { get; protected set; }
     public int minor { get; protected set; }
     public int patch { get; protected set; }

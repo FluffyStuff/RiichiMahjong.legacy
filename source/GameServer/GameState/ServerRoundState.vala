@@ -25,7 +25,11 @@ namespace GameServer
         public signal void game_get_turn_decision(int player_index);
         public signal void game_draw(int[] tenpai_indices, int[] nagashi_indices, GameDrawType draw_type, ArrayList<Tile> all_tiles);
 
+        public signal void log(string message);
+
         private ServerRoundStateValidator validator;
+        private int dealer;
+        private int wall_index;
         private int decision_time;
         private float timeout;
         private float current_time;
@@ -33,6 +37,8 @@ namespace GameServer
         public ServerRoundState(ServerSettings settings, Wind round_wind, int dealer, int wall_index, Rand rnd, bool[] can_riichi, int decision_time)
         {
             validator = new ServerRoundStateValidator(settings, dealer, wall_index, rnd, round_wind, can_riichi);
+            this.dealer = dealer;
+            this.wall_index = wall_index;
             this.decision_time = decision_time;
         }
 
@@ -54,6 +60,27 @@ namespace GameServer
 
         public void start(float time)
         {
+            log("Round start(dealer:" + dealer.to_string() + ",wall_index:" + wall_index.to_string() + ")");
+            var str = new StringBuilder();
+            str.append("TileSeeds(");
+
+            bool first = true;
+            foreach (Tile tile in validator.tiles)
+            {
+                if (first)
+                    first = false;
+                else
+                    str.append(";");
+                str.append(tile.ID.to_string());
+                str.append(",");
+                str.append(tile.tile_type.to_string());
+                str.append(",");
+                str.append(tile.dora.to_string());
+            }
+
+            str.append(")");
+            log(str.str);
+
             current_time = time;
 
             validator.start();
@@ -66,16 +93,17 @@ namespace GameServer
         {
             if (!validator.is_players_turn(player_index))
             {
-                print("client_tsumo: Not players turn\n");
+                log("client_void_hand(" + player_index.to_string() + "): Not players turn");
                 return false;
             }
 
             if (!validator.void_hand())
             {
-                print("client_void_hand: Player trying to do invalid void hand\n");
+                log("client_void_hand(" + player_index.to_string() + "): Player trying to do invalid void hand");
                 return false;
             }
 
+            log("client_void_hand(" + player_index.to_string() + "): Called void hand");
             draw_situation();
             return true;
         }
@@ -84,16 +112,17 @@ namespace GameServer
         {
             if (!validator.is_players_turn(player_index))
             {
-                print("client_tile_discard: Not players turn\n");
+                log("client_tile_discard(" + player_index.to_string() + "): Not players turn");
                 return false;
             }
 
             if (!validator.discard_tile(tile_ID))
             {
-                print("client_tile_discard: Player can't discard selected tile\n");
+                log("client_tile_discard(" + player_index.to_string() + "): Player can't discard selected tile(" + tile_ID.to_string() + ")");
                 return false;
             }
 
+            log("client_tile_discard(" + player_index.to_string() + "): Tile discarded(" + tile_ID.to_string() + ")");
             tile_discard(validator.get_tile(tile_ID));
             return true;
         }
@@ -102,10 +131,11 @@ namespace GameServer
         {
             if (!validator.can_call(player_index))
             {
-                print("client_no_call: Player trying to do invalid no call\n");
+                log("client_no_call(" + player_index.to_string() + "): Player trying to do invalid no call");
                 return false;
             }
 
+            log("client_no_call(" + player_index.to_string() + "): Player no call");
             validator.no_call(player_index);
             check_calls_done();
 
@@ -115,11 +145,14 @@ namespace GameServer
         public bool client_ron(int player_index)
         {
             if (!validator.can_call(player_index))
+            {
+                log("client_ron(" + player_index.to_string() + "): Player cannot make calls");
                 return false;
+            }
 
             if (!validator.decide_ron(player_index))
             {
-                print("client_ron: Player trying to do invalid ron\n");
+                log("client_ron(" + player_index.to_string() + "): Player trying to do invalid ron");
                 return false;
             }
 
@@ -131,18 +164,19 @@ namespace GameServer
         {
             if (!validator.is_players_turn(player_index))
             {
-                print("client_tsumo: Not players turn\n");
+                log("client_tsumo(" + player_index.to_string() + "): Not players turn");
                 return false;
             }
 
             if (!validator.tsumo())
             {
-                print("client_tsumo: Player trying to do invalid tsumo\n");
+                log("client_tsumo(" + player_index.to_string() + "): Player trying to do invalid tsumo");
                 return false;
             }
 
             ServerRoundStatePlayer player = validator.get_player(player_index);
 
+            log("client_tsumo(" + player_index.to_string() + "): Player called tsumo");
             if (player.in_riichi)
                 game_flip_ura_dora(validator.ura_dora);
             game_tsumo(player.index, player.hand, validator.get_tsumo_score());
@@ -154,16 +188,17 @@ namespace GameServer
         {
             if (!validator.is_players_turn(player_index))
             {
-                print("client_riichi: Not players turn\n");
+                log("client_riichi(" + player_index.to_string() + "): Not players turn");
                 return false;
             }
 
             if (!validator.riichi(open))
             {
-                print("client_riichi: Player can't declare riichi\n");
+                log("client_riichi(" + player_index.to_string() + "): Player can't declare riichi");
                 return false;
             }
 
+            log("client_riichi(" + player_index.to_string() + "): Player declared riichi(open:" + open.to_string() + ")");
             ServerRoundStatePlayer player = validator.get_player(player_index);
             game_riichi(player_index, player.open, player.hand);
             return true;
@@ -173,16 +208,17 @@ namespace GameServer
         {
             if (!validator.is_players_turn(player_index))
             {
-                print("client_late_kan: Not players turn\n");
+                log("client_late_kan(" + player_index.to_string() + "): Not players turn");
                 return false;
             }
 
             if (!validator.do_late_kan(tile_ID))
             {
-                print("client_late_kan: Player trying to do invalid late kan\n");
+                log("client_late_kan(" + player_index.to_string() + "): Player trying to do invalid late kan(" + tile_ID.to_string() + ")");
                 return false;
             }
 
+            log("client_late_kan(" + player_index.to_string() + "): Player calling late kan(" + tile_ID.to_string() + ")");
             Tile tile = validator.get_tile(tile_ID);
 
             game_late_kan(tile);
@@ -195,7 +231,7 @@ namespace GameServer
         {
             if (!validator.is_players_turn(player_index))
             {
-                print("client_closed_kan: Not players turn\n");
+                log("client_closed_kan(" + player_index.to_string() + "): Not players turn");
                 return false;
             }
 
@@ -203,10 +239,11 @@ namespace GameServer
 
             if (tiles == null)
             {
-                print("client_closed_kan: Player trying to do invalid closed kan\n");
+                log("client_closed_kan(" + player_index.to_string() + "): Player trying to do invalid closed kan(" + type.to_string() + ")");
                 return false;
             }
 
+            log("client_closed_kan(" + player_index.to_string() + "): Player making closed kan(" + type.to_string() + ")");
             game_closed_kan(tiles);
             call_decisions();
 
@@ -216,14 +253,18 @@ namespace GameServer
         public bool client_open_kan(int player_index)
         {
             if (!validator.can_call(player_index))
-                return false;
-
-            if (!validator.decide_open_kan(player_index))
             {
-                print("client_open_kan: Player trying to do invalid open kan\n");
+                log("client_open_kan(" + player_index.to_string() + "): Not players turn");
                 return false;
             }
 
+            if (!validator.decide_open_kan(player_index))
+            {
+                log("client_open_kan(" + player_index.to_string() + "): Player trying to do invalid open kan");
+                return false;
+            }
+
+            log("client_open_kan(" + player_index.to_string() + "): Player calling open kan");
             check_calls_done();
 
             return true;
@@ -232,14 +273,18 @@ namespace GameServer
         public bool client_pon(int player_index)
         {
             if (!validator.can_call(player_index))
-                return false;
-
-            if (!validator.decide_pon(player_index))
             {
-                print("client_pon: Player trying to do invalid pon\n");
+                log("client_open_kan(" + player_index.to_string() + "): Not players turn");
                 return false;
             }
 
+            if (!validator.decide_pon(player_index))
+            {
+                log("client_pon(" + player_index.to_string() + "): Player trying to do invalid pon");
+                return false;
+            }
+
+            log("client_pon(" + player_index.to_string() + "): Player calling pon");
             check_calls_done();
 
             return true;
@@ -248,14 +293,18 @@ namespace GameServer
         public bool client_chii(int player_index, int tile_1_ID, int tile_2_ID)
         {
             if (!validator.can_call(player_index))
-                return false;
-
-            if (!validator.decide_chii(player_index, tile_1_ID, tile_2_ID))
             {
-                print("client_chii: Player trying to do invalid chii\n");
+                log("client_chii(" + player_index.to_string() + "): Not players turn");
                 return false;
             }
 
+            if (!validator.decide_chii(player_index, tile_1_ID, tile_2_ID))
+            {
+                print("client_chii(" + player_index.to_string() + "): Player trying to do invalid chii(" + tile_1_ID.to_string() + "," + tile_2_ID.to_string() + ")");
+                return false;
+            }
+
+            print("client_chii(" + player_index.to_string() + "): Player calling chii(" + tile_1_ID.to_string() + "," + tile_2_ID.to_string() + ")");
             check_calls_done();
 
             return true;
@@ -370,12 +419,15 @@ namespace GameServer
             // Waiting for call decisions
             if (!validator.calls_finished)
             {
+                log("default_action: Defaulting remaining call decisions");
                 validator.default_call_decisions();
                 check_calls_done();
             }
             else // Waiting for turn decision
             {
+                int index = validator.get_current_player().index;
                 Tile tile = validator.default_tile_discard();
+                log("default_action(" + index.to_string() + "): Defaulting tile_discard(" + tile.ID.to_string() + ")");
                 tile_discard(tile);
             }
         }
@@ -445,6 +497,7 @@ namespace GameServer
 
         private void game_over()
         {
+            log("round_over");
             timeout = 0;
         }
     }

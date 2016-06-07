@@ -29,7 +29,7 @@ public class FileLoader
         return l;
     }
 
-    public static bool save(string name, string[] lines)
+    public static FileWriter? open(string name)
     {
         try
         {
@@ -48,15 +48,22 @@ public class FileLoader
 
             FileOutputStream stream = file.create (FileCreateFlags.REPLACE_DESTINATION);
 
-            foreach (string line in lines)
-                stream.write((line + "\n").data);
-
-            stream.close();
+            return new FileWriter(stream);
         }
-        catch (Error e)
+        catch
         {
-            return false;
+            return null;
         }
+    }
+
+    public static bool save(string name, string[] lines)
+    {
+        FileWriter? writer = open(name);
+        if (writer == null)
+            return false;
+
+        foreach (string line in lines)
+            writer.write_line(line);
 
         return true;
     }
@@ -94,5 +101,48 @@ public class FileLoader
     public static string array_to_string(string[] lines)
     {
         return string.joinv("\n", lines);
+    }
+}
+
+public class FileWriter
+{
+    private FileOutputStream stream;
+
+    public FileWriter(FileOutputStream stream)
+    {
+        this.stream = stream;
+    }
+
+    ~FileWriter()
+    {
+        close();
+    }
+
+    public bool write(string text)
+    {
+        try
+        {
+            stream.write(text.data);
+        }
+        catch
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public bool write_line(string line)
+    {
+        return write(line + "\n");
+    }
+
+    public void close()
+    {
+        try
+        {
+            stream.close();
+        }
+        catch {}
     }
 }

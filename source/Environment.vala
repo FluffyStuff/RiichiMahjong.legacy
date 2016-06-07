@@ -1,18 +1,29 @@
 public class Environment
 {
-    public static const int VERSION_MAJOR = 0;
-    public static const int VERSION_MINOR = 1;
-    public static const int VERSION_PATCH = 2;
-    public static const int VERSION_REVIS = 0;
+    private static const int VERSION_MAJOR = 0;
+    private static const int VERSION_MINOR = 1;
+    private static const int VERSION_PATCH = 2;
+    private static const int VERSION_REVIS = 0;
 
     public static const int MIN_NAME_LENGTH =  2;
     public static const int MAX_NAME_LENGTH = 12;
+
+    private static bool initialized = false;
+
+    private static Logger logger;
 
     private Environment() {}
 
     public static void init()
     {
+        if (initialized)
+            return;
+        initialized = true;
+
         version_info = new VersionInfo(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, VERSION_REVIS);
+
+        logger = new Logger("application/");
+        log(LogType.INFO, "Environment", "Logging started");
 
         set_working_dir();
         reflection_bug_fix();
@@ -88,7 +99,7 @@ public class Environment
     {
         return
             version.major == version_info.major &&
-            version.minor >= version_info.minor &&
+            version.minor == version_info.minor &&
             version.patch >= version_info.patch &&
             version.revis >= version_info.revis;
     }
@@ -109,7 +120,57 @@ public class Environment
         return GLib.Environment.get_user_config_dir() + "/RiichiMahjong/";
     }
 
+    public static string get_datetime_string()
+    {
+        return new DateTime.now_local().format("%F_%H-%M-%S");
+    }
+
+    public static void log(LogType log_type, string origin, string message)
+    {
+        logger.log(log_type, origin, message);
+    }
+
+    public static Logger open_game_log()
+    {
+        return new Logger("game/");
+    }
+
     public static VersionInfo version_info { get; private set; }
+}
+
+public class Logger
+{
+    private const string NEWLINE = "\r\n";
+
+    private Mutex log_lock;
+    private FileWriter log_stream;
+
+    public Logger(string name)
+    {
+        log_stream = FileLoader.open(Environment.get_user_dir() + "/logs/" + name + Environment.get_datetime_string() + ".log");
+        log_lock = Mutex();
+
+        log_stream.write("%VersionInfo:" + Environment.version_info.to_string() + NEWLINE);
+    }
+
+    public void log(LogType log_type, string origin, string message)
+    {
+        log_lock.lock();
+        string line = "[" + Environment.get_datetime_string() + "] " + log_type.to_string().substring(9) + " from " + origin + ": \"" + message + "\"" + NEWLINE;
+        print(line);
+        log_stream.write(line);
+        log_lock.unlock();
+    }
+}
+
+public enum LogType
+{
+    ERROR,
+    SYSTEM,
+    INFO,
+    GAME,
+    NETWORK,
+    DEBUG
 }
 
 #if MAC

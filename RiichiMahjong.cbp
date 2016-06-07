@@ -135,9 +135,11 @@
 		<Unit filename="source/Game/Rendering/Menu/GameMenuButton.vala" />
 		<Unit filename="source/Game/Rendering/Menu/GameMenuView.vala" />
 		<Unit filename="source/Game/Rendering/Menu/MenuTextButton.vala" />
+		<Unit filename="source/Game/Rendering/Menu/ScoringDoraView.vala" />
 		<Unit filename="source/Game/Rendering/Menu/ScoringHandView.vala" />
 		<Unit filename="source/Game/Rendering/Menu/ScoringPlayerElement.vala" />
 		<Unit filename="source/Game/Rendering/Menu/ScoringPointsView.vala" />
+		<Unit filename="source/Game/Rendering/Menu/ScoringStickView.vala" />
 		<Unit filename="source/Game/Rendering/Menu/ScoringView.vala" />
 		<Unit filename="source/Game/Rendering/RenderAction.vala" />
 		<Unit filename="source/Game/Rendering/RenderPlayer.vala" />
@@ -145,6 +147,7 @@
 		<Unit filename="source/Game/Rendering/RenderTable.vala" />
 		<Unit filename="source/Game/Rendering/RenderTile.vala" />
 		<Unit filename="source/Game/Rendering/RenderWall.vala" />
+		<Unit filename="source/Game/ServerSettings.vala" />
 		<Unit filename="source/MainMenu/JoinMenuView.vala" />
 		<Unit filename="source/MainMenu/Lobby/LobbyConnection.vala" />
 		<Unit filename="source/MainMenu/Lobby/LobbyConnectionView.vala" />

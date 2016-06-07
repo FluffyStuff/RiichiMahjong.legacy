@@ -9,7 +9,6 @@ public class ServerMenuView : View2D
     private bool host = false;
     private bool can_control;
     private ServerSettings settings = new ServerSettings.from_disk();
-    //private string settings = null;
 
     private ServerSettingsView settings_view;
     private ServerPlayerFieldView[] players = new ServerPlayerFieldView[4];
@@ -114,6 +113,8 @@ public class ServerMenuView : View2D
 
         if (host)
             start_server();
+        else if (can_control)
+            send_settings(settings);
     }
 
     private void kick_slot(int slot)

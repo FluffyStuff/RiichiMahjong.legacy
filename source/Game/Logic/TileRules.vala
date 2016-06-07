@@ -1142,6 +1142,7 @@ public class Scoring : Object
         tsumo_points_lower = 0;
         tsumo_points_higher = 0;
         ron_points = 0;
+        this.dora = true;
         score_type = ScoreType.NORMAL;
 
         bool riichi = false;
@@ -1155,6 +1156,8 @@ public class Scoring : Object
                 riichi = true;
         }
 
+        this.ura_dora = riichi;
+
         int dora = 0;
         int ura_dora = 0;
         int aka_dora = 0;
@@ -1162,19 +1165,6 @@ public class Scoring : Object
         foreach (Tile tile in hand.tiles)
             if (tile.dora)
                 aka_dora++;
-
-        foreach (TileMeld meld in hand.melds)
-        {
-            foreach (Tile d in round.dora)
-                if (meld.is_kan && meld.tile_1.tile_type == d.dora_indicator())
-                    dora++;
-            if (riichi)
-            {
-                foreach (Tile d in round.ura_dora)
-                    if (meld.is_kan && meld.tile_1.tile_type == d.dora_indicator())
-                        ura_dora++;
-            }
-        }
 
         foreach (Tile tile in hand.tiles)
         {
@@ -1278,6 +1268,8 @@ public class Scoring : Object
         han = 0;
         fu = 0;
         yakuman = 0;
+        dora = false;
+        ura_dora = false;
         score_type = ScoreType.NONE;
     }
 
@@ -1292,6 +1284,8 @@ public class Scoring : Object
         fu = 0;
         yakuman = 0;
         ron_points = 0;
+        dora = false;
+        ura_dora = false;
         score_type = ScoreType.NAGASHI_MANGAN;
 
         if (dealer)
@@ -1428,6 +1422,8 @@ public class Scoring : Object
     public int han { get; private set; }
     public int fu { get; private set; }
     public int yakuman { get; private set; }
+    public bool dora { get; private set; }
+    public bool ura_dora { get; private set; }
     public ScoreType score_type { get; private set; }
 
     public string to_string()
