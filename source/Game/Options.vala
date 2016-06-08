@@ -37,7 +37,7 @@ public class Options
                 continue;
 
             string name = parts[0].strip().down();
-            string value = parts[1].strip().down();
+            string value = parts[1].strip();
 
             if (name == "" || value == "")
                 continue;
@@ -67,37 +67,39 @@ public class Options
 
     private void parse_name(string name, string value)
     {
+        string down_value = value.down();
+
         switch (name)
         {
         case "shader_quality":
-            shader_quality = parse_quality_enum(value);
+            shader_quality = parse_quality_enum(down_value);
             break;
         case "model_quality":
-            model_quality = parse_quality_enum(value);
+            model_quality = parse_quality_enum(down_value);
             break;
         case "fullscreen":
-            fullscreen = parse_on_off_enum(value);
+            fullscreen = parse_on_off_enum(down_value);
             break;
         case "anisotropic_filtering":
-            anisotropic_filtering = parse_on_off_enum(value);
+            anisotropic_filtering = parse_on_off_enum(down_value);
             break;
         case "anti_aliasing":
-            anti_aliasing = parse_on_off_enum(value);
+            anti_aliasing = parse_on_off_enum(down_value);
             break;
         case "v_sync":
-            v_sync = parse_on_off_enum(value);
+            v_sync = parse_on_off_enum(down_value);
             break;
         case "music":
-            music = parse_on_off_enum(value);
+            music = parse_on_off_enum(down_value);
             break;
         case "sounds":
-            sounds = parse_on_off_enum(value);
+            sounds = parse_on_off_enum(down_value);
             break;
         case "tile_fore_color":
-            tile_fore_color = parse_color(value);
+            tile_fore_color = parse_color(down_value);
             break;
         case "tile_back_color":
-            tile_back_color = parse_color(value);
+            tile_back_color = parse_color(down_value);
             break;
         case "tile_textures":
             tile_textures = value;
