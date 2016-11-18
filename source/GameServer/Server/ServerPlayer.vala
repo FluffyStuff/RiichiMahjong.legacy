@@ -159,7 +159,7 @@ namespace GameServer
 
             if (msg == null || !msg.get_type().is_a(typeof(ClientMessage)))
             {
-                print("Server discarding invalid client message!\n");
+                Environment.log(LogType.NETWORK, "ServerPlayerNetworkConnection", "Server discarding invalid client message");
                 return;
             }
             receive_message((ClientMessage)msg);

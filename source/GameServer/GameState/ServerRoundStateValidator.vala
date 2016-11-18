@@ -8,11 +8,14 @@ namespace GameServer
         private ActionState action_state = ActionState.STARTING;
         private ServerSettings settings;
 
-        public ServerRoundStateValidator(ServerSettings settings, int dealer, int wall_index, Rand rnd, Wind round_wind, bool[] can_riichi)
+        public ServerRoundStateValidator(ServerSettings settings, int dealer, int wall_index, Random rnd, Wind round_wind, bool[] can_riichi, Tile[]? tiles)
         {
             this.settings = settings;
 
-            state = new RoundState.server(settings, round_wind, dealer, wall_index, rnd, can_riichi);
+            if (tiles == null)
+                state = new RoundState.server(settings, round_wind, dealer, wall_index, rnd, can_riichi);
+            else
+                state = new RoundState.custom(settings, round_wind, dealer, wall_index, can_riichi, tiles);
 
             players = new ServerRoundStatePlayer[4];
 

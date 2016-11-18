@@ -1,10 +1,39 @@
+private static bool debug =
+#if DEBUG
+    true
+#else
+    false
+#endif
+;
+
+private static void parse_args(string[] args)
+{
+    for (int i = 0; i < args.length; i++)
+    {
+        string arg = args[i];
+        if (arg.length == 0 || arg[0] != '-')
+            continue;
+        arg = arg.substring(1);
+
+        if (arg == "d" || arg == "-debug")
+            debug = true;
+        else if (arg == "-no-debug")
+            debug = false;
+    }
+}
+
 public static int main(string[] args)
 {
-    Environment.init();
+    parse_args(args);
+
+    Environment.init(debug);
 
     Engine engine = new Engine();
     if (!engine.init())
+    {
+        Environment.log(LogType.ERROR, "Main", "Could not init engine");
         return -1;
+    }
 
     while (true)
     {

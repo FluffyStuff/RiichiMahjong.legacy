@@ -6,7 +6,6 @@ public class GameMenuView : View2D
     private ArrayList<MenuTextButton> buttons = new ArrayList<MenuTextButton>();
 
     private ServerSettings settings;
-    private int player_index;
     private int decision_time;
     private int round_time;
     private int hanchan_time;
@@ -306,6 +305,8 @@ public class GameMenuView : View2D
         if (str != timer.text)
             timer.text = str;
     }
+
+    public int player_index { get; set; }
 
     private class DisconnectedMenuView : View2D
     {

@@ -1,14 +1,14 @@
 DIRS  = \
+	../Engine/*.vala \
+	../Engine/Audio/*.vala \
+	../Engine/Files/*.vala \
+	../Engine/Helper/*.vala \
+	../Engine/Properties/*.vala \
+	../Engine/Rendering/*.vala \
+	../Engine/Rendering/OpenGLRenderer/*.vala \
+	../Engine/Window/*.vala \
+	../Engine/Window/Controls/*.vala \
 	source/*.vala \
-	source/Engine/*.vala \
-	source/Engine/Audio/*.vala \
-	source/Engine/Files/*.vala \
-	source/Engine/Helper/*.vala \
-	source/Engine/Properties/*.vala \
-	source/Engine/Rendering/*.vala \
-	source/Engine/Rendering/OpenGLRenderer/*.vala \
-	source/Engine/Window/*.vala \
-	source/Engine/Window/Controls/*.vala \
 	source/Game/*.vala \
 	source/Game/Logic/*.vala \
 	source/Game/Rendering/*.vala \
@@ -77,7 +77,7 @@ VAPI  = --vapidir=vapi
 #-w = Supress C warnings (Since they stem from the vala code gen)
 OTHER = -X -w -X -DGLEW_STATIC -X -Iinclude
 O     = -o bin/$(NAME)
-DEBUG = --save-temps --enable-checking -g
+DEBUG = --save-temps --enable-checking -g -X -ggdb -X -O0 -D DEBUG
 
 all: debug
 
@@ -136,15 +136,15 @@ cleanWindowsRelease: cleanWindows
 
 cleanWindows:
 	rm bin $(NAME).exe
+	rm ../Engine/Audio *.c
+	rm ../Engine/Files *.c
+	rm ../Engine/Helper *.c
+	rm ../Engine/Properties *.c
+	rm ../Engine/Rendering *.c
+	rm ../Engine/Rendering/OpenGLRenderer *.c
+	rm ../Engine/Window *.c
+	rm ../Engine/Window/Controls *.c
 	rm source *.c
-	rm source/Engine/Audio *.c
-	rm source/Engine/Files *.c
-	rm source/Engine/Helper *.c
-	rm source/Engine/Properties *.c
-	rm source/Engine/Rendering *.c
-	rm source/Engine/Rendering/OpenGLRenderer *.c
-	rm source/Engine/Window *.c
-	rm source/Engine/Window/Controls *.c
 	rm source/Game *.c
 	rm source/Game/Logic *.c
 	rm source/Game/Rendering *.c

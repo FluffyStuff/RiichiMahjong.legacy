@@ -8,9 +8,10 @@ namespace GameServer
 
         private ClientMessageParser parser = new ClientMessageParser();
         private ServerPlayer?[] slots = new ServerPlayer?[4];
-        private Rand rnd = new Rand();
+        private Random rnd = new Random();
 
         public signal void game_start(GameStartInfo info);
+        public signal void game_start_event(GameStartInfo info);
 
         public ServerMenu()
         {
@@ -19,9 +20,11 @@ namespace GameServer
             settings = new ServerSettings.default();
 
             parser.connect(client_game_start, typeof(ClientMessageMenuGameStart));
+            //parser.connect(client_game_start_event, typeof(ClientMessageMenuGameStartEvent));
             parser.connect(client_add_bot, typeof(ClientMessageMenuAddBot));
             parser.connect(client_kick_player, typeof(ClientMessageMenuKickPlayer));
             parser.connect(client_settings, typeof(ClientMessageMenuSettings));
+            parser.connect(client_log_file, typeof(ClientMessageMenuGameLog));
         }
 
         public bool player_connected(ServerPlayer player)
@@ -81,7 +84,12 @@ namespace GameServer
 
         private void send_assign(int slot, ServerPlayer player)
         {
-            ServerMessageMenuSlotAssign message = new ServerMessageMenuSlotAssign(slot, player.name);
+            send_assign_name(slot, player.name);
+        }
+
+        private void send_assign_name(int slot, string name)
+        {
+            ServerMessageMenuSlotAssign message = new ServerMessageMenuSlotAssign(slot, name);
             foreach (ServerPlayer p in players)
                 p.send_message(message);
         }
@@ -100,6 +108,13 @@ namespace GameServer
                 player.send_message(message);
         }
 
+        private void send_game_log(GameLog? log)
+        {
+            ServerMessageMenuGameLog message = new ServerMessageMenuGameLog(log == null ? null : "log");
+            foreach (ServerPlayer player in players)
+                player.send_message(message);
+        }
+
         private void client_game_start(ServerPlayer player, ClientMessage message)
         {
             if (player != host)
@@ -107,7 +122,7 @@ namespace GameServer
 
             mutex.lock();
 
-            if (players.size != 4)
+            if (players.size != 4 && log == null)
             {
                 mutex.unlock();
                 return;
@@ -158,6 +173,65 @@ namespace GameServer
             mutex.unlock();
             game_start(info);
         }
+
+        /*private void clint_game_start_event(ServerPlayer player, ClientMessage message)
+        {
+            if (player != host)
+                return;
+
+            //var msg = message as ClientMessageMenuGameStartEvent;
+
+            GameLog log = Environment.load_game_log("derp");
+            if (log == null)
+                return;
+
+            mutex.lock();
+
+            foreach (ServerPlayer p in players)
+            {
+                p.receive_message.disconnect(message_received);
+                p.disconnected.disconnect(player_disconnected);
+            }
+
+            GameEventController event = new GameEventController.with_log(log);
+
+            observers.add_range(players);
+            players = event.players;
+            int[] seats = log.starting_seats;
+
+            GamePlayer[] players = new GamePlayer[this.players.size];
+            for (int i = 0; i < players.length; i++)
+                players[i] = new GamePlayer(i, this.players[i].name);
+
+            int starting_dealer = log.starting_dealer;
+            int starting_score = log.starting_score;
+            int decision_time = 0;//10 + 1; // Add a second so the indicator counts down to 0
+            int round_wait_time = log.round_wait_time;
+            int hanchan_wait_time = log.hanchan_wait_time;
+            int game_wait_time = log.game_wait_time;
+            int round_count = log.round_count;
+            int hanchan_count = log.hanchan_count;
+            int uma_higher = log.uma_higher;
+            int uma_lower = log.uma_lower;
+
+            GameStartInfo info = new GameStartInfo
+            (
+                players,
+                starting_dealer,
+                starting_score,
+                round_count,
+                hanchan_count,
+                decision_time,
+                round_wait_time,
+                hanchan_wait_time,
+                game_wait_time,
+                uma_higher,
+                uma_lower
+            );
+
+            mutex.unlock();
+            game_start_event(info);
+        }*/
 
         private void client_add_bot(ServerPlayer player, ClientMessage message)
         {
@@ -239,7 +313,35 @@ namespace GameServer
             send_settings();
         }
 
-        private int[] random_seats(Rand rnd, int count)
+        private void client_log_file(ServerPlayer player, ClientMessage message)
+        {
+            if (player != host)
+                return;
+
+            var l = (ClientMessageMenuGameLog)message;
+            log = l.log;
+            do_log = (log != null && Environment.compatible(log.version));
+
+            if (log != null && !Environment.compatible(log.version))
+                Environment.log(LogType.DEBUG, "ServerMenu", "Incompatible game log version");
+
+            if (!do_log)
+                log = null;
+
+            send_game_log(log);
+
+            if (do_log)
+            {
+                settings = log.settings;
+                send_settings();
+
+                GamePlayer[] players = log.start_info.get_players();
+                foreach (GamePlayer p in players)
+                    send_assign_name(p.ID, p.name);
+            }
+        }
+
+        private int[] random_seats(Random rnd, int count)
         {
             int[] seats = new int[count];
 
@@ -261,5 +363,7 @@ namespace GameServer
         public ArrayList<ServerPlayer> players { get; private set; }
         public ArrayList<ServerPlayer> observers { get; private set; }
         public ServerSettings settings { get; private set; }
+        public bool do_log { get; private set; }
+        public GameLog? log { get; private set; }
     }
 }

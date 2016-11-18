@@ -108,7 +108,7 @@ namespace GameServer
 
                 if (msg == null || !msg.get_type().is_a(typeof(ClientMessageAuthenticate)))
                 {
-                    print("Server discarding invalid connection attempt message!\n");
+                    Environment.log(LogType.NETWORK, "ServerNetworking", "Server discarding invalid connection attempt message");
                     close();
                     return;
                 }

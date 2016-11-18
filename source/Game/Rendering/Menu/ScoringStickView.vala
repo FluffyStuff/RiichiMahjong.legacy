@@ -128,7 +128,5 @@ public class ScoringStickView : View3D
             pitch -= 0.001f;
 
         camera.pitch = pitch;
-
-        print("mul: " + mul.to_string() + " pitch: " + pitch.to_string() + "\n");
     }*/
 }

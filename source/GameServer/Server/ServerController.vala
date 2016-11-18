@@ -14,6 +14,11 @@ namespace GameServer
         private ArrayList<ServerPlayer> observers;
         private ServerSettings settings;
         private GameStartInfo info;
+        private ServerGameRoundInfoSource source;
+        private LogGameController? log;
+        private bool do_logging;
+        private Random rnd = new Random();
+        private bool reveal_tiles;
 
         private Mutex mutex = Mutex();
         private bool started = false;
@@ -22,6 +27,7 @@ namespace GameServer
         public ServerController()
         {
             menu.game_start.connect(game_start);
+            //menu.game_start_event.connect(game_start_event);
         }
 
         ~ServerController()
@@ -91,16 +97,40 @@ namespace GameServer
             }
 
             host = menu.host;
-            players = menu.players;
-            observers = menu.observers;
-            settings = menu.settings;
-            this.info = info;
+
+            foreach (ServerPlayer player in menu.players)
+                player.disconnected.connect(player_disconnected);
+
+            if(menu.do_log)
+            {
+                observers = menu.players;
+                foreach (var player in menu.observers)
+                    observers.add(player);
+
+                log = new LogGameController(menu.log);
+                players = log.players;
+                settings = log.settings;
+                this.info = log.start_info;
+                source = log.source;
+                reveal_tiles = true;
+
+                do_logging = false;
+
+            }
+            else
+            {
+                players = menu.players;
+                observers = menu.observers;
+                settings = menu.settings;
+                this.info = info;
+                source = new DefaultServerGameRoundInfoSource(rnd);
+                reveal_tiles = false;
+
+                do_logging = true;
+            }
 
             foreach (ServerPlayer player in players)
-            {
                 player.receive_message.connect(message_received);
-                player.disconnected.connect(player_disconnected);
-            }
 
             menu = null;
 
@@ -112,16 +142,17 @@ namespace GameServer
 
         private void server_worker()
         {
-            Rand rnd = new Rand();
-
-            server = new Server(players, observers, rnd, info, settings);
+            server = new Server(players, observers, rnd, info, settings, source, do_logging, reveal_tiles);
             Timer timer = new Timer();
 
             while (!finished && !server.finished)
             {
                 mutex.lock();
+                float time = (float)timer.elapsed();
                 process_messages();
-                server.process((float)timer.elapsed());
+                if (log != null)
+                    log.process(time);
+                server.process(time);
                 mutex.unlock();
                 sleep();
             }

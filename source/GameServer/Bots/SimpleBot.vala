@@ -2,7 +2,7 @@ using Gee;
 
 class SimpleBot : Bot
 {
-    private Rand rnd = new Rand();
+    private Random rnd = new Random();
 
     protected override void do_turn_decision()
     {

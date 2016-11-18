@@ -75,8 +75,8 @@ public class GameEscapeMenuView : View2D
         confirm_label.text = "Are you sure you want to leave the current game?";
 
         options_view = new OptionsMenuView();
-        options_view.apply_clicked.connect(options_apply);
-        options_view.back_clicked.connect(options_back);
+        options_view.finish.connect(options_apply);
+        options_view.back.connect(options_back);
         add_child(options_view);
         options_view.visible = false;
     }

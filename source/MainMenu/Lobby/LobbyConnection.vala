@@ -125,7 +125,7 @@ public class LobbyConnection
 
         if (m == null || !(m.get_type().is_a(typeof(ServerLobbyMessage)) || m.get_type().is_a(typeof(ServerMessage))))
         {
-            print("LobbyConnection: Client discarding invalid server lobby message!\n");
+            Environment.log(LogType.NETWORK, "LobbyConnection", "Client discarding invalid server lobby message");
             return;
         }
 

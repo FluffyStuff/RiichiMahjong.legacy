@@ -1,6 +1,6 @@
 using Gee;
 
-public class ServerSettings : Object
+public class ServerSettings : Serializable
 {
     private string dir = Environment.get_user_dir() + "server_settings.cfg";
 

@@ -334,12 +334,6 @@ public class RenderWall : Object
                     dir = -dir;
                 }
 
-                // TODO: Fix rotation direction
-                /*print("-----------------\n");
-                print("rotation: " + rotation.to_string() + "\n");
-                print("split: " + split.to_string() + "\n");
-                print("dir: " + dir.to_string() + "\n");*/
-
                 Vec3 pos = Vec3(0, 0, -tile_size.z / 2);
                 pos = Calculations.rotate_y(Vec3.empty(), -(float)rotation / 2, pos).plus(tile.position);
 

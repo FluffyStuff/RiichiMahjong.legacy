@@ -1,4 +1,4 @@
-public class GameController : Object
+class GameController : Object
 {
     private GameState game;
     private ClientRoundState round;
@@ -140,8 +140,10 @@ public class GameController : Object
         if (menu != null)
             parent_view.remove_child(menu);
 
+        int index = player_index == -1 ? 0 : player_index;
+
         game.start_round(info);
-        menu = new GameMenuView(settings, player_index, start_info.decision_time, start_info.round_wait_time, start_info.hanchan_wait_time, start_info.game_wait_time);
+        menu = new GameMenuView(settings, index, start_info.decision_time, start_info.round_wait_time, start_info.hanchan_wait_time, start_info.game_wait_time);
         menu.display_score_pressed.connect(display_score_pressed);
         menu.score_timer_expired.connect(score_timer_expired);
 
@@ -149,8 +151,7 @@ public class GameController : Object
         parent_view.add_child(renderer);
         parent_view.add_child(menu);
 
-        if (player_index != -1)
-            create_round_state(info);
+        create_round_state(info);
     }
 
     private void declared_riichi(int player_index, bool open)

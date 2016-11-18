@@ -1,48 +1,48 @@
 using Gee;
 
-private class OptionsMenuView : View2D
+private class OptionsMenuView : MainMenuSubView
 {
     private ArrayList<SubOptionsMenuView> menus = new ArrayList<SubOptionsMenuView>();
-    private ArrayList<MenuOptionsButton> buttons = new ArrayList<MenuOptionsButton>();
-    private LabelControl label;
-    private MenuTextButton apply_button;
-    private MenuTextButton back_button;
 
-    public signal void apply_clicked();
-    public signal void back_clicked();
+    protected override ArrayList<MenuTextButton>? get_menu_buttons()
+    {
+        ArrayList<MenuTextButton> buttons = new ArrayList<MenuTextButton>();
 
-    public override void added()
+        MenuTextButton apply_button = new MenuTextButton("MenuButton", "Apply");
+        apply_button.clicked.connect(apply);
+        buttons.add(apply_button);
+
+        MenuTextButton back_button = new MenuTextButton("MenuButton", "Back");
+        back_button.clicked.connect(do_back);
+        buttons.add(back_button);
+
+        return buttons;
+    }
+
+    protected override ArrayList<MenuTextButton>? get_main_buttons()
+    {
+        ArrayList<MenuOptionsButton> buttons = new ArrayList<MenuOptionsButton>();
+
+        for (int i = 0; i < menus.size; i++)
+        {
+            SubOptionsMenuView menu = menus[i];
+            MenuOptionsButton menu_button = new MenuOptionsButton(menu, menu.menu_name);
+            menu_button.clicked.connect(sub_pressed);
+            buttons.add(menu_button);
+        }
+
+        return buttons;
+    }
+
+    public override void load()
     {
         options = new Options.from_disk();
-
-        label = new LabelControl();
-        add_child(label);
-        label.text = "Options";
-        label.font_size = 40;
-        label.outer_anchor = Vec2(0.5f, 1);
-        label.inner_anchor = Vec2(0.5f, 1);
-        label.position = Vec2(0, -60);
 
         string[] quality_choices = { "Low", "High" };
         string[] on_off_choices = { "Off", "On" };
         string apply_text = "Apply";
         string back_text = "Back";
         int padding = 30;
-        float offset = label.size.height - label.position.y;
-
-        apply_button = new MenuTextButton("MenuButton", apply_text);
-        add_child(apply_button);
-        apply_button.outer_anchor = Vec2(0.5f, 0);
-        apply_button.inner_anchor = Vec2(1, 0);
-        apply_button.position = Vec2(-padding, padding);
-        apply_button.clicked.connect(apply);
-
-        back_button = new MenuTextButton("MenuButton", back_text);
-        add_child(back_button);
-        back_button.outer_anchor = Vec2(0.5f, 0);
-        back_button.inner_anchor = Vec2(0, 0);
-        back_button.position = Vec2(padding, padding);
-        back_button.clicked.connect(back);
 
         GraphicOptionsMenuView graphics = new GraphicOptionsMenuView
         (
@@ -52,8 +52,7 @@ private class OptionsMenuView : View2D
             on_off_choices,
             apply_text,
             back_text,
-            padding,
-            offset
+            padding
         );
         menus.add(graphics);
         AudioOptionsMenuView audio = new AudioOptionsMenuView
@@ -63,8 +62,7 @@ private class OptionsMenuView : View2D
             on_off_choices,
             apply_text,
             back_text,
-            padding,
-            offset
+            padding
         );
         menus.add(audio);
         AppearanceOptionsMenuView appearance = new AppearanceOptionsMenuView
@@ -73,53 +71,15 @@ private class OptionsMenuView : View2D
             options,
             apply_text,
             back_text,
-            padding,
-            offset
+            padding
         );
         menus.add(appearance);
-
-        float start = offset + padding;
-        float height = 100;
-
-        for (int i = 0; i < menus.size; i++)
-        {
-            SubOptionsMenuView menu = menus[i];
-            add_child(menu);
-            menu.visible = false;
-            menu.back_clicked.connect(sub_back_pressed);
-
-            MenuOptionsButton menu_button = new MenuOptionsButton(menu, menu.name);
-            add_child(menu_button);
-            menu_button.outer_anchor = Vec2(0.5f, 1);
-            menu_button.inner_anchor = Vec2(0.5f, 1);
-            menu_button.position = Vec2(0, -(start + height * i));
-            menu_button.clicked.connect(sub_pressed);
-            buttons.add(menu_button);
-        }
     }
 
     private void sub_pressed(Control button)
     {
         MenuOptionsButton b = (MenuOptionsButton)button;
-        toggle_visible(false);
-        b.menu.visible = true;
-        label.text = b.menu.name;
-    }
-
-    private void sub_back_pressed(SubOptionsMenuView menu)
-    {
-        menu.visible = false;
-        toggle_visible(true);
-        label.text = "Options";
-    }
-
-    private void toggle_visible(bool visible)
-    {
-        apply_button.visible = visible;
-        back_button.visible = visible;
-
-        foreach (MenuOptionsButton button in buttons)
-            button.visible = visible;
+        load_sub_view(b.menu);
     }
 
     private void apply()
@@ -128,15 +88,11 @@ private class OptionsMenuView : View2D
             menu.apply();
 
         options.save();
-        apply_clicked();
-    }
-
-    private void back()
-    {
-        back_clicked();
+        do_finish();
     }
 
     public Options options { get; private set; }
+    public override string get_name() { return "Options"; }
 }
 
 private class MenuOptionsButton : MenuTextButton
@@ -150,41 +106,32 @@ private class MenuOptionsButton : MenuTextButton
     public SubOptionsMenuView menu { get; private set; }
 }
 
-private abstract class SubOptionsMenuView : View2D
+private abstract class SubOptionsMenuView : MainMenuSubView
 {
     protected Options options;
     protected string apply_text;
     protected string back_text;
     protected int padding;
-    protected float offset;
 
     protected ArrayList<OptionItemControl> opts = new ArrayList<OptionItemControl>();
 
     public signal void back_clicked(SubOptionsMenuView menu);
 
-    public SubOptionsMenuView(string name, Options options, string apply_text, string back_text, int padding, float offset)
+    public SubOptionsMenuView(string name, Options options, string apply_text, string back_text, int padding)
     {
-        this.name = name;
+        menu_name = name;
         this.options = options;
         this.apply_text = apply_text;
         this.back_text = back_text;
         this.padding = padding;
-        this.offset = offset;
     }
 
-    public override void added()
+    public override void load()
     {
         add_options();
 
-        MenuTextButton back_button = new MenuTextButton("MenuButton", back_text);
-        add_child(back_button);
-        back_button.outer_anchor = Vec2(0.5f, 0);
-        back_button.inner_anchor = Vec2(0.5f, 0);
-        back_button.position = Vec2(0, padding);
-        back_button.clicked.connect(back);
-
         Size2 size = Size2(600, 55);
-        float start = offset + padding;
+        float start = top_offset + padding;
 
         for (int i = 0; i < opts.size; i++)
         {
@@ -197,15 +144,28 @@ private abstract class SubOptionsMenuView : View2D
         }
     }
 
-    private void back()
+    protected override ArrayList<MenuTextButton>? get_menu_buttons()
     {
-        back_clicked(this);
+        ArrayList<MenuTextButton> buttons = new ArrayList<MenuTextButton>();
+
+        MenuTextButton back_button = new MenuTextButton("MenuButton", "Back");
+        back_button.clicked.connect(do_back);
+        buttons.add(back_button);
+
+        return buttons;
     }
 
-    public abstract void apply();
+    public void apply()
+    {
+        if (loaded)
+            do_apply();
+    }
+
+    protected abstract void do_apply();
     protected abstract void add_options();
 
-    public string name { get; private set; }
+    public string menu_name { get; private set; }
+    protected override string get_name() { return menu_name; }
 }
 
 private class GraphicOptionsMenuView : SubOptionsMenuView
@@ -220,7 +180,7 @@ private class GraphicOptionsMenuView : SubOptionsMenuView
     private string[] quality_choices;
     private string[] on_off_choices;
 
-    public GraphicOptionsMenuView(string name, Options options, string[] quality_choices, string[] on_off_choices, string apply_text, string back_text, int padding, float offset)
+    public GraphicOptionsMenuView(string name, Options options, string[] quality_choices, string[] on_off_choices, string apply_text, string back_text, int padding)
     {
         base
         (
@@ -228,8 +188,7 @@ private class GraphicOptionsMenuView : SubOptionsMenuView
             options,
             apply_text,
             back_text,
-            padding,
-            offset
+            padding
         );
 
         this.quality_choices = quality_choices;
@@ -246,7 +205,7 @@ private class GraphicOptionsMenuView : SubOptionsMenuView
         opts.add(v_sync_option = new OptionItemControl(true, "V-sync", on_off_choices, (int)options.v_sync));
     }
 
-    public override void apply()
+    public override void do_apply()
     {
         options.shader_quality = (Options.QualityEnum)shader_option.index;
         options.model_quality = (Options.QualityEnum)model_option.index;
@@ -264,7 +223,7 @@ private class AudioOptionsMenuView : SubOptionsMenuView
 
     private string[] on_off_choices;
 
-    public AudioOptionsMenuView(string name, Options options, string[] on_off_choices, string apply_text, string back_text, int padding, float offset)
+    public AudioOptionsMenuView(string name, Options options, string[] on_off_choices, string apply_text, string back_text, int padding)
     {
         base
         (
@@ -272,8 +231,7 @@ private class AudioOptionsMenuView : SubOptionsMenuView
             options,
             apply_text,
             back_text,
-            padding,
-            offset
+            padding
         );
 
         this.on_off_choices = on_off_choices;
@@ -285,7 +243,7 @@ private class AudioOptionsMenuView : SubOptionsMenuView
         opts.add(sounds_option = new OptionItemControl(true, "Sound effects", on_off_choices, (int)options.sounds));
     }
 
-    public override void apply()
+    public override void do_apply()
     {
         options.music = (Options.OnOffEnum)music_option.index;
         options.sounds = (Options.OnOffEnum)sounds_option.index;
@@ -302,7 +260,7 @@ private class AppearanceOptionsMenuView : SubOptionsMenuView
     private ScrollBarControl back_green = new ScrollBarControl(false);
     private ScrollBarControl back_blue = new ScrollBarControl(false);
 
-    public AppearanceOptionsMenuView(string name, Options options, string apply_text, string back_text, int padding, float offset)
+    public AppearanceOptionsMenuView(string name, Options options, string apply_text, string back_text, int padding)
     {
         base
         (
@@ -310,8 +268,7 @@ private class AppearanceOptionsMenuView : SubOptionsMenuView
             options,
             apply_text,
             back_text,
-            padding,
-            offset
+            padding
         );
     }
 
@@ -319,8 +276,8 @@ private class AppearanceOptionsMenuView : SubOptionsMenuView
     {
         tile = new TileMenuView(options.tile_textures, options.tile_fore_color, options.tile_back_color);
         add_child(tile);
-        tile.inner_anchor = Vec2(0, 0.5f);
-        tile.outer_anchor = Vec2(0, 0.5f);
+        tile.inner_anchor = Vec2(1, 0.5f);
+        tile.outer_anchor = Vec2(1, 0.5f);
 
         float height = 50;
 
@@ -330,7 +287,7 @@ private class AppearanceOptionsMenuView : SubOptionsMenuView
         fore_label.font_size = 30;
         fore_label.outer_anchor = Vec2(0.5f, 1);
         fore_label.inner_anchor = Vec2(0.5f, 0);
-        fore_label.position = Vec2(0, -(offset + padding + height * 0));
+        fore_label.position = Vec2(0, -(top_offset + padding + height * 0));
 
         LabelControl back_label = new LabelControl();
         add_child(back_label);
@@ -338,7 +295,7 @@ private class AppearanceOptionsMenuView : SubOptionsMenuView
         back_label.font_size = 30;
         back_label.outer_anchor = Vec2(0.5f, 1);
         back_label.inner_anchor = Vec2(0.5f, 0);
-        back_label.position = Vec2(0, -(offset + padding + height * 4));
+        back_label.position = Vec2(0, -(top_offset + padding + height * 4));
 
         LabelControl texture_label = new LabelControl();
         add_child(texture_label);
@@ -346,19 +303,19 @@ private class AppearanceOptionsMenuView : SubOptionsMenuView
         texture_label.font_size = 30;
         texture_label.outer_anchor = Vec2(0.5f, 1);
         texture_label.inner_anchor = Vec2(0.5f, 0);
-        texture_label.position = Vec2(0, -(offset + padding + height * 8));
+        texture_label.position = Vec2(0, -(top_offset + padding + height * 8));
 
-        set_bar_properties(fore_red, -(offset + padding + height * 0), true);
-        set_bar_properties(fore_green, -(offset + padding + height * 1), true);
-        set_bar_properties(fore_blue, -(offset + padding + height * 2), true);
+        set_bar_properties(fore_red, -(top_offset + padding + height * 0), true);
+        set_bar_properties(fore_green, -(top_offset + padding + height * 1), true);
+        set_bar_properties(fore_blue, -(top_offset + padding + height * 2), true);
 
         fore_red.current_value = (int)(options.tile_fore_color.r * 100);
         fore_green.current_value = (int)(options.tile_fore_color.g * 100);
         fore_blue.current_value = (int)(options.tile_fore_color.b * 100);
 
-        set_bar_properties(back_red, -(offset + padding + height * 4), false);
-        set_bar_properties(back_green, -(offset + padding + height * 5), false);
-        set_bar_properties(back_blue, -(offset + padding + height * 6), false);
+        set_bar_properties(back_red, -(top_offset + padding + height * 4), false);
+        set_bar_properties(back_green, -(top_offset + padding + height * 5), false);
+        set_bar_properties(back_blue, -(top_offset + padding + height * 6), false);
 
         back_red.current_value = (int)(options.tile_back_color.r * 100);
         back_green.current_value = (int)(options.tile_back_color.g * 100);
@@ -368,14 +325,14 @@ private class AppearanceOptionsMenuView : SubOptionsMenuView
         add_child(regular);
         regular.inner_anchor = Vec2(1, 1);
         regular.outer_anchor = Vec2(0.5f, 1);
-        regular.position = Vec2(-padding / 2, -(offset + padding + height * 8));
+        regular.position = Vec2(-padding / 2, -(top_offset + padding + height * 8));
         regular.clicked.connect(regular_clicked);
 
         MenuTextButton black = new MenuTextButton("MenuButtonSmall", "Black");
         add_child(black);
         black.inner_anchor = Vec2(0, 1);
         black.outer_anchor = Vec2(0.5f, 1);
-        black.position = Vec2(padding / 2, -(offset + padding + height * 8));
+        black.position = Vec2(padding / 2, -(top_offset + padding + height * 8));
         black.clicked.connect(black_clicked);
     }
 
@@ -417,7 +374,7 @@ private class AppearanceOptionsMenuView : SubOptionsMenuView
         tile.back_color = Color(back_red.fval, back_green.fval, back_blue.fval, 1);
     }
 
-    public override void apply()
+    public override void do_apply()
     {
         options.tile_fore_color = tile.fore_color;
         options.tile_back_color = tile.back_color;

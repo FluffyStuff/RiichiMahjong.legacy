@@ -1,4 +1,4 @@
-public class Tile
+public class Tile : Serializable
 {
     public Tile(int ID, TileType type, bool dora)
     {

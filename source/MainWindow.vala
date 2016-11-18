@@ -4,7 +4,7 @@ using GameServer;
 
 public class MainWindow : RenderWindow
 {
-    private MainMenuView? menu;
+    private MainMenuControlView? menu;
     private View2D game_view;
     private GameController? game_controller = null;
     private GameEscapeMenuView? escape_menu;
@@ -33,7 +33,7 @@ public class MainWindow : RenderWindow
 
     private void create_main_menu()
     {
-        menu = new MainMenuView();
+        menu = new MainMenuControlView();
         menu.game_start.connect(game_start);
         menu.restart.connect(restart);
         menu.quit.connect(quit);

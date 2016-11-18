@@ -15,15 +15,20 @@ public class RoundState : Object
 
     public RoundState(ServerSettings settings, int player_index, Wind round_wind, int dealer, int wall_index, bool[] can_riichi)
     {
-        init(false, settings, player_index, round_wind, dealer, wall_index, null, can_riichi, false);
+        init(false, settings, player_index, round_wind, dealer, wall_index, null, can_riichi, false, null);
     }
 
-    public RoundState.server(ServerSettings settings, Wind round_wind, int dealer, int wall_index, Rand rnd, bool[] can_riichi)
+    public RoundState.server(ServerSettings settings, Wind round_wind, int dealer, int wall_index, Random rnd, bool[] can_riichi)
     {
-        init(true, settings, -1, round_wind, dealer, wall_index, rnd, can_riichi, true);
+        init(true, settings, -1, round_wind, dealer, wall_index, rnd, can_riichi, true, null);
     }
 
-    private void init(bool shuffled, ServerSettings settings, int player_index, Wind round_wind, int dealer, int wall_index, Rand? rnd, bool[] can_riichi, bool revealed)
+    public RoundState.custom(ServerSettings settings, Wind round_wind, int dealer, int wall_index, bool[] can_riichi, Tile[] tiles)
+    {
+        init(false, settings, -1, round_wind, dealer, wall_index, null, can_riichi, true, tiles);
+    }
+
+    private void init(bool shuffled, ServerSettings settings, int player_index, Wind round_wind, int dealer, int wall_index, Random? rnd, bool[] can_riichi, bool revealed, Tile[]? tiles)
     {
         this.settings = settings;
         this.player_index = player_index;
@@ -96,6 +101,8 @@ public class RoundState : Object
             wall = new RoundStateWall.shuffled(dealer, wall_index, settings.aka_dora == Options.OnOffEnum.ON, rnd);
             //*/
         }
+        else if (tiles != null)
+            wall = new RoundStateWall.custom(dealer, wall_index, tiles);
         else
             wall = new RoundStateWall(dealer, wall_index);
         discard_tile = null;
@@ -1057,29 +1064,41 @@ class RoundStateWall
 
     public RoundStateWall(int dealer, int wall_index)
     {
-        init(dealer, wall_index, false, null, false, false, null, null, null, null, null, null);
+        init(dealer, wall_index, false, null, false, false, null, null, null, null, null, null, null);
     }
 
-    public RoundStateWall.shuffled(int dealer, int wall_index, bool aka_dora, Rand rnd)
+    public RoundStateWall.shuffled(int dealer, int wall_index, bool aka_dora, Random rnd)
     {
-        init(dealer, wall_index, aka_dora, rnd, true, false, null, null, null, null, null, null);
+        init(dealer, wall_index, aka_dora, rnd, true, false, null, null, null, null, null, null, null);
     }
 
-    public RoundStateWall.seeded(int dealer, int wall_index, bool aka_dora, bool shuffle, Rand? rnd, TileType[] p1_tiles, TileType[] p2_tiles, TileType[] p3_tiles, TileType[] p4_tiles, TileType[] draw_tiles, TileType[] dead_wall)
+    public RoundStateWall.seeded(int dealer, int wall_index, bool aka_dora, bool shuffle, Random? rnd, TileType[] p1_tiles, TileType[] p2_tiles, TileType[] p3_tiles, TileType[] p4_tiles, TileType[] draw_tiles, TileType[] dead_wall)
     {
-        init(dealer, wall_index, aka_dora, rnd, shuffle, true, p1_tiles, p2_tiles, p3_tiles, p4_tiles, draw_tiles, dead_wall);
+        init(dealer, wall_index, aka_dora, rnd, shuffle, true, null, p1_tiles, p2_tiles, p3_tiles, p4_tiles, draw_tiles, dead_wall);
     }
 
-    private void init(int dealer, int wall_index, bool aka_dora, Rand? rnd, bool shuffled, bool seeded, TileType[]? p1_tiles, TileType[]? p2_tiles, TileType[]? p3_tiles, TileType[]? p4_tiles, TileType[]? draw_tiles, TileType[]? dead_wall)
+    public RoundStateWall.custom(int dealer, int wall_index, Tile[] tiles)
     {
-        tiles = new Tile[136];
+        init(dealer, wall_index, false, null, false, false, tiles, null, null, null, null, null, null);
+    }
+
+    private void init(int dealer, int wall_index, bool aka_dora, Random? rnd, bool shuffled, bool seeded, Tile[]? custom_tiles, TileType[]? p1_tiles, TileType[]? p2_tiles, TileType[]? p3_tiles, TileType[]? p4_tiles, TileType[]? draw_tiles, TileType[]? dead_wall)
+    {
+        if (custom_tiles != null)
+            tiles = custom_tiles;
+        else
+            tiles = new Tile[136];
+
         dora = new ArrayList<Tile>();
         ura_dora = new ArrayList<Tile>();
 
-        for (int i = 0; i < tiles.length; i++)
+        if (custom_tiles == null)
         {
-            TileType type = (shuffled && !seeded) ? (TileType)((i / 4) + 1) : TileType.BLANK;
-            tiles[i] = new Tile(-1, type, false);
+            for (int i = 0; i < tiles.length; i++)
+            {
+                TileType type = (shuffled && !seeded) ? (TileType)((i / 4) + 1) : TileType.BLANK;
+                tiles[i] = new Tile(-1, type, false);
+            }
         }
 
         int start_wall = (4 - dealer) % 4;
@@ -1182,7 +1201,7 @@ class RoundStateWall
         return null;
     }
 
-    private static void shuffle(Tile[] tiles, Rand rnd)
+    private static void shuffle(Tile[] tiles, Random rnd)
     {
         for (int i = 0; i < tiles.length; i++)
         {
@@ -1193,7 +1212,7 @@ class RoundStateWall
         }
     }
 
-    private static void seed(int index, Rand? rnd, Tile[] tiles, TileType[] p1_tiles, TileType[] p2_tiles, TileType[] p3_tiles, TileType[] p4_tiles, TileType[] draw_tiles, TileType[] dead_wall)
+    private static void seed(int index, Random? rnd, Tile[] tiles, TileType[] p1_tiles, TileType[] p2_tiles, TileType[] p3_tiles, TileType[] p4_tiles, TileType[] draw_tiles, TileType[] dead_wall)
     {
         ArrayList<TileType> unassigned = new ArrayList<TileType>();
         for (int i = 0; i < tiles.length; i++)
@@ -1286,7 +1305,7 @@ class RoundStateWall
                 return;
             }
 
-        print("RoundState seed: Did not find " + tile_type.to_string() + "\n");
+        Environment.log(LogType.GAME, "RoundStateWall", "RoundState seed, did not find " + tile_type.to_string());
     }
 
     public bool empty { get { return wall_tiles.size == 0; } }

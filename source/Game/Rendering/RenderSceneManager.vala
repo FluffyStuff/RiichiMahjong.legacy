@@ -64,6 +64,8 @@ class RenderSceneManager : Object
         chii_sound = audio.load_sound("chii");
         reveal_sound = audio.load_sound("reveal");
 
+        int index = player_index == -1 ? 0 : player_index;
+
         float tile_scale = 1.74f;
         string extension = Options.quality_enum_to_string(options.model_quality);
 
@@ -71,7 +73,7 @@ class RenderSceneManager : Object
         tile_size = ((RenderBody3D)tile.geometry[0]).model.size;
         tile_size = Vec3(tile_size.x, tile_size.y + ((RenderBody3D)tile.geometry[1]).model.size.y, tile_size.z).mul_scalar(tile_scale);
 
-        table = new RenderTable(store, extension, tile_size, round_wind, -(float)player_index / 2, score);
+        table = new RenderTable(store, extension, tile_size, round_wind, -(float)index / 2, score);
 
         table_length = table.player_offset;
         center = table.center;
@@ -88,12 +90,9 @@ class RenderSceneManager : Object
         wall = new RenderWall(tiles, tile_size, center, wall_offset, dealer, wall_index);
 
         for (int i = 0; i < players.length; i++)
-            players[i] = new RenderPlayer(store, center, i == dealer, i, table_length, wall_offset, tile_size, i == player_index, round_wind);
+            players[i] = new RenderPlayer(store, center, i == dealer, i, table_length, wall_offset, tile_size, i == index, round_wind);
 
-        if (player_index != -1)
-            observer = players[player_index];
-        else
-            observer = players[0];
+        observer = players[index];
 
 
         float camera_height = center.y + table_length * 1.8f;

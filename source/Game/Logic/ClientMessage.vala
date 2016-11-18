@@ -99,6 +99,18 @@ public class ClientMessageAuthenticate : ClientMessage
     public VersionInfo version_info { get; protected set; }
 }
 
+public class ClientMessageControlDefaultCallAction : ClientMessage {}
+
+public class ClientMessageControlDefaultTileAction : ClientMessage
+{
+    public ClientMessageControlDefaultTileAction(int tile_ID)
+    {
+        this.tile_ID = tile_ID;
+    }
+
+    public int tile_ID { get; protected set; }
+}
+
 public class ClientMessageMenuGameStart : ClientMessage {}
 
 public class ClientMessageMenuAddBot : ClientMessage
@@ -121,6 +133,16 @@ public class ClientMessageMenuKickPlayer : ClientMessage
     }
 
     public int slot { get; protected set; }
+}
+
+public class ClientMessageMenuGameLog : ClientMessage
+{
+    public ClientMessageMenuGameLog(GameLog? log)
+    {
+        this.log = log;
+    }
+
+    public GameLog? log { get; protected set; }
 }
 
 public class ClientMessageMenuSettings : ClientMessage
@@ -163,17 +185,12 @@ public class ClientMessageOpenKan : ClientMessage {}
 
 public class ClientMessageClosedKan : ClientMessage
 {
-    public ClientMessageClosedKan(int tile_type)
+    public ClientMessageClosedKan(TileType tile_type)
     {
         this.tile_type = tile_type;
     }
 
-    public TileType get_type_enum()
-    {
-        return (TileType)tile_type;
-    }
-
-    public int tile_type { get; protected set; }
+    public TileType tile_type { get; protected set; }
 }
 
 public class ClientMessageLateKan : ClientMessage

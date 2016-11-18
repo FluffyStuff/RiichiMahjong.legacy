@@ -59,13 +59,15 @@ public abstract class ServerMessage : Serializable {}
 
 public class ServerMessageGameStart : ServerMessage
 {
-    public ServerMessageGameStart(GameStartInfo info, int player_index)
+    public ServerMessageGameStart(GameStartInfo info, ServerSettings settings, int player_index)
     {
         this.info = info;
+        this.settings = settings;
         this.player_index = player_index;
     }
 
     public GameStartInfo info { get; protected set; }
+    public ServerSettings settings { get; protected set; }
     public int player_index { get; protected set; }
 }
 
@@ -91,21 +93,12 @@ public class ServerMessagePlayerLeft : ServerMessage
 
 public class ServerMessageTileAssignment : ServerMessage
 {
-    public ServerMessageTileAssignment(int tile_ID, int tile_type, bool dora)
+    public ServerMessageTileAssignment(Tile tile)
     {
-        this.tile_ID = tile_ID;
-        this.tile_type = tile_type;
-        this.dora = dora;
+        this.tile = tile;
     }
 
-    public Tile get_tile()
-    {
-        return new Tile(tile_ID, (TileType)tile_type, dora);
-    }
-
-    public int tile_ID { get; protected set; }
-    public int tile_type { get; protected set; }
-    public bool dora { get; protected set; }
+    public Tile tile { get; protected set; }
 }
 
 public class ServerMessageTileDraw : ServerMessage {}
@@ -176,15 +169,10 @@ public class ServerMessageClosedKan : ServerMessage
 {
     public ServerMessageClosedKan(TileType tile_type)
     {
-        this.tile_type = (int)tile_type;
+        this.tile_type = tile_type;
     }
 
-    public TileType get_type_enum()
-    {
-        return (TileType)tile_type;
-    }
-
-    public int tile_type { get; protected set; }
+    public TileType tile_type { get; protected set; }
 }
 
 public class ServerMessageOpenKan : ServerMessage
@@ -305,4 +293,14 @@ public class ServerMessageMenuSettings : ServerMessage
     }
 
     public string settings { get; protected set; }
+}
+
+public class ServerMessageMenuGameLog : ServerMessage
+{
+    public ServerMessageMenuGameLog(string? name)
+    {
+        this.name = name;
+    }
+
+    public string? name { get; protected set; }
 }

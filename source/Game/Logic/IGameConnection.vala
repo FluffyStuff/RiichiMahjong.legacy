@@ -83,7 +83,7 @@ public class GameNetworkConnection : IGameConnection
 
         if (msg == null || !msg.get_type().is_a(typeof(ServerMessage)))
         {
-            print("Client discarding invalid server message!\n");
+            Environment.log(LogType.NETWORK, "GameNetworkConnection", "Client discarding invalid server message");
             return;
         }
 

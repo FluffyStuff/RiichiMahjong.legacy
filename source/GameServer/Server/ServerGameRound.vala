@@ -9,17 +9,56 @@ namespace GameServer
         private ArrayList<GameRoundServerPlayer> players = new ArrayList<GameRoundServerPlayer>();
         private ServerRoundState round;
         private ClientMessageParser parser = new ClientMessageParser();
+        private bool reveal;
 
         public bool finished { get; private set; }
         public RoundFinishResult result { get; private set; }
+        public Tile[] tiles { get { return round.tiles; } }
 
         public signal void declare_riichi(int player_index);
-        public signal void log(string message);
+        public signal void log(GameLogLine line);
 
-        public ServerGameRound(RoundStartInfo info, ServerSettings settings, ArrayList<ServerPlayer> players, ArrayList<ServerPlayer> spectators, Wind round_wind, int dealer, Rand rnd, bool[] can_riichi, int decision_time)
+        public ServerGameRound(RoundStartInfo info, ServerSettings settings, ArrayList<ServerPlayer> players, ArrayList<ServerPlayer> spectators, Wind round_wind, int dealer, Random rnd, bool[] can_riichi, int decision_time, Tile[]? tiles, bool reveal)
         {
             this.info = info;
+            this.reveal = reveal;
 
+            round = new ServerRoundState(settings, round_wind, dealer, info.wall_index, rnd, can_riichi, decision_time, tiles);
+
+            init();
+
+            for (int i = 0; i < players.size; i++)
+            {
+                GameRoundServerPlayer player = new GameRoundServerPlayer(players[i], i);
+                this.players.add(player);
+
+                if (player.server_player.is_disconnected)
+                    round.set_disconnected(player.index);
+            }
+
+            foreach (ServerPlayer player in spectators)
+            {
+                GameRoundServerPlayer p = new GameRoundServerPlayer(player, -1);
+                this.players.add(p);
+            }
+        }
+
+        /*public ServerGameRound.with_log(RoundLog log, ServerSettings settings, ArrayList<ServerPlayer> spectators, Random rnd)
+        {
+            this.info = log.start_info;
+            round = new ServerRoundState(settings, log.round_wind, log.dealer, log.start_info.wall_index, rnd, log.can_riichi, log.decision_time, log.tiles);
+
+            init();
+
+            / *foreach (ServerPlayer player in spectators)
+            {
+                GameRoundServerPlayer p = new GameRoundServerPlayer(player, -1);
+                this.players.add(p);
+            }* /
+        }*/
+
+        private void init()
+        {
             parser.connect(client_void_hand, typeof(ClientMessageVoidHand));
             parser.connect(client_tile_discard, typeof(ClientMessageTileDiscard));
             parser.connect(client_no_call, typeof(ClientMessageNoCall));
@@ -32,7 +71,6 @@ namespace GameServer
             parser.connect(client_pon, typeof(ClientMessagePon));
             parser.connect(client_chii, typeof(ClientMessageChii));
 
-            round = new ServerRoundState(settings, round_wind, dealer, info.wall_index, rnd, can_riichi, decision_time);
             round.log.connect(do_log);
             round.game_initial_draw.connect(game_initial_draw);
             round.game_draw_tile.connect(game_draw_tile);
@@ -52,26 +90,11 @@ namespace GameServer
             round.game_chii.connect(game_chii);
             round.game_calls_finished.connect(game_calls_finished);
             round.game_draw.connect(game_draw);
-
-            for (int i = 0; i < players.size; i++)
-            {
-                GameRoundServerPlayer player = new GameRoundServerPlayer(players[i], i);
-                this.players.add(player);
-
-                if (player.server_player.is_disconnected)
-                    round.set_disconnected(player.index);
-            }
-
-            /*foreach (ServerPlayer player in spectators)
-            {
-                GameRoundServerPlayer p = new GameRoundServerPlayer(player, -1);
-                this.players.add(p);
-            }*/
         }
 
-        private void do_log(string message)
+        private void do_log(GameLogLine line)
         {
-            log(message);
+            log(line);
         }
 
         public void start(float time)
@@ -83,6 +106,10 @@ namespace GameServer
             }
 
             Thread.usleep(5 * 100 * 1000); // TODO: Find fix for slow loading
+
+            if (reveal)
+                foreach (Tile tile in tiles)
+                    game_reveal_tile(tile);
 
             round.start(time);
         }
@@ -158,7 +185,7 @@ namespace GameServer
             ClientMessageClosedKan kan = (ClientMessageClosedKan)message;
 
             GameRoundServerPlayer p = get_game_player(players, player);
-            round.client_closed_kan(p.index, kan.get_type_enum());
+            round.client_closed_kan(p.index, kan.tile_type);
         }
 
         private void client_open_kan(ServerPlayer player, ClientMessage message)
@@ -191,7 +218,7 @@ namespace GameServer
             {
                 foreach (Tile tile in hand)
                 {
-                    ServerMessageTileAssignment assignment = new ServerMessageTileAssignment(tile.ID, (int)tile.tile_type, tile.dora);
+                    ServerMessageTileAssignment assignment = new ServerMessageTileAssignment(tile);
 
                     if (p == player || p.server_player.state != ServerPlayer.State.PLAYER)
                         p.server_player.send_message(assignment);
@@ -202,7 +229,7 @@ namespace GameServer
         private void game_draw_tile(int player_index, Tile tile, bool open)
         {
             GameRoundServerPlayer player = get_server_player(players, player_index);
-            ServerMessageTileAssignment assignment = new ServerMessageTileAssignment(tile.ID, (int)tile.tile_type, tile.dora);
+            ServerMessageTileAssignment assignment = new ServerMessageTileAssignment(tile);
             ServerMessageTileDraw draw = new ServerMessageTileDraw();
 
             foreach (GameRoundServerPlayer p in players)
@@ -216,7 +243,7 @@ namespace GameServer
 
         private void game_reveal_tile(Tile tile)
         {
-            ServerMessageTileAssignment assignment = new ServerMessageTileAssignment(tile.ID, (int)tile.tile_type, tile.dora);
+            ServerMessageTileAssignment assignment = new ServerMessageTileAssignment(tile);
 
             foreach (GameRoundServerPlayer p in players)
                 p.server_player.send_message(assignment);
@@ -245,7 +272,7 @@ namespace GameServer
         private void game_draw_dead_tile(int player_index, Tile tile, bool open)
         {
             GameRoundServerPlayer player = get_server_player(players, player_index);
-            ServerMessageTileAssignment assignment = new ServerMessageTileAssignment(tile.ID, (int)tile.tile_type, tile.dora);
+            ServerMessageTileAssignment assignment = new ServerMessageTileAssignment(tile);
 
             foreach (GameRoundServerPlayer p in players)
             {

@@ -2,45 +2,28 @@ using Gee;
 using GameServer;
 using Lobby;
 
-public class LobbyConnectionView : View2D
+class LobbyConnectionView : MainMenuSubView
 {
-    private LabelControl label;
-    private LabelControl message_label;
-    private LobbyInformationListControl? lobby_info;
-    private LobbyInformation? selected_lobby;
-    private LobbyConnection? connection;
-    private TextInputControl name_text;
-    private MenuTextButton join_button;
-    private MenuTextButton back_button;
-    private LobbyView lobby_view;
-
+    private LabelControl message_label = new LabelControl();
+    private MenuTextButton ok_button;
     private DelayTimer timer = new DelayTimer();
     private int delay_time = 5;
 
     private bool connecting_finished;
     private bool processed;
-    private int padding = 80;
+    private LobbyConnection? connection;
 
     public signal GameController start_game(GameStartInfo info, ServerSettings settings, IGameConnection connection, int player_index);
-    public signal void back();
 
-    protected override void added()
+    protected override void load()
     {
-        label = new LabelControl();
-        add_child(label);
-        label.text = "Select Lobby";
-        label.font_size = 40;
-        label.outer_anchor = Vec2(0.5f, 1);
-        label.inner_anchor = Vec2(0.5f, 1);
-        label.position = Vec2(0, -60);
-
         message_label = new LabelControl();
         add_child(message_label);
         message_label.text = "Connecting to lobby...";
         message_label.font_size = 50;
         timer.set_time(delay_time);
 
-        Threading.start2(try_join, new Obj<string>("riichi.fluffy.is"), new Obj<int>(1337));
+        Threading.start2(try_join, new Obj<string>(Environment.LOBBY_ADDRESS), new Obj<int>(Environment.LOBBY_PORT));
     }
 
     private void try_join(Object host_obj, Object port_obj)
@@ -61,16 +44,8 @@ public class LobbyConnectionView : View2D
         {
             connecting_finished = true;
             processed = true;
-
-            MenuTextButton ok_button = new MenuTextButton("MenuButton", "OK");
-            add_child(ok_button);
-            ok_button.outer_anchor = Vec2(0.5f, 0.5f);
-            ok_button.inner_anchor = Vec2(0.5f, 1);
-            ok_button.position = Vec2(0, -message_label.size.height / 2 - padding);
-            ok_button.clicked.connect(back_clicked);
-
-            string text = "Error: Could not connect to lobby";
-            message_label.text = text;
+            message_label.text = "Error: Could not connect to lobby";
+            ok_button.visible = true;
             return;
         }
 
@@ -81,69 +56,113 @@ public class LobbyConnectionView : View2D
         {
             processed = true;
 
-            MenuTextButton ok_button = new MenuTextButton("MenuButton", "OK");
-            add_child(ok_button);
-            ok_button.outer_anchor = Vec2(0.5f, 0.5f);
-            ok_button.inner_anchor = Vec2(0.5f, 1);
-            ok_button.position = Vec2(0, -message_label.size.height / 2 - padding);
-            ok_button.clicked.connect(back_clicked);
-
             string text = "Error: ";
             if (connection != null && connection.version_mismatch)
                 text += "Lobby version mismatch\n" + "Please get the latest version";
             else
                 text += "Could not connect to lobby";
             message_label.text = text;
+            ok_button.visible = true;
         }
         else if (connection.server_version != null)
         {
             processed = true;
-
-            join_button = new MenuTextButton("MenuButton", "Enter Lobby");
-            add_child(join_button);
-            join_button.outer_anchor = Vec2(0, 0);
-            join_button.inner_anchor = Vec2(0, 0);
-            join_button.position = Vec2(padding, padding);
-            join_button.clicked.connect(enter_clicked);
-            join_button.enabled = false;
-
-            back_button = new MenuTextButton("MenuButton", "Back");
-            add_child(back_button);
-            back_button.outer_anchor = Vec2(1, 0);
-            back_button.inner_anchor = Vec2(1, 0);
-            back_button.position = Vec2(-padding, padding);
-            back_button.clicked.connect(back_clicked);
-
-            name_text = new TextInputControl("Player name", Environment.MAX_NAME_LENGTH);
-            add_child(name_text);
-            name_text.text_changed.connect(button_enable_check);
-            name_text.outer_anchor = Vec2(0, 0);
-            name_text.inner_anchor = Vec2(0, 0);
-            name_text.position = Vec2(padding + 5, 2 * padding + join_button.size.height);
-
-            message_label.visible = false;
-
-            lobby_info = new LobbyInformationListControl();
-            add_child(lobby_info);
-            lobby_info.resize_style = ResizeStyle.ABSOLUTE;
-            lobby_info.inner_anchor = Vec2(0.5f, 1);
-            lobby_info.outer_anchor = Vec2(0.5f, 1);
-            lobby_info.position = Vec2(0, -120);
-            lobby_info.selected_index_changed.connect(lobby_index_changed);
-            resized();
-
-            connection.disconnected.connect(on_disconnected);
-            connection.lobby_enumeration_result.connect(lobby_enumeration_result);
-            connection.enter_lobby_result.connect(enter_lobby_result);
-            connection.get_lobby_information();
+            LobbySelectionView view = new LobbySelectionView(connection);
+            view.start_game.connect(do_start_game);
+            view.back.connect(do_back);
+            load_sub_view(view);
         }
+    }
+
+    protected override ArrayList<MenuTextButton>? get_menu_buttons()
+    {
+        ArrayList<MenuTextButton> buttons = new ArrayList<MenuTextButton>();
+
+        ok_button = new MenuTextButton("MenuButton", "OK");
+        ok_button.clicked.connect(do_back);
+        buttons.add(ok_button);
+
+        return buttons;
+    }
+
+    protected override void load_finished()
+    {
+        ok_button.visible = false;
+    }
+
+    protected override void set_visibility(bool visible)
+    {
+        message_label.visible = visible;
+    }
+
+    private GameController do_start_game(GameStartInfo info, ServerSettings settings, IGameConnection connection, int player_index)
+    {
+        return start_game(info, settings, connection, player_index);
+    }
+
+    protected override string get_name() { return "Online lobby"; }
+}
+
+class LobbySelectionView : MainMenuSubView
+{
+    private LobbyInformationListControl? lobby_info;
+    private LobbyInformation? selected_lobby;
+    private LobbyConnection connection;
+    private TextInputControl name_text;
+    private MenuTextButton join_button;
+    private LobbyView lobby_view;
+
+    private int padding = 80;
+
+    public signal GameController start_game(GameStartInfo info, ServerSettings settings, IGameConnection connection, int player_index);
+
+    public LobbySelectionView(LobbyConnection connection)
+    {
+        this.connection = connection;
+    }
+
+    protected override ArrayList<MenuTextButton>? get_menu_buttons()
+    {
+        ArrayList<MenuTextButton> buttons = new ArrayList<MenuTextButton>();
+
+        join_button = new MenuTextButton("MenuButton", "Enter Lobby");
+        join_button.clicked.connect(enter_clicked);
+        buttons.add(join_button);
+
+        MenuTextButton back_button = new MenuTextButton("MenuButton", "Back");
+        back_button.clicked.connect(do_back);
+        buttons.add(back_button);
+
+        return buttons;
+    }
+
+    protected override void load_finished()
+    {
+        name_text = new TextInputControl("Player name", Environment.MAX_NAME_LENGTH);
+        add_child(name_text);
+        name_text.text_changed.connect(button_enable_check);
+        name_text.outer_anchor = Vec2(0, 0);
+        name_text.inner_anchor = Vec2(0, 0);
+        name_text.position = Vec2(padding + 5, 2 * padding + join_button.size.height);
+
+        lobby_info = new LobbyInformationListControl();
+        add_child(lobby_info);
+        lobby_info.resize_style = ResizeStyle.ABSOLUTE;
+        lobby_info.inner_anchor = Vec2(0.5f, 1);
+        lobby_info.outer_anchor = Vec2(0.5f, 1);
+        lobby_info.position = Vec2(0, -120);
+        lobby_info.selected_index_changed.connect(lobby_index_changed);
+
+        connection.disconnected.connect(do_back);
+        connection.lobby_enumeration_result.connect(lobby_enumeration_result);
+        connection.enter_lobby_result.connect(enter_lobby_result);
+        connection.get_lobby_information();
+
+        button_enable_check();
     }
 
     protected override void resized()
     {
-        if (lobby_info == null)
-            return;
-
         lobby_info.size = Size2(size.width - 2 * padding, size.height - 450);
     }
 
@@ -168,21 +187,11 @@ public class LobbyConnectionView : View2D
         connection.enter_lobby(selected_lobby);
     }
 
-    private void back_clicked()
-    {
-        back();
-    }
-
-    private void on_disconnected()
-    {
-        back();
-    }
-
     private void lobby_enumeration_result(LobbyConnection connection, bool success)
     {
         if (!success) // Should never happen, something bad must have happened
         {
-            back();
+            do_back();
             return;
         }
 
@@ -193,20 +202,14 @@ public class LobbyConnectionView : View2D
     {
         if (!success) // Should never happen, something bad must have happened
         {
-            back();
+            do_back();
             return;
         }
 
-        label.visible = false;
-        lobby_info.visible = false;
-        name_text.visible = false;
-        join_button.visible = false;
-        back_button.visible = false;
-
         lobby_view = new LobbyView(this.connection);
-        add_child(lobby_view);
         lobby_view.start_game.connect(do_start_game);
-        lobby_view.back.connect(lobby_back_clicked);
+        lobby_view.back.connect(lobby_back);
+        load_sub_view(lobby_view);
     }
 
     private GameController do_start_game(GameStartInfo info, ServerSettings settings, IGameConnection connection, int player_index)
@@ -214,18 +217,17 @@ public class LobbyConnectionView : View2D
         return start_game(info, settings, connection, player_index);
     }
 
-    private void lobby_back_clicked()
+    private void lobby_back()
     {
-        remove_child(lobby_view);
-        lobby_view = null;
-
         connection.leave_lobby();
         connection.get_lobby_information();
-
-        label.visible = true;
-        lobby_info.visible = true;
-        name_text.visible = true;
-        join_button.visible = true;
-        back_button.visible = true;
     }
+
+    protected override void set_visibility(bool visible)
+    {
+        lobby_info.visible = visible;
+        name_text.visible = visible;
+    }
+
+    protected override string get_name() { return "Select Lobby"; }
 }

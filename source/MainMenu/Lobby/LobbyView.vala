@@ -1,17 +1,14 @@
 using Gee;
 using GameServer;
 
-public class LobbyView : View2D
+class LobbyView : MainMenuSubView
 {
     private ClientLobby lobby;
     private LobbyConnection connection;
     private ClientLobbyGame? selected_game;
-    private LabelControl lobby_label;
     private LobbyGameListControl game_list;
     private LobbyUserListControl user_list;
     private MenuTextButton enter_button;
-    private MenuTextButton create_button;
-    private MenuTextButton back_button;
     private ServerMenuView server_menu;
     private int current_game_ID = -1;
     private bool do_refresh_game_list = false;
@@ -21,7 +18,6 @@ public class LobbyView : View2D
     private int padding = 80;
 
     public signal GameController start_game(GameStartInfo info, ServerSettings settings, IGameConnection connection, int player_index);
-    public signal void back();
 
     public LobbyView(LobbyConnection connection)
     {
@@ -38,16 +34,8 @@ public class LobbyView : View2D
         lobby.user_left_game.connect(refresh_game_list);
     }
 
-    protected override void added()
+    protected override void load()
     {
-        lobby_label = new LabelControl();
-        add_child(lobby_label);
-        lobby_label.text = lobby.name;
-        lobby_label.font_size = 40;
-        lobby_label.outer_anchor = Vec2(0.5f, 1);
-        lobby_label.inner_anchor = Vec2(0.5f, 1);
-        lobby_label.position = Vec2(0, -60);
-
         user_list = new LobbyUserListControl();
         add_child(user_list);
         user_list.resize_style = ResizeStyle.ABSOLUTE;
@@ -65,30 +53,30 @@ public class LobbyView : View2D
         game_list.position = Vec2(-2 * padding - user_list.size.width, -120);
         game_list.set_games(lobby.games.to_array());
         game_list.selected_index_changed.connect(game_index_changed);
+    }
+
+    protected override ArrayList<MenuTextButton>? get_menu_buttons()
+    {
+        ArrayList<MenuTextButton> buttons = new ArrayList<MenuTextButton>();
 
         enter_button = new MenuTextButton("MenuButton", "Enter Game");
-        add_child(enter_button);
-        enter_button.outer_anchor = Vec2(0, 0);
-        enter_button.inner_anchor = Vec2(0, 0);
-        enter_button.position = Vec2(padding, padding);
         enter_button.clicked.connect(enter_clicked);
-        enter_button.enabled = false;
+        buttons.add(enter_button);
 
-        create_button = new MenuTextButton("MenuButton", "Create Game");
-        add_child(create_button);
-        create_button.outer_anchor = Vec2(0.5f, 0);
-        create_button.inner_anchor = Vec2(0.5f, 0);
-        create_button.position = Vec2(0, padding);
+        MenuTextButton create_button = new MenuTextButton("MenuButton", "Create Game");
         create_button.clicked.connect(create_clicked);
+        buttons.add(create_button);
 
-        back_button = new MenuTextButton("MenuButton", "Back");
-        add_child(back_button);
-        back_button.outer_anchor = Vec2(1, 0);
-        back_button.inner_anchor = Vec2(1, 0);
-        back_button.position = Vec2(-padding, padding);
-        back_button.clicked.connect(back_clicked);
+        MenuTextButton back_button = new MenuTextButton("MenuButton", "Back");
+        back_button.clicked.connect(do_back);
+        buttons.add(back_button);
 
-        resized();
+        return buttons;
+    }
+
+    protected override void load_finished()
+    {
+        enter_button.enabled = false;
     }
 
     protected override void do_process(DeltaArgs args)
@@ -108,17 +96,12 @@ public class LobbyView : View2D
         if (do_create_game || do_enter_game)
         {
             server_menu = new ServerMenuView.join_server(connection.tunneled_connection, do_create_game);
-            add_child(server_menu);
             server_menu.start.connect(do_start_game);
             server_menu.back.connect(game_back);
-            server_menu.received_message();
+            load_sub_view(server_menu);
 
-            lobby_label.visible = false;
             game_list.visible = false;
             user_list.visible = false;
-            enter_button.visible = false;
-            create_button.visible = false;
-            back_button.visible = false;
 
             do_create_game = false;
             do_enter_game = false;
@@ -127,7 +110,7 @@ public class LobbyView : View2D
 
     protected override void resized()
     {
-        game_list.size = Size2(size.width - 3 * padding - user_list.size.width, size.height - 2 * padding - back_button.size.height + game_list.position.y);
+        game_list.size = Size2(size.width - 3 * padding - user_list.size.width, size.height - 2 * padding - enter_button.size.height + game_list.position.y);
         user_list.size = Size2(user_list.size.width, game_list.size.height);
     }
 
@@ -180,7 +163,6 @@ public class LobbyView : View2D
 
     private void do_start_game(GameStartInfo info, ServerSettings settings, IGameConnection connection, int player_index)
     {
-        remove_child(server_menu);
         GameController controller = start_game(info, settings, connection, player_index);
         controller.finished.connect(return_to_lobby);
     }
@@ -193,17 +175,8 @@ public class LobbyView : View2D
 
     private void return_to_lobby()
     {
-        if (server_menu != null)
-            remove_child(server_menu);
-        server_menu = null;
+        server_menu.do_finish();
         current_game_ID = -1;
-
-        lobby_label.visible = true;
-        game_list.visible = true;
-        user_list.visible = true;
-        enter_button.visible = true;
-        create_button.visible = true;
-        back_button.visible = true;
     }
 
     private void enter_clicked()
@@ -216,8 +189,11 @@ public class LobbyView : View2D
         connection.create_game();
     }
 
-    private void back_clicked()
+    protected override void set_visibility(bool visible)
     {
-        back();
+        game_list.visible = visible;
+        user_list.visible = visible;
     }
+
+    protected override string get_name() { return lobby.name; }
 }

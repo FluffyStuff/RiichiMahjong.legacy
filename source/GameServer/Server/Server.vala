@@ -9,57 +9,63 @@ namespace GameServer
         private ServerSettings settings;
         private State action_state;
         private ServerGameRound? round = null;
-        private unowned Rand rnd;
+        private Random rnd;
         private DelayTimer timer = new DelayTimer();
+        private ServerGameRoundInfoSource source;
+        private bool reveal;
 
         private ArrayList<ServerPlayer> players = new ArrayList<ServerPlayer>();
         private ArrayList<ServerPlayer> spectators = new ArrayList<ServerPlayer>();
-        private Logger logger;
+        //private Logger logger;
+        private GameLogger? game_log;
 
         //public signal void log(string message);
 
-        public void log(string message)
+        private void log(GameLogLine line)
         {
-            logger.log(LogType.GAME, "Server", message);
+            //logger.log(LogType.GAME, "Server", message);
+            if (game_log != null)
+                game_log.log(line);
         }
 
-        public Server(ArrayList<ServerPlayer> players, ArrayList<ServerPlayer> spectators, Rand rnd, GameStartInfo start_info, ServerSettings settings)
+        private void log_round(RoundStartInfo info, Tile[] tiles)
+        {
+            if (game_log != null)
+                game_log.log_round(info, tiles);
+        }
+
+        public Server(ArrayList<ServerPlayer> players, ArrayList<ServerPlayer> spectators, Random rnd, GameStartInfo start_info, ServerSettings settings, ServerGameRoundInfoSource source, bool do_log, bool reveal)
         {
             this.players = new ArrayList<ServerPlayer>();
             this.spectators = spectators;
             this.rnd = rnd;
             this.start_info = start_info;
             this.settings = settings;
+            this.source = source;
+            this.reveal = reveal;
 
             for (int i = 0; i < players.size; i++)
             {
                 ServerPlayer player = players[i];
                 this.players.add(player);
 
-                ServerMessageGameStart start = new ServerMessageGameStart(start_info, i);
+                ServerMessageGameStart start = new ServerMessageGameStart(start_info, settings, i);
                 player.send_message(start);
+            }
+
+            for (int i = 0; i < spectators.size; i++)
+            {
+                ServerMessageGameStart start = new ServerMessageGameStart(start_info, settings, -1);
+                spectators[i].send_message(start);
             }
 
             state = new GameState(start_info, settings);
 
-            logger = Environment.open_game_log();
+            if (do_log)
+                game_log = Environment.open_game_log(start_info, settings);
 
-            log("Starting game(" +
-            "starting_dealer:" + start_info.starting_dealer.to_string() + "," +
-            "starting_score:" + start_info.starting_score.to_string() + "," +
-            "round_count:" + start_info.round_count.to_string()+ ","  +
-            "hanchan_count:" + start_info.hanchan_count.to_string()+ ","  +
-            "decision_time:" + start_info.decision_time.to_string()+ ","  +
-            "round_wait_time:" + start_info.round_wait_time.to_string()+ ","  +
-            "hanchan_wait_time:" + start_info.hanchan_wait_time.to_string()+ ","  +
-            "game_wait_time:" + start_info.game_wait_time.to_string() + "," +
-            "uma_higher:" + start_info.uma_higher.to_string() + ","  +
-            "uma_lower:" + start_info.uma_lower.to_string() + "," +
-            "open_riichi:" + settings.open_riichi.to_string() + "," +
-            "aka_dora:" + settings.aka_dora.to_string() + "," +
-            "multiple_ron:" + settings.multiple_ron.to_string() + "," +
-            "triple_ron_draw:" + settings.triple_ron_draw.to_string() +
-            ")");
+            //log(new StartingGameGameLogLine(new TimeStamp.now(), start_info, settings));
+
             //state.log.connect(do_log);
 
             start_round(0);
@@ -147,21 +153,17 @@ namespace GameServer
 
         private void start_round(float time)
         {
+            ServerGameRoundInfoSourceRound info = source.get_round();
+
             action_state = State.ACTIVE;
+            state.start_round(info.info);
 
-            int wall_index = rnd.int_range(1, 7) + rnd.int_range(1, 7); // Emulate dual die roll probability
-            RoundStartInfo info = new RoundStartInfo(wall_index);
-            state.start_round(info);
+            round = new ServerGameRound(info.info, settings, players, spectators, state.round_wind, state.dealer_index, rnd, state.can_riichi(), start_info.decision_time, info.tiles, reveal);
+            log_round(info.info, round.tiles);
 
-            round = new ServerGameRound(info, settings, players, spectators, state.round_wind, state.dealer_index, rnd, state.can_riichi(), start_info.decision_time);
             round.declare_riichi.connect(state.declare_riichi);
-            round.log.connect(do_log);
+            round.log.connect(log);
             round.start(time);
-        }
-
-        private void do_log(string message)
-        {
-            log(message);
         }
 
         public bool finished { get; private set; }

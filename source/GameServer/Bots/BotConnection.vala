@@ -3,7 +3,6 @@ class BotConnection : Object
     private Bot bot;
     private IGameConnection connection;
     private ServerMessageParser parser = new ServerMessageParser();
-    private ServerSettings settings = new ServerSettings.from_disk();
 
     public BotConnection(Bot bot, IGameConnection connection)
     {
@@ -64,7 +63,7 @@ class BotConnection : Object
             if (message is ServerMessageGameStart)
             {
                 ServerMessageGameStart start = message as ServerMessageGameStart;
-                bot.init_game(start.info, settings, start.player_index);
+                bot.init_game(start.info, start.settings, start.player_index);
             }
             else if (message is ServerMessageRoundStart)
             {
@@ -72,10 +71,6 @@ class BotConnection : Object
                 var start = message as ServerMessageRoundStart;
                 bot.start_round(true, start.info);
                 break;
-            }
-            else if (message is ServerMessageMenuSettings)
-            {
-                server_settings(message);
             }
         }
     }
@@ -87,12 +82,6 @@ class BotConnection : Object
             parser.execute(message);
     }
 
-    private void server_settings(ServerMessage message)
-    {
-        ServerMessageMenuSettings settings = message as ServerMessageMenuSettings;
-        this.settings.load_string(settings.settings);
-    }
-
     private void round_start(ServerMessage message)
     {
         ServerMessageRoundStart start = message as ServerMessageRoundStart;
@@ -102,7 +91,7 @@ class BotConnection : Object
     private void tile_assignment(ServerMessage message)
     {
         ServerMessageTileAssignment tile_assignment = (ServerMessageTileAssignment)message;
-        bot.tile_assign(tile_assignment.get_tile());
+        bot.tile_assign(tile_assignment.tile);
     }
 
     private void tile_draw(ServerMessage message)
@@ -152,7 +141,7 @@ class BotConnection : Object
     private void closed_kan(ServerMessage message)
     {
         ServerMessageClosedKan kan = (ServerMessageClosedKan)message;
-        bot.closed_kan(kan.get_type_enum());
+        bot.closed_kan(kan.tile_type);
     }
 
     private void open_kan(ServerMessage message)

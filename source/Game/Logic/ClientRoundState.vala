@@ -5,6 +5,7 @@ public class ClientRoundState : Object
     private RoundState state;
     private State action_state;
     private ServerMessageParser parser = new ServerMessageParser();
+    private bool self_active;
 
     private ArrayList<TileSelectionGroup> selection_groups = new ArrayList<TileSelectionGroup>();
 
@@ -45,6 +46,7 @@ public class ClientRoundState : Object
         state = new RoundState(settings, player_index, round_wind, dealer_index, info.wall_index, can_riichi);
         state.start();
         action_state = State.DONE;
+        self_active = player_index != -1;
 
         parser.connect(server_turn_decision, typeof(ServerMessageTurnDecision));
         parser.connect(server_call_decision, typeof(ServerMessageCallDecision));
@@ -245,6 +247,9 @@ public class ClientRoundState : Object
 
     private void check_furiten()
     {
+        if (!self_active)
+            return;
+
         set_furiten_state(state.self.in_furiten());
     }
 
@@ -474,7 +479,7 @@ public class ClientRoundState : Object
     private void server_tile_assignment(ServerMessage message)
     {
         ServerMessageTileAssignment tile = (ServerMessageTileAssignment)message;
-        Tile t = tile.get_tile();
+        Tile t = tile.tile;
         state.tile_assign(t);
         game_tile_assignment(t);
     }
@@ -557,7 +562,7 @@ public class ClientRoundState : Object
     private void server_closed_kan(ServerMessage message)
     {
         ServerMessageClosedKan kan = (ServerMessageClosedKan)message;
-        TileType type = kan.get_type_enum();
+        TileType type = kan.tile_type;
         state.closed_kan(type);
         game_closed_kan(state.current_player.index, type);
     }
