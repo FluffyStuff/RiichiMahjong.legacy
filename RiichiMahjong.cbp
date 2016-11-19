@@ -161,6 +161,7 @@
 		<Unit filename="source/Game/Rendering/RenderWall.vala" />
 		<Unit filename="source/Game/ServerSettings.vala" />
 		<Unit filename="source/MainMenu/CreateServerView.vala" />
+		<Unit filename="source/MainMenu/InformationMenuView.vala" />
 		<Unit filename="source/MainMenu/JoinMenuView.vala" />
 		<Unit filename="source/MainMenu/Lobby/LobbyConnection.vala" />
 		<Unit filename="source/MainMenu/Lobby/LobbyConnectionView.vala" />

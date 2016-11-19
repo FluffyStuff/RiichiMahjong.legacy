@@ -30,15 +30,40 @@ public class Environment
 
         version_info = new VersionInfo(VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH, VERSION_REVIS);
 
-        logger = new Logger("application/");
+        bool console_color = set_console_color_mode();
+
+        logger = new Logger("application/", console_color);
+        Log.set_handler(null, LogLevelFlags.LEVEL_MASK, glib_log_func);
+        set_print_handler(glib_print);
+        set_printerr_handler(glib_error);
         engine_logger = new LogCallback();
         engine_logger.log.connect(engine_log);
         EngineLog.set_log_callback(engine_logger);
+
         log(LogType.INFO, "Environment", "Logging started");
         log(LogType.DEBUG, "Environment", "Logging debug information");
 
         set_working_dir();
         reflection_bug_fix();
+    }
+
+    private static void glib_log_func(string? log_domain, LogLevelFlags log_levels, string message)
+    {
+        string origin = "glib";
+        if (log_domain != null)
+            origin += "[" + log_domain + "]";
+
+        log(LogType.ERROR, origin, message);
+    }
+
+    private static void glib_print(string text)
+    {
+        log(LogType.INFO, "glib", text);
+    }
+
+    private static void glib_error(string text)
+    {
+        log(LogType.ERROR, "glib", text);
     }
 
     private static void engine_log(EngineLogType log_type, string origin, string message)
@@ -143,6 +168,24 @@ public class Environment
 
         GLib.Environment.set_current_dir((string)path);
 	#endif
+    }
+
+    private static bool set_console_color_mode()
+    {
+    // This makes console colors work in Windows 10
+    #if WINDOWS
+        void *handle = Win.GetStdHandle(Win.STD_OUTPUT_HANDLE);
+        if ((int)handle == 0 || (int)handle == -1)
+            return false;
+
+        uint mode = 0;
+        if (!Win.GetConsoleMode(handle, out mode))
+            return false;
+        mode |= Win.ENABLE_VIRTUAL_TERMINAL_PROCESSING();
+        return Win.SetConsoleMode(handle, mode);
+    #else
+        return true;
+    #endif
     }
 
     public static bool compatible(VersionInfo version)
@@ -250,13 +293,22 @@ public class GameLogger
 
 public class Logger
 {
+    private const string RED     = "\x1b[31m";
+    private const string GREEN   = "\x1b[32m";
+    private const string YELLOW  = "\x1b[33m";
+    private const string BLUE    = "\x1b[34m";
+    private const string MAGENTA = "\x1b[35m";
+    private const string CYAN    = "\x1b[36m";
+    private const string RESET   = "\x1b[00m";
     private const string NEWLINE = "\r\n";
 
     private Mutex log_lock;
     private FileWriter log_stream;
+    private bool use_color;
 
-    public Logger(string name)
+    public Logger(string name, bool use_color)
     {
+        this.use_color = use_color;
         log_stream = FileLoader.open(Environment.log_dir + name + Environment.get_datetime_string() + Environment.log_extension);
         log_lock = Mutex();
 
@@ -269,10 +321,18 @@ public class Logger
             return;
 
         log_lock.lock();
-        string m = message.replace("\r", "").replace("\n", " ").replace("\"", "|").strip();
-        string line = "[" + Environment.get_datetime_string() + "] " + log_type.to_string().substring(9) + " from " + origin + ": \"" + m + "\"" + NEWLINE;
-        print(line);
-        log_stream.write(line);
+        string msg = message.replace("\r", "").replace("\n", " ").replace("\"", "|").strip();
+        string type = log_type.to_string().substring(9);
+        string date = Environment.get_datetime_string();
+
+        string log_line = "[" + date + "] " + type + " from " + origin + ": \"" + msg + "\"" + NEWLINE;
+        string col_line = GREEN + "[" + RED + date + GREEN + "] " + YELLOW + type + GREEN + " from " + BLUE + origin + GREEN + ": \"" + RED + msg + GREEN + "\"" + RESET + NEWLINE;
+
+        string con_line = use_color ? col_line : log_line;
+
+        stdout.printf("%s", con_line);
+        stdout.flush();
+        log_stream.write(log_line);
         log_lock.unlock();
     }
 }
@@ -286,6 +346,8 @@ public enum LogType
     NETWORK,
     DEBUG
 }
+
+
 
 #if MAC
 static extern const int PATH_MAX;

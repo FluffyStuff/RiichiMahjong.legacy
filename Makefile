@@ -32,7 +32,8 @@ PKGS  = \
 	--pkg pangoft2 \
 	--pkg sfml-audio-2 \
 	--pkg sfml-system-2 \
-	--pkg portaudio
+	--pkg portaudio \
+	--pkg win32
 
 WLIBS = \
 	-X lib/SOIL/libSOIL.a \
@@ -82,10 +83,10 @@ DEBUG = --save-temps --enable-checking -g -X -ggdb -X -O0 -D DEBUG
 all: debug
 
 debug:
-	$(VALAC) $(DEBUG) $(O) $(DIRS) $(PKGS) $(LLIBS) $(LL64) $(VAPI) $(OTHER)
+	$(VALAC) $(DEBUG) $(O) $(DIRS) $(PKGS) $(LLIBS) $(LL64) $(VAPI) $(OTHER) -D LINUX
 
 release:
-	$(VALAC) $(O) $(DIRS) $(PKGS) $(LLIBS) $(LL64) $(VAPI) $(OTHER)
+	$(VALAC) $(O) $(DIRS) $(PKGS) $(LLIBS) $(LL64) $(VAPI) $(OTHER) -D LINUX
 
 macDebug:
 	$(VALAC) $(DEBUG) $(O) $(DIRS) $(PKGS) $(MLIBS) $(VAPI) $(OTHER) -D MAC
@@ -105,24 +106,11 @@ clean:
 
 WindowsDebug:
 	$(eval SHELL = C:/Windows/System32/cmd.exe)
-#	$(VALAC) $(DEBUG) $(O) $(VAPI) -X -w \
-#	source/main.vala \
-#	source/Engine/Audio/MusicGenerator.vala \
-#	source/Engine/Helper/Threading.vala \
-#	source/Engine/Helper/Networking.vala \
-#	--thread \
-#	--target-glib 2.32 \
-#	--pkg gio-2.0 \
-#	--pkg gee-0.8 \
-#	--pkg portaudio \
-#	-X lib/GEE/libgee.dll.a \
-#	-X lib/PORTAUDIO/libportaudio.dll.a
-
-	$(VALAC) $(DEBUG) $(O) $(DIRS) $(PKGS) $(WLIBS) $(VAPI) $(OTHER)
+	$(VALAC) $(DEBUG) $(O) $(DIRS) $(PKGS) $(WLIBS) $(VAPI) $(OTHER) -D WINDOWS
 
 WindowsRelease:
 	$(eval SHELL = C:/Windows/System32/cmd.exe)
-	$(VALAC) -X -mwindows $(O) $(DIRS) $(PKGS) $(WLIBS) $(VAPI) $(OTHER)
+	$(VALAC) $(O) $(DIRS) $(PKGS) $(WLIBS) $(VAPI) $(OTHER) -D WINDOWS -X -mwindows
 	-RCEDIT /I bin\$(NAME).exe Icon.ico
 
 	-robocopy bin rsc/archive/$(NAME) *.* /MIR
