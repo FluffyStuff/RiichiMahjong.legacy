@@ -28,8 +28,8 @@ uniform float alpha;
 
 /* BLEND_TYPE
 	COLOR = 0,
-    MATERIAL = 1,
-    BLEND = 2,
+	MATERIAL = 1,
+	BLEND = 2,
 	HYBRID = 3
 */
 
@@ -50,8 +50,16 @@ uniform float alpha;
 	}
 }*/
 
-vec4 calculate_lighting_factor(vec4 diffuse_in, vec4 specular_in)
-{		
+#define BLEND_COLOR 1
+#define BLEND_TEXTURE 2
+#define BLEND_WITH_MATERIAL_MULTIPLIER 3
+#define BLEND_WITHOUT_MATERIAL_MULTIPLIER 4
+
+void calculate_lighting_factor(out vec4 diffuse_out, out vec4 specular_out)
+{
+	vec4 diffuse_in = vec4(1.0);
+	vec4 specular_in = vec4(1.0);
+	
 	float blend_factor = 0.0;//0.005;
 	float constant_factor = 0.01;
 	float linear_factor = 0.8;
@@ -95,13 +103,26 @@ vec4 calculate_lighting_factor(vec4 diffuse_in, vec4 specular_in)
 		}
 	}
 	
-	vec4 out_color = vec4(0.0, 0.0, 0.0, 1.0);
-	out_color.xyz = diffuse + specular;
+	float dist = max(pow(length(frag_camera_normal) / 5, 1.0) / 10, 1);
+	diffuse /= dist;
+	specular /= dist;
 	
-	out_color.xyz /= max(pow(length(frag_camera_normal) / 5, 1.0) / 10, 1);
-	//out_color.a *= alpha;
-	
-	return out_color;
+	diffuse_out = vec4(diffuse, 1.0);
+	specular_out = vec4(specular, 1.0);
+}
+
+vec4 base_color_blend(vec4 color, vec4 texture_color, float material_multiplier, int type)
+{
+	if (type == BLEND_COLOR)
+		return color;
+	else if (type == BLEND_TEXTURE)
+		return texture_color;
+	else if (type == BLEND_WITH_MATERIAL_MULTIPLIER)
+		return color * color.a * (1.0 - texture_color.a * material_multiplier) + texture_color * texture_color.a * material_multiplier;
+	else if (type == BLEND_WITHOUT_MATERIAL_MULTIPLIER)
+		return color * color.a * (1.0 - texture_color.a)                       + texture_color * texture_color.a * material_multiplier;
+	else
+		return vec4(0);
 }
 
 void main()
@@ -111,23 +132,23 @@ void main()
 	
 	vec4 t = use_texture ? texture2D(tex, frag_texture_coord) : vec4(0);
 	
-	vec4 ambient = ambient_color * ambient_color.a * (1 - t.a) + t * ambient_material_multiplier;
-	vec4 diffuse = diffuse_color * diffuse_color.a * (1 - t.a) + t * diffuse_material_multiplier;
-	//vec4 ambient = ambient_color * ambient_color.a + tex * ambient_material_multiplier; //color_blend(ambient_color, texture2D(tex, frag_texture_coord), ambient_blend_type);
-	//vec4 diffuse = diffuse_color * diffuse_color.a + tex * diffuse_material_multiplier; //color_blend(diffuse_color, texture2D(tex, frag_texture_coord), diffuse_blend_type);
-	vec4 specular = specular_color * specular_color.a + t * specular_material_multiplier; //color_blend(specular_color, texture2D(tex, frag_texture_coord), specular_blend_type);
-	specular *= 1;
+	vec4  ambient = base_color_blend( ambient_color, t,  ambient_material_multiplier, BLEND_WITHOUT_MATERIAL_MULTIPLIER);
+	vec4  diffuse = base_color_blend( diffuse_color, t,  diffuse_material_multiplier, BLEND_WITHOUT_MATERIAL_MULTIPLIER);
+	vec4 specular = base_color_blend(specular_color, t, specular_material_multiplier, BLEND_WITH_MATERIAL_MULTIPLIER);
 	
 	if (ambient.a <= 0 && diffuse.a <= 0)
 		discard;
 	
-	vec4 lighting_factor = calculate_lighting_factor(diffuse, specular);
+	vec4 diffuse_strength, specular_strength;
+	calculate_lighting_factor(diffuse_strength, specular_strength);
+	diffuse  *= diffuse_strength;
+	specular *= specular_strength;
 	
-	vec4 out_color = ambient + lighting_factor;
+	vec4 out_color = ambient + diffuse + specular;
 	if (out_color.a <= 0)
 		discard;
 	
-	out_color.a *= alpha;
+	out_color.a = alpha;
 	
 	gl_FragColor = out_color;
 }
