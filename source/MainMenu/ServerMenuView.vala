@@ -159,8 +159,7 @@ class ServerMenuView : MainMenuSubView
 
     private void send_settings(ServerSettings settings)
     {
-        string s = FileLoader.array_to_string(settings.to_string());
-        connection.send_message(new ClientMessageMenuSettings(s));
+        connection.send_message(new ClientMessageMenuSettings(settings));
     }
 
     private void send_log(GameLog? log)
@@ -226,7 +225,7 @@ class ServerMenuView : MainMenuSubView
 
     private void settings_message(ServerMessageMenuSettings message)
     {
-        settings.load_string(message.settings);
+        settings = message.settings;
         settings_button.enabled = true;
     }
 

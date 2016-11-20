@@ -147,12 +147,12 @@ public class ClientMessageMenuGameLog : ClientMessage
 
 public class ClientMessageMenuSettings : ClientMessage
 {
-    public ClientMessageMenuSettings(string settings)
+    public ClientMessageMenuSettings(ServerSettings settings)
     {
         this.settings = settings;
     }
 
-    public string settings { get; protected set; }
+    public ServerSettings settings { get; protected set; }
 }
 
 public class ClientMessageTileDiscard : ClientMessage

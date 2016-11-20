@@ -42,7 +42,7 @@ namespace GameServer
                         if (slots[j] != null)
                             player.send_message(new ServerMessageMenuSlotAssign(j, slots[j].name));
 
-                    player.send_message(new ServerMessageMenuSettings(FileLoader.array_to_string(settings.to_string())));
+                    player.send_message(new ServerMessageMenuSettings(settings));
                     players.add(player);
 
                     player.receive_message.connect(message_received);
@@ -103,7 +103,7 @@ namespace GameServer
 
         private void send_settings()
         {
-            ServerMessageMenuSettings message = new ServerMessageMenuSettings(FileLoader.array_to_string(settings.to_string()));
+            ServerMessageMenuSettings message = new ServerMessageMenuSettings(settings);
             foreach (ServerPlayer player in players)
                 player.send_message(message);
         }
@@ -308,7 +308,7 @@ namespace GameServer
                 return;
 
             var s = (ClientMessageMenuSettings)message;
-            settings.load_string(s.settings);
+            settings = s.settings;
 
             send_settings();
         }

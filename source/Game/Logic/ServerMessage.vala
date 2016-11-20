@@ -287,12 +287,12 @@ public class ServerMessageMenuSlotClear : ServerMessage
 
 public class ServerMessageMenuSettings : ServerMessage
 {
-    public ServerMessageMenuSettings(string settings)
+    public ServerMessageMenuSettings(ServerSettings settings)
     {
         this.settings = settings;
     }
 
-    public string settings { get; protected set; }
+    public ServerSettings settings { get; protected set; }
 }
 
 public class ServerMessageMenuGameLog : ServerMessage
