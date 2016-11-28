@@ -33,6 +33,7 @@ PKGS  = \
 	--pkg sfml-audio-2 \
 	--pkg sfml-system-2 \
 	--pkg portaudio \
+	--pkg zlib \
 	--pkg win32
 
 WLIBS = \
