@@ -209,6 +209,9 @@ namespace GameServer
         public override ServerGameRoundInfoSourceRound get_round()
         {
             GameLogRound[] rounds = log.rounds.to_array();
+            if (this.round >= rounds.length)
+                return new ServerGameRoundInfoSourceRound(new RoundStartInfo(2), null);
+
             GameLogRound round = rounds[this.round];
 
             return new ServerGameRoundInfoSourceRound(round.start_info, round.tiles.to_array());

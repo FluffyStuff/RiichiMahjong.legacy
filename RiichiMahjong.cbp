@@ -54,6 +54,7 @@
 		<Unit filename="../Engine/Helper/LabelLoader.vala" />
 		<Unit filename="../Engine/Helper/Networking.vala" />
 		<Unit filename="../Engine/Helper/SoilWrap.vala" />
+		<Unit filename="../Engine/Helper/StepTimer.vala" />
 		<Unit filename="../Engine/Helper/Threading.vala" />
 		<Unit filename="../Engine/Properties/Color.vala" />
 		<Unit filename="../Engine/Properties/Mat3.vala" />
