@@ -33,7 +33,7 @@ public class Environment
         bool console_color = set_console_color_mode();
 
         logger = new Logger("application/", console_color);
-        Log.set_handler(null, LogLevelFlags.LEVEL_MASK, glib_log_func);
+        Log.set_default_handler (glib_log_func);
         set_print_handler(glib_print);
         set_printerr_handler(glib_error);
         engine_logger = new LogCallback();
@@ -317,7 +317,7 @@ public class Logger
 
     public void log(LogType log_type, string origin, string message)
     {
-        if (log_type == LogType.DEBUG && !Environment.debug)
+        if ((log_type == LogType.DEBUG || log_type == LogType.NETWORK) && !Environment.debug)
             return;
 
         log_lock.lock();
