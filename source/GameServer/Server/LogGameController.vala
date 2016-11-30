@@ -4,7 +4,7 @@ namespace GameServer
 {
     public class LogGameController
     {
-        private static const int ROUND_DELAY = 2;
+        private const int ROUND_DELAY = 2;
 
         private GameLog log;
         private bool log_finished = false;

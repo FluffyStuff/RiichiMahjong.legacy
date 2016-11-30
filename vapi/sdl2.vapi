@@ -519,10 +519,10 @@ namespace SDL {
 	[Compact]
 	public class Window {
 		[CCode (cname="SDL_WINDOWPOS_UNDEFINED_MASK")]
-		public static const uint8 POS_UNDEFINED;
+		public const uint8 POS_UNDEFINED;
 		
 		[CCode (cname="SDL_WINDOWPOS_CENTERED_MASK")]
-		public static const uint8 POS_CENTERED;
+		public const uint8 POS_CENTERED;
 		
 		[CCode (cname="SDL_CreateWindow")]
 		public Window(string title, int x, int y, int w, int h, uint32 flags);
@@ -866,7 +866,7 @@ namespace SDL {
 	[Compact]
 	public struct TextEditingEvent : GenericEvent {
 		[CCode (cname="SDL_TEXTEDITINGEVENT_TEXT_SIZE")]
-		public static const uint8 TEXT_SIZE;
+		public const uint8 TEXT_SIZE;
 		
 		uint32 type;
 		uint32 timestamp;
@@ -880,7 +880,7 @@ namespace SDL {
 	[Compact]
 	public struct TextInputEvent : GenericEvent {
 		[CCode (cname="SDL_TEXTINPUTEVENT_TEXT_SIZE")]
-		public static const uint8 TEXT_SIZE;
+		public const uint8 TEXT_SIZE;
 		
 		uint32 windowID;
 		string text; //is better a string?

@@ -134,7 +134,7 @@ public abstract class GameLogLine : Serializable
 
 /*public class StartingGameGameLogLine : GameLogLine
 {
-    public static const string TEXT = "Starting game";
+    public const string TEXT = "Starting game";
 
     public StartingGameGameLogLine(TimeStamp timestamp, GameStartInfo info, ServerSettings settings)
     {
@@ -189,7 +189,7 @@ public abstract class GameLogLine : Serializable
 
 public class RoundStartGameLogLine : GameLogLine
 {
-    public static const string text = "Round start";
+    public const string text = "Round start";
 
     public RoundStartGameLogLine(TimeStamp timestamp, RoundStartInfo info)
     {
@@ -202,7 +202,7 @@ public class RoundStartGameLogLine : GameLogLine
 
 /*public class TileSeedsGameLogLine : GameLogLine
 {
-    public static const string text = "TileSeeds";
+    public const string text = "TileSeeds";
 
     public TileSeedsGameLogLine(TimeStamp timestamp, Tile[] tiles)
     {
@@ -215,8 +215,8 @@ public class RoundStartGameLogLine : GameLogLine
 
 public class DefaultTileDiscardGameLogLine : GameLogLine
 {
-    public static const string text = "default_action";
-    public static const string sub_text = "Defaulting tile_discard";
+    public const string text = "default_action";
+    public const string sub_text = "Defaulting tile_discard";
 
     public DefaultTileDiscardGameLogLine(TimeStamp timestamp, int client, int tile)
     {
@@ -231,8 +231,8 @@ public class DefaultTileDiscardGameLogLine : GameLogLine
 
 public class DefaultCallActionGameLogLine : GameLogLine
 {
-    public static const string text = "default_action";
-    public static const string sub_text = "Defaulting remaining call decisions";
+    public const string text = "default_action";
+    public const string sub_text = "Defaulting remaining call decisions";
 
     public DefaultCallActionGameLogLine(TimeStamp timestamp)
     {
@@ -242,8 +242,8 @@ public class DefaultCallActionGameLogLine : GameLogLine
 
 public class ClientTileDiscardGameLogLine : GameLogLine
 {
-    public static const string text = "client_tile_discard";
-    public static const string sub_text = "Tile discarded";
+    public const string text = "client_tile_discard";
+    public const string sub_text = "Tile discarded";
 
     public ClientTileDiscardGameLogLine(TimeStamp timestamp, int client, int tile)
     {
@@ -258,7 +258,7 @@ public class ClientTileDiscardGameLogLine : GameLogLine
 
 public class ClientNoCallGameLogLine : GameLogLine
 {
-    public static const string text = "client_no_call";
+    public const string text = "client_no_call";
 
     public class ClientNoCallGameLogLine(TimeStamp timestamp, int client)
     {

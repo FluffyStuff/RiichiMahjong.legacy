@@ -2,7 +2,7 @@ using Gee;
 
 abstract class MainMenuSubView : View2D
 {
-    private static const int padding = 30;
+    private const int padding = 30;
 
     private signal void _finish(MainMenuSubView view);
     private signal void _back(MainMenuSubView view);

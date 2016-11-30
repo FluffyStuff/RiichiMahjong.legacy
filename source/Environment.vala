@@ -2,17 +2,17 @@ using Gee;
 
 public class Environment
 {
-    private static const int VERSION_MAJOR = 0;
-    private static const int VERSION_MINOR = 1;
-    private static const int VERSION_PATCH = 2;
-    private static const int VERSION_REVIS = 0;
+    private const int VERSION_MAJOR = 0;
+    private const int VERSION_MINOR = 1;
+    private const int VERSION_PATCH = 2;
+    private const int VERSION_REVIS = 0;
 
-    public static const int MIN_NAME_LENGTH =  2;
-    public static const int MAX_NAME_LENGTH = 12;
+    public const int MIN_NAME_LENGTH =  2;
+    public const int MAX_NAME_LENGTH = 12;
 
-    public static const uint16 GAME_PORT     = 1337;
-    public static const uint16 LOBBY_PORT    = 1337;
-    public static const string LOBBY_ADDRESS = "riichi.fluffy.is";
+    public const uint16 GAME_PORT     = 1337;
+    public const uint16 LOBBY_PORT    = 1337;
+    public const string LOBBY_ADDRESS = "riichi.fluffy.is";
 
     private static bool initialized = false;
 
@@ -350,7 +350,7 @@ public enum LogType
 
 
 #if MAC
-static extern const int PATH_MAX;
+extern const int PATH_MAX;
 static extern void* CFBundleGetMainBundle();
 static extern void* CFBundleCopyResourcesDirectoryURL(void *bundle);
 static extern bool CFURLGetFileSystemRepresentation(void *url, bool b, uint8 *path, int max_path);
