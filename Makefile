@@ -26,74 +26,49 @@ PKGS  = \
 	--pkg glew \
 	--pkg gee-0.8 \
 	--pkg gl \
-	--pkg sdl2-image \
+	--pkg SDL2_image \
 	--pkg sdl2 \
 	--pkg SOIL \
 	--pkg pangoft2 \
-	--pkg sfml-audio-2 \
-	--pkg sfml-system-2 \
-	--pkg portaudio \
+	--pkg sfml-audio \
+	--pkg sfml-system \
 	--pkg zlib \
-	--pkg win32
-
-WLIBS = \
-	-X lib/SOIL/libSOIL.a \
-	-X lib/SDL/SDL2_image.lib \
-	-X lib/SDL/SDL2.lib \
-	-X lib/GLEW/libglew32.a \
-	-X lib/GL/libopengl32.a \
-	-X lib/GEE/libgee.dll.a \
-	-X lib/SFML/libcsfml-audio.a \
-	-X lib/SFML/libcsfml-system.a \
-	-X lib/PORTAUDIO/libportaudio.dll.a
-
-MLIBS = \
-	-X lib/SOIL/libSOIL.mac.a \
-	-X -lsdl2_image \
+	--pkg win32 \
 	-X -lcsfml-audio \
-	-X -framework -X OpenGL \
-	-X -framework -X CoreFoundation
-
-LLIBS = \
-	-X /usr/lib/libSOIL.so \
-	-X lib/SDL/SDL2.lib \
-	-X lib/GLEW/glew32s.lib \
-	-X lib/GL/libopengl32.a \
+	-X -lcsfml-system \
+	-X -lSOIL \
 	-X -lm
 
-LL64  = \
-	-X /usr/lib/x86_64-linux-gnu/libSDL2_image.so \
-	-X /usr/lib/x86_64-linux-gnu/libcsfml-audio.so \
-	-X /usr/lib/x86_64-linux-gnu/libcsfml-system.so \
-	-X /usr/lib/x86_64-linux-gnu/libsfml-audio.so \
-	-X /usr/lib/x86_64-linux-gnu/libsfml-system.so
+WINDOWS = \
+	-X -lopengl32
 
-LL32  = \
-	-X /usr/local/lib/libSDL2_image.a \
-	-X lib/SFML/linux32/libcsfml-audio.so \
-	-X lib/SFML/linux32/libcsfml-system.so
+MAC = \
+	-X lib/SOIL/libSOIL.mac.a \
+	-X -lsdl2_image \
+	-X -framework -X OpenGL \
+	-X -framework -X CoreFoundation
 
 VALAC = valac
 NAME  = RiichiMahjong
 VAPI  = --vapidir=vapi
 #-w = Supress C warnings (Since they stem from the vala code gen)
-OTHER = -X -w -X -DGLEW_STATIC -X -Iinclude
+OTHER = -X -w -X -DGLEW_NO_GLU
 O     = -o bin/$(NAME)
 DEBUG = --save-temps --enable-checking -g -X -ggdb -X -O0 -D DEBUG
 
 all: debug
 
 debug:
-	$(VALAC) $(DEBUG) $(O) $(DIRS) $(PKGS) $(LLIBS) $(LL64) $(VAPI) $(OTHER) -D LINUX
+	$(VALAC) $(DEBUG) $(O) $(DIRS) $(PKGS) $(VAPI) $(OTHER) -D LINUX
 
 release:
-	$(VALAC) $(O) $(DIRS) $(PKGS) $(LLIBS) $(LL64) $(VAPI) $(OTHER) -D LINUX
+	$(VALAC) $(O) $(DIRS) $(PKGS) $(VAPI) $(OTHER) -D LINUX
 
 macDebug:
-	$(VALAC) $(DEBUG) $(O) $(DIRS) $(PKGS) $(MLIBS) $(VAPI) $(OTHER) -D MAC
+	$(VALAC) $(O) $(DIRS) $(PKGS) $(MAC) $(VAPI) $(OTHER) $(DEBUG) -D MAC
 
 macRelease:
-	$(VALAC) $(O) $(DIRS) $(PKGS) $(MLIBS) $(VAPI) $(OTHER) -D MAC
+	$(VALAC) $(O) $(DIRS) $(PKGS) $(MAC) $(VAPI) $(OTHER) -D MAC
 	-mkdir rsc/archive/$(NAME).app
 	-cp bin/$(NAME) rsc/archive/$(NAME).app/
 	-cp -r bin/Data rsc/archive/$(NAME).app/
@@ -106,12 +81,10 @@ clean:
 	rm -r *.c
 
 WindowsDebug:
-	$(eval SHELL = C:/Windows/System32/cmd.exe)
-	$(VALAC) $(DEBUG) $(O) $(DIRS) $(PKGS) $(WLIBS) $(VAPI) $(OTHER) -D WINDOWS
+	$(VALAC) $(O) $(DIRS) $(PKGS) $(WINDOWS) $(VAPI) $(OTHER) $(DEBUG)
 
 WindowsRelease:
-	$(eval SHELL = C:/Windows/System32/cmd.exe)
-	$(VALAC) $(O) $(DIRS) $(PKGS) $(WLIBS) $(VAPI) $(OTHER) -D WINDOWS -X -mwindows
+	$(VALAC) $(O) $(DIRS) $(PKGS) $(WINDOWS) $(VAPI) $(OTHER) -D WINDOWS -X -mwindows
 	-RCEDIT /I bin\$(NAME).exe Icon.ico
 
 	-robocopy bin rsc/archive/$(NAME) *.* /MIR
