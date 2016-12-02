@@ -70,8 +70,7 @@ enum
 **/
 enum
 {
-	SOIL_CREATE_NEW_ID = 0,
-	SOIL_CREATE_REUSABLE = 1
+	SOIL_CREATE_NEW_ID = 0
 };
 
 /**

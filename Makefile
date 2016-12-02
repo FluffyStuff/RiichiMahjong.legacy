@@ -37,16 +37,18 @@ PKGS  = \
 	-X -lcsfml-audio \
 	-X -lcsfml-system \
 	-X -lSOIL \
+	-X -Iinclude \
 	-X -lm
 
 WINDOWS = \
-	-X -lopengl32
+	-X -lopengl32 \
+	-X -Llib/mingw64 \
+	-X -Llib/mingw32
 
 MAC = \
-	-X lib/SOIL/libSOIL.mac.a \
-	-X -lsdl2_image \
 	-X -framework -X OpenGL \
-	-X -framework -X CoreFoundation
+	-X -framework -X CoreFoundation \
+	-X -Llib/mac
 
 VALAC = valac
 NAME  = RiichiMahjong
