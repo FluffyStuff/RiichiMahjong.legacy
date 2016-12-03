@@ -28,7 +28,7 @@ PKGS  = \
 	--pkg gl \
 	--pkg SDL2_image \
 	--pkg sdl2 \
-	--pkg SOIL \
+	--pkg stb \
 	--pkg pangoft2 \
 	--pkg sfml-audio \
 	--pkg sfml-system \
@@ -36,19 +36,15 @@ PKGS  = \
 	--pkg win32 \
 	-X -lcsfml-audio \
 	-X -lcsfml-system \
-	-X -lSOIL \
 	-X -Iinclude \
 	-X -lm
 
 WINDOWS = \
-	-X -lopengl32 \
-	-X -Llib/mingw64 \
-	-X -Llib/mingw32
+	-X -lopengl32
 
 MAC = \
 	-X -framework -X OpenGL \
-	-X -framework -X CoreFoundation \
-	-X -Llib/mac
+	-X -framework -X CoreFoundation
 
 VALAC = valac
 NAME  = RiichiMahjong
